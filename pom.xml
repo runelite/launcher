@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>net.runelite</groupId>
+	<artifactId>launcher</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<packaging>jar</packaging>
+	
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<maven.compiler.source>1.7</maven.compiler.source>
+		<maven.compiler.target>1.7</maven.compiler.target>
+		
+		<launch4j.version>0.0.1.0</launch4j.version>
+		<main.class>net.runelite.launcher.Launcher</main.class>
+	</properties>
+	
+	<dependencies>
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpclient</artifactId>
+			<version>4.2.5</version>
+			<type>jar</type>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>1.7.12</version>
+			<type>jar</type>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-simple</artifactId>
+			<version>1.7.12</version>
+		</dependency>
+	</dependencies>
+    
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>make-assembly</id>
+						<phase>package</phase>
+						<configuration>
+							<archive>
+								<manifest>
+									<mainClass>${main.class}</mainClass>
+								</manifest>
+							</archive>
+							<descriptorRefs>
+								<descriptorRef>jar-with-dependencies</descriptorRef>
+							</descriptorRefs>
+						</configuration>
+						<goals>
+							<goal>single</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>com.akathist.maven.plugins.launch4j</groupId>
+				<artifactId>launch4j-maven-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>l4j-clui</id>
+						<phase>install</phase>
+						<goals>
+							<goal>launch4j</goal>
+						</goals>
+						<configuration>
+							
+							<headerType>gui</headerType>        
+							<headerType>console</headerType>
+							<jar>target/launcher-${project.version}-jar-with-dependencies.jar</jar>
+							<outfile>target/Runelite.exe</outfile>
+							<errTitle>${project.name}</errTitle>
+							<!--							<icon>your/Icon.ico</icon>-->
+							<jre>
+								<path>${java.home}</path>
+							</jre>
+
+							<!--							<versionInfo>
+								<fileVersion>${launch4j.version}</fileVersion>
+								<txtFileVersion>${project.version}</txtFileVersion>
+								<fileDescription>Runelite</fileDescription>
+								<copyright>(c) 2015 adam@sigterm.info</copyright>
+								<productVersion>${launch4j.version}</productVersion>
+								<txtProductVersion>${project.version}</txtProductVersion>
+								<productName>Runelite</productName>
+								<companyName>Runelite</companyName>
+								<internalName>Runelite</internalName>
+								<originalFilename>Runelite.exe</originalFilename>
+							</versionInfo>-->
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+</project>
