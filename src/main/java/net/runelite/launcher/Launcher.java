@@ -1,5 +1,6 @@
 package net.runelite.launcher;
 
+import com.jcabi.aether.Aether;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -9,87 +10,54 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
+import net.runelite.launcher.ui.LauncherUI;
+import org.sonatype.aether.artifact.Artifact;
+import org.sonatype.aether.repository.RemoteRepository;
+import org.sonatype.aether.resolution.DependencyResolutionException;
+import org.sonatype.aether.util.artifact.DefaultArtifact;
 
 public class Launcher
 {
-	private static Certificate getCertificate() throws CertificateException
-	{
-		CertificateFactory certFactory = CertificateFactory.getInstance("X.509");
-		return certFactory.generateCertificate(Launcher.class.getResourceAsStream("/runelite.crt"));
-	}
-	
+	private static final File RUNELITE_DIR = new File(System.getProperty("user.home"), ".runelite");
+	private static final File LIB_DIR = new File(RUNELITE_DIR, "libs");
+
+//	private List<Artifact> resolveArtifacts(Artifact artifact) throws DependencyResolutionException
+//	{
+//		RemoteRepository remoteRepository = new RemoteRepository("runelite", null, "http://192.168.1.2/rs/repo");
+//
+//		Aether a = new Aether(Arrays.asList(remoteRepository), LIB_DIR);
+//
+//		Collection<Artifact> deps = a.resolve(artifact, "runtime");
+//		return new ArrayList<>(deps);
+//	}
+//
 	public static void main(String[] args) throws Exception
 	{
-		File rlDir = Util.getRuneliteDir();
-		File runeliteFile = new File(rlDir, "runelite.jar");
-		
-		Util.download(new URL("http://bootstrap.runelite.net"), runeliteFile);
-		
-		JarFile runeliteJarfile = new JarFile(runeliteFile);
-		
-		verify(runeliteJarfile, getCertificate());
-		
-		URLClassLoader loader = new URLClassLoader(new URL[] { runeliteFile.toURI().toURL() });
-		Launchable l = (Launchable) loader.loadClass("net.runelite.client.Launcher").newInstance();
-		l.run();
-	}
-	
-	private static void verify(JarFile jarFile, Certificate certificate) throws IOException
-	{
-		List<JarEntry> jarEntries = new ArrayList<>();
+		new LauncherUI();
 
-		// Ensure the jar file is signed.
-		Manifest man = jarFile.getManifest();
-		if (man == null)
-		{
-			throw new SecurityException("The provider is not signed");
-		}
+		ArtifactResolver resolver = new ArtifactResolver(LIB_DIR, new RemoteRepository("runelite", null, "http://192.168.1.2/rs/repo"));
+		Artifact a = new DefaultArtifact("net.runelite.rs", "client", "", "jar", "0.0.0");
 
-		// Ensure all the entries' signatures verify correctly
-		byte[] buffer = new byte[8192];
-		Enumeration entries = jarFile.entries();
+		resolver.resolveArtifacts(a);
 
-		while (entries.hasMoreElements())
-		{
-			JarEntry je = (JarEntry) entries.nextElement();
-
-			// Skip directories.
-			if (je.isDirectory() || je.getName().startsWith("META-INF/"))
-			{
-				continue;
-			}
-
-			// Read in each jar entry. A security exception will
-			// be thrown if a signature/digest check fails.
-			try (InputStream is = jarFile.getInputStream(je))
-			{
-				// Read in each jar entry. A security exception will
-				// be thrown if a signature/digest check fails.
-				while (is.read(buffer, 0, buffer.length) != -1);
-			}
-
-			jarEntries.add(je);
-		}
-
-		// Get the list of signer certificates
-		for (JarEntry je : jarEntries)
-		{
-			// Every file must be signed except files in META-INF.
-			Certificate[] certs = je.getCertificates();
-			if (certs == null || certs.length == 0)
-			{
-				throw new SecurityException("The provider has unsigned class files. " + je);
-			}
-
-			Certificate cert = certs[0];
-
-			if (!certificate.equals(cert))
-				throw new SecurityException("The provider is not signed by a trusted signer");
-		}
+//		File rlDir = Util.getRuneliteDir();
+//		File runeliteFile = new File(rlDir, "runelite.jar");
+//
+//		Util.download(new URL("http://bootstrap.runelite.net"), runeliteFile);
+//
+//		JarFile runeliteJarfile = new JarFile(runeliteFile);
+//
+//		verify(runeliteJarfile, getCertificate());
+//
+//		URLClassLoader loader = new URLClassLoader(new URL[] { runeliteFile.toURI().toURL() });
+//		Launchable l = (Launchable) loader.loadClass("net.runelite.client.Launcher").newInstance();
+//		l.run();
 	}
 }
