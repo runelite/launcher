@@ -1,31 +1,98 @@
 package net.runelite.launcher;
 
-import com.jcabi.aether.Aether;
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
-import org.sonatype.aether.artifact.Artifact;
-import org.sonatype.aether.repository.RemoteRepository;
-import org.sonatype.aether.resolution.DependencyResolutionException;
+import org.apache.maven.repository.internal.MavenRepositorySystemUtils;
+import org.eclipse.aether.DefaultRepositorySystemSession;
+import org.eclipse.aether.RepositorySystem;
+import org.eclipse.aether.RepositorySystemSession;
+import org.eclipse.aether.artifact.Artifact;
+import org.eclipse.aether.collection.CollectRequest;
+import org.eclipse.aether.connector.basic.BasicRepositoryConnectorFactory;
+import org.eclipse.aether.graph.Dependency;
+import org.eclipse.aether.graph.DependencyFilter;
+import org.eclipse.aether.impl.DefaultServiceLocator;
+import org.eclipse.aether.repository.LocalRepository;
+import org.eclipse.aether.repository.RemoteRepository;
+import org.eclipse.aether.resolution.ArtifactResult;
+import org.eclipse.aether.resolution.DependencyRequest;
+import org.eclipse.aether.resolution.DependencyResolutionException;
+import org.eclipse.aether.spi.connector.RepositoryConnectorFactory;
+import org.eclipse.aether.spi.connector.transport.TransporterFactory;
+import org.eclipse.aether.transport.http.HttpTransporterFactory;
+import org.eclipse.aether.util.artifact.JavaScopes;
+import org.eclipse.aether.util.filter.DependencyFilterUtils;
 
 public class ArtifactResolver
 {
 	private final File repositoryCache;
-	private final RemoteRepository remoteRepository;
 
-	public ArtifactResolver(File repositoryCache, RemoteRepository remoteRepository)
+	public ArtifactResolver(File repositoryCache)
 	{
 		this.repositoryCache = repositoryCache;
-		this.remoteRepository = remoteRepository;
 	}
 
-	public List<Artifact> resolveArtifacts(Artifact artifact) throws DependencyResolutionException
+	public List<ArtifactResult> resolveArtifacts(Artifact artifact) throws DependencyResolutionException
 	{
-		Aether a = new Aether(Arrays.asList(remoteRepository), repositoryCache);
+		RepositorySystem system = newRepositorySystem();
 
-		Collection<Artifact> deps = a.resolve(artifact, "runtime");
-		return new ArrayList<>(deps);
+		RepositorySystemSession session = newRepositorySystemSession(system);
+
+		DependencyFilter classpathFlter = DependencyFilterUtils.classpathFilter(JavaScopes.COMPILE);
+
+		CollectRequest collectRequest = new CollectRequest();
+		collectRequest.setRoot(new Dependency(artifact, JavaScopes.COMPILE));
+		collectRequest.setRepositories(newRepositories());
+
+		DependencyRequest dependencyRequest = new DependencyRequest(collectRequest, classpathFlter);
+
+		return system.resolveDependencies(session, dependencyRequest).getArtifactResults();
+	}
+
+	public DefaultRepositorySystemSession newRepositorySystemSession(RepositorySystem system)
+	{
+		DefaultRepositorySystemSession session = MavenRepositorySystemUtils.newSession();
+
+		LocalRepository localRepo = new LocalRepository(repositoryCache.getAbsolutePath());
+		session.setLocalRepositoryManager(system.newLocalRepositoryManager(session, localRepo));
+
+		//session.setTransferListener(new ConsoleTransferListener());
+		//session.setRepositoryListener(new ConsoleRepositoryListener());
+		
+		return session;
+	}
+
+	public RepositorySystem newRepositorySystem()
+	{
+		DefaultServiceLocator locator = MavenRepositorySystemUtils.newServiceLocator();
+		locator.addService(RepositoryConnectorFactory.class, BasicRepositoryConnectorFactory.class);
+		locator.addService(TransporterFactory.class, HttpTransporterFactory.class);
+
+		locator.setErrorHandler(new DefaultServiceLocator.ErrorHandler()
+		{
+			@Override
+			public void serviceCreationFailed(Class<?> type, Class<?> impl, Throwable exception)
+			{
+				exception.printStackTrace();
+			}
+		});
+
+		return locator.getService(RepositorySystem.class);
+	}
+
+	private List<RemoteRepository> newRepositories()
+	{
+		return Arrays.asList(newCentralRepository(), newRuneliteRepository());
+	}
+
+	private RemoteRepository newCentralRepository()
+	{
+		return new RemoteRepository.Builder("central", "default", "http://central.maven.org/maven2/").build();
+	}
+
+	public RemoteRepository newRuneliteRepository()
+	{
+		return new RemoteRepository.Builder("runelite", "default", "http://192.168.1.2/rs/repo/").build();
 	}
 }
