@@ -17,7 +17,7 @@ public class ArtifactResolverTest
 	public void test() throws Exception
 	{
 		ArtifactResolver resolver = new ArtifactResolver(folder.newFolder());
-		Artifact a = new DefaultArtifact("net.runelite.rs", "client", "", "jar", "1.0.0-SNAPSHOT");
+		Artifact a = new DefaultArtifact("net.runelite", "client", "", "jar", "1.0.0-SNAPSHOT");
 
 		List<ArtifactResult> artifacts = resolver.resolveArtifacts(a);
 

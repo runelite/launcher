@@ -2,7 +2,6 @@ package net.runelite.launcher;
 
 import java.io.File;
 import java.util.List;
-import net.runelite.launcher.ui.LauncherUI;
 import org.eclipse.aether.artifact.Artifact;
 import org.eclipse.aether.artifact.DefaultArtifact;
 import org.eclipse.aether.resolution.ArtifactResult;
@@ -16,10 +15,8 @@ public class Launcher
 
 	public static void main(String[] args) throws Exception
 	{
-		new LauncherUI();
-
 		ArtifactResolver resolver = new ArtifactResolver(REPO_DIR);
-		Artifact a = new DefaultArtifact("net.runelite.rs", "client", "", "jar", "1.0.0-SNAPSHOT"); // XXX
+		Artifact a = new DefaultArtifact("net.runelite", "client", "", "jar", "1.0.0-SNAPSHOT"); // XXX
 
 		List<ArtifactResult> results = resolver.resolveArtifacts(a);
 		validate(resolver, results);

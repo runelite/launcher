@@ -18,6 +18,13 @@
 
 		<main.class>net.runelite.launcher.Launcher</main.class>
 	</properties>
+
+	<distributionManagement>
+		<repository>
+			<id>runelite</id>
+			<url>${runelite.repository.url}</url>
+		</repository>
+	</distributionManagement>
 	
 	<dependencies>
 		<dependency>
@@ -127,5 +134,12 @@
 				</executions>
 			</plugin>
 		</plugins>
+		<extensions>
+			<extension>
+				<groupId>org.apache.maven.wagon</groupId>
+				<artifactId>wagon-ssh</artifactId>
+				<version>2.10</version>
+			</extension>
+		</extensions>
 	</build>
 </project>
