@@ -1,5 +1,6 @@
 package net.runelite.launcher;
 
+import com.google.gson.Gson;
 import java.util.List;
 import org.eclipse.aether.artifact.Artifact;
 import org.eclipse.aether.artifact.DefaultArtifact;
@@ -23,5 +24,13 @@ public class ArtifactResolverTest
 
 		for (ArtifactResult a2 : artifacts)
 			System.out.println(a2.getArtifact().getFile());
+	}
+
+	@Test
+	public void printJson()
+	{
+		Gson g = new Gson();
+		Artifact a = new DefaultArtifact("net.runelite", "client", "", "jar", "1.0.0-SNAPSHOT");
+		System.out.println(g.toJson(a));
 	}
 }

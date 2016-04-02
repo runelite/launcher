@@ -47,7 +47,9 @@ public class ArtifactResolver
 
 		DependencyRequest dependencyRequest = new DependencyRequest(collectRequest, classpathFlter);
 
-		return system.resolveDependencies(session, dependencyRequest).getArtifactResults();
+		List<ArtifactResult> results = system.resolveDependencies(session, dependencyRequest).getArtifactResults();
+		validate(results);
+		return results;
 	}
 
 	public DefaultRepositorySystemSession newRepositorySystemSession(RepositorySystem system)
@@ -94,5 +96,19 @@ public class ArtifactResolver
 	public RemoteRepository newRuneliteRepository()
 	{
 		return new RemoteRepository.Builder("runelite", "default", "http://192.168.1.2/rs/repo/").build();
+	}
+
+	private void validate(List<ArtifactResult> artifacts)
+	{
+		for (ArtifactResult ar : artifacts)
+		{
+			Artifact a = ar.getArtifact();
+
+			if (!a.getGroupId().startsWith("net.runelite"))
+				continue;
+
+			if (!ar.getRepository().equals(newRuneliteRepository()))
+				throw new RuntimeException();
+		}
 	}
 }

@@ -1,6 +1,10 @@
 package net.runelite.launcher;
 
+import com.google.gson.Gson;
 import java.io.File;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.URL;
 import java.util.List;
 import org.eclipse.aether.artifact.Artifact;
 import org.eclipse.aether.artifact.DefaultArtifact;
@@ -9,34 +13,30 @@ import org.eclipse.aether.resolution.ArtifactResult;
 public class Launcher
 {
 	private static final File RUNELITE_DIR = new File(System.getProperty("user.home"), ".runelite");
-	private static final File REPO_DIR = new File(RUNELITE_DIR, "repository");
+	public static final File REPO_DIR = new File(RUNELITE_DIR, "repository");
 
+	private static final String CLIENT_ARTIFACT_URL = "http://192.168.1.2/rs/bootstrap.json";
 	private static final String CLIENT_LAUNCHER_CLASS = "net.runelite.client.Launcher";
 
 	public static void main(String[] args) throws Exception
 	{
 		ArtifactResolver resolver = new ArtifactResolver(REPO_DIR);
-		Artifact a = new DefaultArtifact("net.runelite", "client", "", "jar", "1.0.0-SNAPSHOT"); // XXX
+		Artifact a = getClientArtifact();
 
 		List<ArtifactResult> results = resolver.resolveArtifacts(a);
-		validate(resolver, results);
 		RuneliteLoader loader = new RuneliteLoader(results);
 
 		Launchable l = (Launchable) loader.loadClass(CLIENT_LAUNCHER_CLASS).newInstance();
 		l.run();
 	}
 
-	private static void validate(ArtifactResolver resolver, List<ArtifactResult> artifacts)
+	private static Artifact getClientArtifact() throws Exception
 	{
-		for (ArtifactResult ar : artifacts)
+		URL u = new URL(CLIENT_ARTIFACT_URL);
+		try (InputStream i = u.openStream())
 		{
-			Artifact a = ar.getArtifact();
-
-			if (!a.getGroupId().startsWith("net.runelite"))
-				continue;
-
-			if (!ar.getRepository().equals(resolver.newRuneliteRepository()))
-				throw new RuntimeException();
+			Gson g = new Gson();
+			return g.fromJson(new InputStreamReader(i), DefaultArtifact.class);
 		}
 	}
 }
