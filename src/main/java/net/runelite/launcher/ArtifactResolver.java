@@ -15,6 +15,7 @@ import org.eclipse.aether.graph.DependencyFilter;
 import org.eclipse.aether.impl.DefaultServiceLocator;
 import org.eclipse.aether.repository.LocalRepository;
 import org.eclipse.aether.repository.RemoteRepository;
+import org.eclipse.aether.repository.RepositoryPolicy;
 import org.eclipse.aether.resolution.ArtifactResult;
 import org.eclipse.aether.resolution.DependencyRequest;
 import org.eclipse.aether.resolution.DependencyResolutionException;
@@ -58,6 +59,7 @@ public class ArtifactResolver
 
 		LocalRepository localRepo = new LocalRepository(repositoryCache.getAbsolutePath());
 		session.setLocalRepositoryManager(system.newLocalRepositoryManager(session, localRepo));
+		session.setUpdatePolicy(RepositoryPolicy.UPDATE_POLICY_ALWAYS); // this causes a refetch of maven-metadata.xml, but not any binaries
 
 		//session.setTransferListener(new ConsoleTransferListener());
 		//session.setRepositoryListener(new ConsoleRepositoryListener());
@@ -95,7 +97,7 @@ public class ArtifactResolver
 
 	public RemoteRepository newRuneliteRepository()
 	{
-		return new RemoteRepository.Builder("runelite", "default", "http://192.168.1.2/rs/repo/").build();
+		return new RemoteRepository.Builder("runelite", "default", "http://repo.runelite.net/").build();
 	}
 
 	private void validate(List<ArtifactResult> artifacts)
