@@ -2,6 +2,7 @@ package net.runelite.launcher;
 
 import com.google.gson.Gson;
 import java.util.List;
+import net.runelite.launcher.beans.Bootstrap;
 import org.eclipse.aether.artifact.Artifact;
 import org.eclipse.aether.artifact.DefaultArtifact;
 import org.eclipse.aether.resolution.ArtifactResult;
@@ -29,8 +30,19 @@ public class ArtifactResolverTest
 	@Test
 	public void printJson()
 	{
+		Bootstrap b = new Bootstrap();
 		Gson g = new Gson();
-		Artifact a = new DefaultArtifact("net.runelite", "client", "", "jar", "1.0.0-SNAPSHOT");
-		System.out.println(g.toJson(a));
+		DefaultArtifact a = new DefaultArtifact("net.runelite", "client", "", "jar", "1.0.0-SNAPSHOT");
+		b.setClient(a);
+		b.setClientJvmArguments(new String[] {
+			"-Xmx256m",
+			"-Xss2m",
+			"-Dsun.java2d.noddraw=true",
+			"-XX:CompileThreshold=1500",
+			"-Xincgc",
+			"-XX:+UseConcMarkSweepGC",
+			"-XX:+UseParNewGC"
+		});
+		System.out.println(g.toJson(b));
 	}
 }

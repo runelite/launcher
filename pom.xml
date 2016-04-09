@@ -112,29 +112,28 @@
 							<goal>launch4j</goal>
 						</goals>
 						<configuration>
-							
-							<headerType>gui</headerType>        
-							<headerType>console</headerType>
+							<headerType>gui</headerType>
 							<jar>target/launcher-${project.version}-jar-with-dependencies.jar</jar>
 							<outfile>target/Runelite.exe</outfile>
 							<errTitle>${project.name}</errTitle>
-							<!--							<icon>your/Icon.ico</icon>-->
+							<!--<icon>your/Icon.ico</icon>-->
+							
 							<jre>
-								<path>${java.home}</path>
+								<minVersion>1.8.0</minVersion>
 							</jre>
 
-							<!--							<versionInfo>
+							<versionInfo>
 								<fileVersion>${launch4j.version}</fileVersion>
 								<txtFileVersion>${project.version}</txtFileVersion>
 								<fileDescription>Runelite</fileDescription>
-								<copyright>(c) 2015 adam@sigterm.info</copyright>
+								<copyright>(C) 2016 adam@sigterm.info</copyright>
 								<productVersion>${launch4j.version}</productVersion>
 								<txtProductVersion>${project.version}</txtProductVersion>
 								<productName>Runelite</productName>
 								<companyName>Runelite</companyName>
 								<internalName>Runelite</internalName>
 								<originalFilename>Runelite.exe</originalFilename>
-							</versionInfo>-->
+							</versionInfo>
 						</configuration>
 					</execution>
 				</executions>
