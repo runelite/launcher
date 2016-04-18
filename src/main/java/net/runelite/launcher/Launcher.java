@@ -16,7 +16,7 @@ import org.eclipse.aether.resolution.ArtifactResult;
 public class Launcher
 {
 	private static final File RUNELITE_DIR = new File(System.getProperty("user.home"), ".runelite");
-	public static final File REPO_DIR = new File(RUNELITE_DIR, "repository");
+	private static final File REPO_DIR = new File(RUNELITE_DIR, "repository");
 
 	private static final String CLIENT_BOOTSTRAP_URL = "https://static.runelite.net/bootstrap.json";
 	private static final String CLIENT_MAIN_CLASS = "net.runelite.client.RuneLite";
