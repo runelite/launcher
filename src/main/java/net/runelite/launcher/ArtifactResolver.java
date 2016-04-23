@@ -109,7 +109,7 @@ public class ArtifactResolver
 			if (!a.getGroupId().startsWith("net.runelite"))
 				continue;
 
-			if (!ar.getRepository().equals(newRuneliteRepository()))
+			if (ar.getRepository() instanceof RemoteRepository && !ar.getRepository().equals(newRuneliteRepository()))
 				throw new RuntimeException();
 		}
 	}
