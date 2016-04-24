@@ -1,7 +1,7 @@
 package net.runelite.launcher;
 
 import java.io.File;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import org.apache.maven.repository.internal.MavenRepositorySystemUtils;
 import org.eclipse.aether.DefaultRepositorySystemSession;
@@ -28,6 +28,7 @@ import org.eclipse.aether.util.filter.DependencyFilterUtils;
 public class ArtifactResolver
 {
 	private final File repositoryCache;
+	private final List<RemoteRepository> repositories = new ArrayList<>();
 
 	public ArtifactResolver(File repositoryCache)
 	{
@@ -44,7 +45,7 @@ public class ArtifactResolver
 
 		CollectRequest collectRequest = new CollectRequest();
 		collectRequest.setRoot(new Dependency(artifact, JavaScopes.COMPILE));
-		collectRequest.setRepositories(newRepositories());
+		collectRequest.setRepositories(repositories);
 
 		DependencyRequest dependencyRequest = new DependencyRequest(collectRequest, classpathFlter);
 
@@ -59,11 +60,10 @@ public class ArtifactResolver
 
 		LocalRepository localRepo = new LocalRepository(repositoryCache.getAbsolutePath());
 		session.setLocalRepositoryManager(system.newLocalRepositoryManager(session, localRepo));
-		session.setUpdatePolicy(RepositoryPolicy.UPDATE_POLICY_ALWAYS); // this causes a refetch of maven-metadata.xml, but not any binaries
 
 		//session.setTransferListener(new ConsoleTransferListener());
 		//session.setRepositoryListener(new ConsoleRepositoryListener());
-		
+
 		return session;
 	}
 
@@ -85,9 +85,10 @@ public class ArtifactResolver
 		return locator.getService(RepositorySystem.class);
 	}
 
-	private List<RemoteRepository> newRepositories()
+	public void addRepositories()
 	{
-		return Arrays.asList(newCentralRepository(), newRuneliteRepository());
+		repositories.add(this.newCentralRepository());
+		repositories.add(this.newRuneliteRepository());
 	}
 
 	private RemoteRepository newCentralRepository()
@@ -97,7 +98,9 @@ public class ArtifactResolver
 
 	public RemoteRepository newRuneliteRepository()
 	{
-		return new RemoteRepository.Builder("runelite", "default", "http://repo.runelite.net/").build();
+		return new RemoteRepository.Builder("runelite", "default", "http://repo.runelite.net/")
+			.setPolicy(new RepositoryPolicy(true, RepositoryPolicy.UPDATE_POLICY_ALWAYS, RepositoryPolicy.CHECKSUM_POLICY_FAIL))
+			.build();
 	}
 
 	private void validate(List<ArtifactResult> artifacts)

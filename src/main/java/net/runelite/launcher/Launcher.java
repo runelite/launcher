@@ -42,6 +42,8 @@ public class Launcher
 		Bootstrap bootstrap = getBootstrap();
 
 		ArtifactResolver resolver = new ArtifactResolver(REPO_DIR);
+		resolver.addRepositories();
+		
 		Artifact a = bootstrap.getClient();
 
 		List<ArtifactResult> results = resolver.resolveArtifacts(a);
