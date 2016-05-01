@@ -18,7 +18,7 @@ public class Launcher
 	private static final File RUNELITE_DIR = new File(System.getProperty("user.home"), ".runelite");
 	private static final File REPO_DIR = new File(RUNELITE_DIR, "repository");
 
-	private static final String CLIENT_BOOTSTRAP_URL = "https://static.runelite.net/bootstrap.json";
+	private static final String CLIENT_BOOTSTRAP_URL = "http://static.runelite.net/bootstrap.json";
 	private static final String CLIENT_MAIN_CLASS = "net.runelite.client.RuneLite";
 
 	private static String getJava()
