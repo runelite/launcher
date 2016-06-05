@@ -51,7 +51,7 @@ public class Launcher
 {
 	private static final Logger logger = LoggerFactory.getLogger(Launcher.class);
 	
-	public static boolean DEBUG = true;
+	public static boolean DEBUG = false;
 
 	private static final File RUNELITE_DIR = new File(System.getProperty("user.home"), ".runelite");
 	private static final File REPO_DIR = new File(RUNELITE_DIR, "repository");
