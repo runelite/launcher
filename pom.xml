@@ -4,7 +4,7 @@
 	
 	<groupId>net.runelite</groupId>
 	<artifactId>launcher</artifactId>
-	<version>1.0.1-SNAPSHOT</version>
+	<version>1.0.1</version>
 	
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
