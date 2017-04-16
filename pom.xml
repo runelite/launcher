@@ -156,7 +156,7 @@
 							<jar>target/launcher-${project.version}-jar-with-dependencies.jar</jar>
 							<outfile>target/Runelite.exe</outfile>
 							<errTitle>${project.name}</errTitle>
-							<!--<icon>your/Icon.ico</icon>-->
+							<icon>src/main/resources/runelite.ico</icon>
 							
 							<jre>
 								<minVersion>1.8.0</minVersion>
