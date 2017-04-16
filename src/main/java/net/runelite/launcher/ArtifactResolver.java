@@ -116,7 +116,7 @@ public class ArtifactResolver
 
 	private RemoteRepository newCentralRepository()
 	{
-		return new RemoteRepository.Builder("central", "default", "http://central.maven.org/maven2/").build();
+		return new RemoteRepository.Builder("central", "default", "http://mvn.runelite.net/").build();
 	}
 
 	public RemoteRepository newRuneliteRepository()
