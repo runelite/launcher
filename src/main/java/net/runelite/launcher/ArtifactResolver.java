@@ -48,9 +48,13 @@ import org.eclipse.aether.spi.connector.transport.TransporterFactory;
 import org.eclipse.aether.transport.http.HttpTransporterFactory;
 import org.eclipse.aether.util.artifact.JavaScopes;
 import org.eclipse.aether.util.filter.DependencyFilterUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ArtifactResolver
 {
+	private static final Logger logger = LoggerFactory.getLogger(ArtifactResolver.class);
+
 	private final File repositoryCache;
 	private final List<RemoteRepository> repositories = new ArrayList<>();
 
@@ -74,7 +78,7 @@ public class ArtifactResolver
 		DependencyRequest dependencyRequest = new DependencyRequest(collectRequest, classpathFlter);
 
 		List<ArtifactResult> results = system.resolveDependencies(session, dependencyRequest).getArtifactResults();
-		validate(results);
+		validate(results); // check to see if they're from the right repository
 		return results;
 	}
 
@@ -101,7 +105,7 @@ public class ArtifactResolver
 			@Override
 			public void serviceCreationFailed(Class<?> type, Class<?> impl, Throwable exception)
 			{
-				exception.printStackTrace();
+				logger.warn(null, exception);
 			}
 		});
 
