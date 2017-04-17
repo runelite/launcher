@@ -27,13 +27,18 @@ package net.runelite.launcher;
 import com.google.gson.Gson;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.jar.JarFile;
 import net.runelite.launcher.beans.Bootstrap;
 import org.eclipse.aether.artifact.Artifact;
 import org.eclipse.aether.resolution.ArtifactResult;
@@ -44,7 +49,8 @@ public class Launcher
 {
 	private static final Logger logger = LoggerFactory.getLogger(Launcher.class);
 
-	public static boolean DEBUG = false;
+	private static final boolean DEBUG = false;
+	private static final boolean VERIFY = false; // XXX releases aren't signed yet
 
 	private static final File RUNELITE_DIR = new File(System.getProperty("user.home"), ".runelite");
 	private static final File REPO_DIR = new File(RUNELITE_DIR, "repository");
@@ -84,6 +90,30 @@ public class Launcher
 		Artifact a = bootstrap.getClient();
 
 		List<ArtifactResult> results = resolver.resolveArtifacts(a);
+
+		if (results.isEmpty())
+		{
+			logger.error("Unable to resolve artifacts");
+			return;
+		}
+
+		try
+		{
+			verifyJarSignature(results.get(0).getArtifact().getFile());
+		}
+		catch (CertificateException | IOException | SecurityException ex)
+		{
+			if (VERIFY)
+			{
+				logger.error("Unable to verify signature of jar file", ex);
+				return;
+			}
+			else
+			{
+				logger.warn("Unable to verify signature of jar file", ex);
+			}
+		}
+
 		StringBuilder classPath = new StringBuilder();
 
 		for (ArtifactResult ar : results)
@@ -131,5 +161,13 @@ public class Launcher
 			Gson g = new Gson();
 			return g.fromJson(new InputStreamReader(i), Bootstrap.class);
 		}
+	}
+
+	private static void verifyJarSignature(File jarFile) throws CertificateException, IOException
+	{
+		CertificateFactory certFactory = CertificateFactory.getInstance("X.509");
+		Certificate certificate = certFactory.generateCertificate(JarVerifier.class.getResourceAsStream("/runelite.crt"));
+
+		JarVerifier.verify(new JarFile(jarFile), certificate);
 	}
 }
