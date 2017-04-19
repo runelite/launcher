@@ -6,6 +6,7 @@ import net.runelite.launcher.beans.Bootstrap;
 import org.eclipse.aether.artifact.Artifact;
 import org.eclipse.aether.artifact.DefaultArtifact;
 import org.eclipse.aether.resolution.ArtifactResult;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -16,6 +17,7 @@ public class ArtifactResolverTest
 	public TemporaryFolder folder = new TemporaryFolder();
 
 	@Test
+	@Ignore
 	public void test() throws Exception
 	{
 		ArtifactResolver resolver = new ArtifactResolver(folder.newFolder());
