@@ -54,7 +54,6 @@ public class LauncherFrame extends JFrame implements TransferListener
 
 		bar = new JProgressBar();
 		bar.setMaximum(100);
-		bar.setToolTipText("moo");
 		bar.setStringPainted(true);
 		add(bar);
 
