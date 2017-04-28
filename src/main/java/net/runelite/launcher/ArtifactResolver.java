@@ -45,6 +45,7 @@ import org.eclipse.aether.resolution.DependencyRequest;
 import org.eclipse.aether.resolution.DependencyResolutionException;
 import org.eclipse.aether.spi.connector.RepositoryConnectorFactory;
 import org.eclipse.aether.spi.connector.transport.TransporterFactory;
+import org.eclipse.aether.transfer.TransferListener;
 import org.eclipse.aether.transport.http.HttpTransporterFactory;
 import org.eclipse.aether.util.artifact.JavaScopes;
 import org.eclipse.aether.util.filter.DependencyFilterUtils;
@@ -58,9 +59,21 @@ public class ArtifactResolver
 	private final File repositoryCache;
 	private final List<RemoteRepository> repositories = new ArrayList<>();
 
+	private TransferListener listener;
+
 	public ArtifactResolver(File repositoryCache)
 	{
 		this.repositoryCache = repositoryCache;
+	}
+
+	public TransferListener getListener()
+	{
+		return listener;
+	}
+
+	public void setListener(TransferListener listener)
+	{
+		this.listener = listener;
 	}
 
 	public List<ArtifactResult> resolveArtifacts(Artifact artifact) throws DependencyResolutionException
@@ -89,8 +102,7 @@ public class ArtifactResolver
 		LocalRepository localRepo = new LocalRepository(repositoryCache.getAbsolutePath());
 		session.setLocalRepositoryManager(system.newLocalRepositoryManager(session, localRepo));
 
-		//session.setTransferListener(new ConsoleTransferListener());
-		//session.setRepositoryListener(new ConsoleRepositoryListener());
+		session.setTransferListener(listener);
 		return session;
 	}
 

@@ -82,9 +82,12 @@ public class Launcher
 
 	public static void main(String[] args) throws Exception
 	{
+		LauncherFrame frame = new LauncherFrame();
+
 		Bootstrap bootstrap = getBootstrap();
 
 		ArtifactResolver resolver = new ArtifactResolver(REPO_DIR);
+		resolver.setListener(frame);
 		resolver.addRepositories();
 
 		Artifact a = bootstrap.getClient();
@@ -149,6 +152,9 @@ public class Launcher
 				System.out.println(line);
 			}
 		}
+
+		frame.setVisible(false);
+		frame.dispose();
 	}
 
 	private static Bootstrap getBootstrap() throws Exception
