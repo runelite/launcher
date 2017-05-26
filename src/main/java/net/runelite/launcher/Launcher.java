@@ -50,7 +50,7 @@ public class Launcher
 	private static final Logger logger = LoggerFactory.getLogger(Launcher.class);
 
 	private static final boolean DEBUG = false;
-	private static final boolean VERIFY = false; // XXX releases aren't signed yet
+	private static final boolean VERIFY = true;
 
 	private static final File RUNELITE_DIR = new File(System.getProperty("user.home"), ".runelite");
 	private static final File REPO_DIR = new File(RUNELITE_DIR, "repository");
@@ -103,6 +103,8 @@ public class Launcher
 		try
 		{
 			verifyJarSignature(results.get(0).getArtifact().getFile());
+
+			logger.info("Verified signature of {}", results.get(0).getArtifact());
 		}
 		catch (CertificateException | IOException | SecurityException ex)
 		{
