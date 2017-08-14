@@ -27,11 +27,15 @@ package net.runelite.launcher;
 import com.google.gson.Gson;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
@@ -58,26 +62,29 @@ public class Launcher
 	private static final String CLIENT_BOOTSTRAP_URL = "http://static.runelite.net/bootstrap.json";
 	private static final String CLIENT_MAIN_CLASS = "net.runelite.client.RuneLite";
 
-	private static String getJava()
+
+	private static String getJava() throws FileNotFoundException
 	{
-		String path = System.getProperty("java.library.path");
-		int i = path.indexOf(File.pathSeparator);
-		if (i == -1)
+		Path javaHome = Paths.get(System.getProperty("java.home"));
+
+		if (!Files.exists(javaHome))
 		{
-			return path;
+			throw new FileNotFoundException("JAVA_HOME is not set correctly! directory \"" + javaHome + "\" does not exist.");
 		}
 
-		path = path.substring(0, i);
+		Path javaPath = Paths.get(javaHome.toString(), "bin", "java.exe");
 
-		File java = new File(path, "java.exe");
-		if (java.exists())
+		if (!Files.exists(javaPath))
 		{
-			return java.getAbsolutePath();
+			javaPath = Paths.get(javaHome.toString(), "bin", "java");
 		}
-		else
+
+		if (!Files.exists(javaPath))
 		{
-			return new File(path, "java").getAbsolutePath();
+			throw new FileNotFoundException("java executable not found in directory \"" + javaPath.getParent() + "\"");
 		}
+
+		return javaPath.toAbsolutePath().toString();
 	}
 
 	public static void main(String[] args) throws Exception
@@ -133,8 +140,19 @@ public class Launcher
 			classPath.append(f.getAbsolutePath());
 		}
 
+		String javaExePath;
+		try
+		{
+			javaExePath = getJava();
+		}
+		catch (FileNotFoundException ex)
+		{
+			logger.error("Unable to find java executable", ex);
+			return;
+		}
+
 		List<String> arguments = new ArrayList<>();
-		arguments.add(getJava());
+		arguments.add(javaExePath);
 		arguments.add("-cp");
 		arguments.add(classPath.toString());
 		arguments.addAll(Arrays.asList(bootstrap.getClientJvmArguments()));
