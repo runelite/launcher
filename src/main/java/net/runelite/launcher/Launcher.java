@@ -43,8 +43,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.jar.JarFile;
+import joptsimple.OptionParser;
+import joptsimple.OptionSet;
 import net.runelite.launcher.beans.Bootstrap;
 import org.eclipse.aether.artifact.Artifact;
+import org.eclipse.aether.artifact.DefaultArtifact;
 import org.eclipse.aether.resolution.ArtifactResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,7 +57,7 @@ public class Launcher
 	private static final Logger logger = LoggerFactory.getLogger(Launcher.class);
 
 	private static final boolean DEBUG = false;
-	private static final boolean VERIFY = true;
+	private static boolean verify = true;
 
 	private static final File RUNELITE_DIR = new File(System.getProperty("user.home"), ".runelite");
 	private static final File REPO_DIR = new File(RUNELITE_DIR, "repository");
@@ -62,6 +65,7 @@ public class Launcher
 	private static final String CLIENT_BOOTSTRAP_URL = "http://static.runelite.net/bootstrap.json";
 	private static final String CLIENT_MAIN_CLASS = "net.runelite.client.RuneLite";
 
+	private static OptionSet options;
 
 	private static String getJava() throws FileNotFoundException
 	{
@@ -89,9 +93,24 @@ public class Launcher
 
 	public static void main(String[] args) throws Exception
 	{
+		OptionParser parser = new OptionParser();
+		parser.accepts("version").withRequiredArg();
+		options = parser.parse(args);
+
 		LauncherFrame frame = new LauncherFrame();
 
 		Bootstrap bootstrap = getBootstrap();
+
+		if (options.has("version"))
+		{
+			String version = (String) options.valueOf("version");
+			logger.info("Using version {}", version);
+			DefaultArtifact artifact = bootstrap.getClient();
+			artifact = (DefaultArtifact) artifact.setVersion(version);
+			bootstrap.setClient(artifact);
+
+			verify = false; // non-releases are not signed
+		}
 
 		ArtifactResolver resolver = new ArtifactResolver(REPO_DIR);
 		resolver.setListener(frame);
@@ -115,7 +134,7 @@ public class Launcher
 		}
 		catch (CertificateException | IOException | SecurityException ex)
 		{
-			if (VERIFY)
+			if (verify)
 			{
 				logger.error("Unable to verify signature of jar file", ex);
 				return;

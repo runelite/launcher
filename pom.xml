@@ -78,6 +78,11 @@
 			<version>${slf4j.version}</version>
 		</dependency>
 		<dependency>
+			<groupId>net.sf.jopt-simple</groupId>
+			<artifactId>jopt-simple</artifactId>
+			<version>5.0.1</version>
+		</dependency>
+		<dependency>
 			<groupId>org.eclipse.aether</groupId>
 			<artifactId>aether-api</artifactId>
 			<version>${aether.version}</version>
