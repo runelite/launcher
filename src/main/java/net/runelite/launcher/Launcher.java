@@ -95,6 +95,7 @@ public class Launcher
 	{
 		OptionParser parser = new OptionParser();
 		parser.accepts("version").withRequiredArg();
+		parser.accepts("clientargs").withRequiredArg();
 		options = parser.parse(args);
 
 		LauncherFrame frame = new LauncherFrame();
@@ -170,12 +171,22 @@ public class Launcher
 			return;
 		}
 
+		String clientArgs = System.getenv("RUNELITE_ARGS");
+		if (options.has("clientargs"))
+		{
+			clientArgs = (String) options.valueOf("clientargs");
+		}
+
 		List<String> arguments = new ArrayList<>();
 		arguments.add(javaExePath);
 		arguments.add("-cp");
 		arguments.add(classPath.toString());
 		arguments.addAll(Arrays.asList(bootstrap.getClientJvmArguments()));
 		arguments.add(CLIENT_MAIN_CLASS);
+		if (clientArgs != null)
+		{
+			arguments.add(clientArgs);
+		}
 
 		logger.info("Running {}", arguments);
 
