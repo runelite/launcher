@@ -173,7 +173,7 @@
 								<fileVersion>${launch4j.version}</fileVersion>
 								<txtFileVersion>${project.version}</txtFileVersion>
 								<fileDescription>RuneLite</fileDescription>
-								<copyright>(C) 2016-2017 Adam &lt;Adam@sigterm.info&gt;</copyright>
+								<copyright>(C) 2016-2018 Adam &lt;Adam@sigterm.info&gt;</copyright>
 								<productVersion>${launch4j.version}</productVersion>
 								<txtProductVersion>${project.version}</txtProductVersion>
 								<productName>RuneLite</productName>
