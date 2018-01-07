@@ -127,7 +127,7 @@ public class ArtifactResolver
 	public void addRepositories()
 	{
 		repositories.add(this.newCentralRepository());
-		repositories.add(this.newRuneliteRepository());
+		repositories.add(this.newRuneLiteRepository());
 	}
 
 	private RemoteRepository newCentralRepository()
@@ -135,7 +135,7 @@ public class ArtifactResolver
 		return new RemoteRepository.Builder("central", "default", "http://mvn.runelite.net/").build();
 	}
 
-	public RemoteRepository newRuneliteRepository()
+	public RemoteRepository newRuneLiteRepository()
 	{
 		return new RemoteRepository.Builder("runelite", "default", "http://repo.runelite.net/")
 			.setPolicy(new RepositoryPolicy(true, RepositoryPolicy.UPDATE_POLICY_ALWAYS, RepositoryPolicy.CHECKSUM_POLICY_FAIL))
@@ -153,7 +153,7 @@ public class ArtifactResolver
 				continue;
 			}
 
-			if (ar.getRepository() instanceof RemoteRepository && !ar.getRepository().equals(newRuneliteRepository()))
+			if (ar.getRepository() instanceof RemoteRepository && !ar.getRepository().equals(newRuneLiteRepository()))
 			{
 				throw new RuntimeException();
 			}

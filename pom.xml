@@ -29,7 +29,7 @@
 	<groupId>net.runelite</groupId>
 	<artifactId>launcher</artifactId>
 	<version>1.2.2-SNAPSHOT</version>
-	<name>Runelite Launcher</name>
+	<name>RuneLite Launcher</name>
 	
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -61,7 +61,7 @@
 	<repositories>
 		<repository>
 			<id>runelite</id>
-			<name>Runelite</name>
+			<name>RuneLite</name>
 			<url>http://repo.runelite.net</url>
 		</repository>
 	</repositories>
@@ -122,7 +122,7 @@
 	</dependencies>
     
 	<build>
-		<finalName>runelite</finalName>
+		<finalName>RuneLite</finalName>
 
 		<plugins>
 			<plugin>
@@ -160,8 +160,8 @@
 						</goals>
 						<configuration>
 							<headerType>gui</headerType>
-							<jar>target/runelite.jar</jar>
-							<outfile>target/Runelite.exe</outfile>
+							<jar>target/RuneLite.jar</jar>
+							<outfile>target/RuneLite.exe</outfile>
 							<errTitle>${project.name}</errTitle>
 							<icon>src/main/resources/runelite.ico</icon>
 							
@@ -172,14 +172,14 @@
 							<versionInfo>
 								<fileVersion>${launch4j.version}</fileVersion>
 								<txtFileVersion>${project.version}</txtFileVersion>
-								<fileDescription>Runelite</fileDescription>
+								<fileDescription>RuneLite</fileDescription>
 								<copyright>(C) 2016-2017 Adam &lt;Adam@sigterm.info&gt;</copyright>
 								<productVersion>${launch4j.version}</productVersion>
 								<txtProductVersion>${project.version}</txtProductVersion>
-								<productName>Runelite</productName>
-								<companyName>Runelite</companyName>
-								<internalName>Runelite</internalName>
-								<originalFilename>Runelite.exe</originalFilename>
+								<productName>RuneLite</productName>
+								<companyName>RuneLite</companyName>
+								<internalName>RuneLite</internalName>
+								<originalFilename>RuneLite.exe</originalFilename>
 							</versionInfo>
 						</configuration>
 					</execution>

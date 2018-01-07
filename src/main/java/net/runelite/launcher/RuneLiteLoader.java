@@ -31,9 +31,9 @@ import java.net.URLClassLoader;
 import java.util.List;
 import org.eclipse.aether.resolution.ArtifactResult;
 
-final class RuneliteLoader extends URLClassLoader
+final class RuneLiteLoader extends URLClassLoader
 {
-	RuneliteLoader(List<ArtifactResult> artifacts) throws MalformedURLException
+	RuneLiteLoader(List<ArtifactResult> artifacts) throws MalformedURLException
 	{
 		super(new URL[0]);
 

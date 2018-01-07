@@ -43,7 +43,7 @@ public class LauncherFrame extends JFrame implements TransferListener
 
 	public LauncherFrame()
 	{
-		this.setTitle("Runelite");
+		this.setTitle("RuneLite");
 		this.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		this.setSize(300, 70);
 		this.setUndecorated(true);
