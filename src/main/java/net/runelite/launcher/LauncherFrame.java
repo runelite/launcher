@@ -85,7 +85,7 @@ public class LauncherFrame extends JFrame implements TransferListener
 			return;
 		}
 
-		float percent = ((float) transferred / (float) totalLength) * 100f;
+		int percent = (int) (((float) transferred / (float) totalLength) * 100f);
 		bar.setString(artifact + " (" + percent + "%)");
 		bar.setValue((int) percent);
 	}
