@@ -181,7 +181,21 @@ public class Launcher
 		arguments.add(javaExePath);
 		arguments.add("-cp");
 		arguments.add(classPath.toString());
-		arguments.addAll(Arrays.asList(bootstrap.getClientJvmArguments()));
+
+		String[] jvmArguments;
+		String jvmVersion = System.getProperty("java.version");
+		if (jvmVersion.startsWith("1."))
+		{
+			logger.info("Using Java version 1.x");
+			jvmArguments = bootstrap.getClientJvmArguments();
+		}
+		else
+		{
+			logger.info("Using Java version 9+");
+			jvmArguments = bootstrap.getClientJvm9Arguments();
+		}
+		arguments.addAll(Arrays.asList(jvmArguments));
+
 		arguments.add(CLIENT_MAIN_CLASS);
 		if (clientArgs != null)
 		{
