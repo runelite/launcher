@@ -56,7 +56,6 @@ public class Launcher
 {
 	private static final Logger logger = LoggerFactory.getLogger(Launcher.class);
 
-	private static final boolean DEBUG = false;
 	private static boolean verify = true;
 
 	private static final File RUNELITE_DIR = new File(System.getProperty("user.home"), ".runelite");
@@ -96,6 +95,7 @@ public class Launcher
 		OptionParser parser = new OptionParser();
 		parser.accepts("version").withRequiredArg();
 		parser.accepts("clientargs").withRequiredArg();
+		parser.accepts("debug");
 		options = parser.parse(args);
 
 		LauncherFrame frame = new LauncherFrame();
@@ -194,7 +194,7 @@ public class Launcher
 		builder.redirectErrorStream(true);
 		Process process = builder.start();
 
-		if (DEBUG)
+		if (options.has("debug"))
 		{
 			BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
 			for (String line; (line = reader.readLine()) != null;)
