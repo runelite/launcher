@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017, Adam <Adam@sigterm.info>
+ * Copyright (c) 2016-2018, Adam <Adam@sigterm.info>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,22 +25,15 @@
 package net.runelite.launcher;
 
 import com.google.gson.Gson;
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.jar.JarFile;
 import joptsimple.OptionParser;
@@ -62,41 +55,15 @@ public class Launcher
 	private static final File REPO_DIR = new File(RUNELITE_DIR, "repository");
 
 	private static final String CLIENT_BOOTSTRAP_URL = "http://static.runelite.net/bootstrap.json";
-	private static final String CLIENT_MAIN_CLASS = "net.runelite.client.RuneLite";
-
-	private static OptionSet options;
-
-	private static String getJava() throws FileNotFoundException
-	{
-		Path javaHome = Paths.get(System.getProperty("java.home"));
-
-		if (!Files.exists(javaHome))
-		{
-			throw new FileNotFoundException("JAVA_HOME is not set correctly! directory \"" + javaHome + "\" does not exist.");
-		}
-
-		Path javaPath = Paths.get(javaHome.toString(), "bin", "java.exe");
-
-		if (!Files.exists(javaPath))
-		{
-			javaPath = Paths.get(javaHome.toString(), "bin", "java");
-		}
-
-		if (!Files.exists(javaPath))
-		{
-			throw new FileNotFoundException("java executable not found in directory \"" + javaPath.getParent() + "\"");
-		}
-
-		return javaPath.toAbsolutePath().toString();
-	}
+	static final String CLIENT_MAIN_CLASS = "net.runelite.client.RuneLite";
 
 	public static void main(String[] args) throws Exception
 	{
 		OptionParser parser = new OptionParser();
 		parser.accepts("version").withRequiredArg();
 		parser.accepts("clientargs").withRequiredArg();
-		parser.accepts("debug");
-		options = parser.parse(args);
+		parser.accepts("nojvm");
+		OptionSet options = parser.parse(args);
 
 		LauncherFrame frame = new LauncherFrame();
 
@@ -146,75 +113,16 @@ public class Launcher
 			}
 		}
 
-		StringBuilder classPath = new StringBuilder();
+		String clientArgs = getArgs(options);
 
-		for (ArtifactResult ar : results)
+		// packr doesn't let us specify command line arguments
+		if ("true".equals(System.getProperty("runelite.launcher.nojvm")) || options.has("nojvm"))
 		{
-			File f = ar.getArtifact().getFile();
-
-			if (classPath.length() > 0)
-			{
-				classPath.append(File.pathSeparatorChar);
-			}
-
-			classPath.append(f.getAbsolutePath());
-		}
-
-		String javaExePath;
-		try
-		{
-			javaExePath = getJava();
-		}
-		catch (FileNotFoundException ex)
-		{
-			logger.error("Unable to find java executable", ex);
-			return;
-		}
-
-		String clientArgs = System.getenv("RUNELITE_ARGS");
-		if (options.has("clientargs"))
-		{
-			clientArgs = (String) options.valueOf("clientargs");
-		}
-
-		List<String> arguments = new ArrayList<>();
-		arguments.add(javaExePath);
-		arguments.add("-cp");
-		arguments.add(classPath.toString());
-
-		String[] jvmArguments;
-		String jvmVersion = System.getProperty("java.version");
-		if (jvmVersion.startsWith("1."))
-		{
-			logger.info("Using Java version 1.x");
-			jvmArguments = bootstrap.getClientJvmArguments();
+			ReflectionLauncher.launch(results, clientArgs, options);
 		}
 		else
 		{
-			logger.info("Using Java version 9+");
-			jvmArguments = bootstrap.getClientJvm9Arguments();
-		}
-		arguments.addAll(Arrays.asList(jvmArguments));
-
-		arguments.add(CLIENT_MAIN_CLASS);
-		if (clientArgs != null)
-		{
-			arguments.add(clientArgs);
-		}
-
-		logger.info("Running {}", arguments);
-
-		ProcessBuilder builder = new ProcessBuilder(arguments.toArray(new String[0]));
-		builder.redirectErrorStream(true);
-		Process process = builder.start();
-
-		if (options.has("debug"))
-		{
-			BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-			for (String line; (line = reader.readLine()) != null;)
-			{
-				System.out.println(line);
-			}
+			JvmLauncher.launch(bootstrap, results, clientArgs, options);
 		}
 
 		frame.setVisible(false);
@@ -231,6 +139,16 @@ public class Launcher
 			Gson g = new Gson();
 			return g.fromJson(new InputStreamReader(i), Bootstrap.class);
 		}
+	}
+
+	private static String getArgs(OptionSet options)
+	{
+		String clientArgs = System.getenv("RUNELITE_ARGS");
+		if (options.has("clientargs"))
+		{
+			clientArgs = (String) options.valueOf("clientargs");
+		}
+		return clientArgs;
 	}
 
 	private static void verifyJarSignature(File jarFile) throws CertificateException, IOException

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
- Copyright (c) 2016-2017, Adam <Adam@sigterm.info>
+ Copyright (c) 2016-2018, Adam <Adam@sigterm.info>
  All rights reserved.
 
  Redistribution and use in source and binary forms, with or without
@@ -23,25 +23,28 @@
  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	
+
 	<groupId>net.runelite</groupId>
 	<artifactId>launcher</artifactId>
 	<version>1.3.2-SNAPSHOT</version>
 	<name>RuneLite Launcher</name>
-	
+
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
 
 		<slf4j.version>1.7.12</slf4j.version>
-		<launch4j.version>0.0.1.0</launch4j.version>
 		<aether.version>1.1.0</aether.version>
 		<maven.version>3.1.0</maven.version>
 
 		<main.class>net.runelite.launcher.Launcher</main.class>
+		<packr.jdk></packr.jdk>
+		<iscc.path></iscc.path>
+		<resourcehacker.path></resourcehacker.path>
 	</properties>
 
 	<scm>
@@ -64,8 +67,19 @@
 			<name>RuneLite</name>
 			<url>http://repo.runelite.net</url>
 		</repository>
+		<repository>
+			<id>jitpack.io</id>
+			<url>https://jitpack.io</url>
+		</repository>
 	</repositories>
-	
+
+	<pluginRepositories>
+		<pluginRepository>
+			<id>jitpack.io</id>
+			<url>https://jitpack.io</url>
+		</pluginRepository>
+	</pluginRepositories>
+
 	<dependencies>
 		<dependency>
 			<groupId>org.slf4j</groupId>
@@ -126,11 +140,44 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
-    
+
 	<build>
 		<finalName>RuneLite</finalName>
 
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+				<excludes>
+					<exclude>*.ico</exclude>
+					<exclude>*.bmp</exclude>
+				</excludes>
+				<filtering>true</filtering>
+			</resource>
+			<resource>
+				<directory>src/main/resources</directory>
+				<includes>
+					<include>*.ico</include>
+					<include>*.bmp</include>
+				</includes>
+				<filtering>false</filtering>
+			</resource>
+		</resources>
+
 		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>3.0.2</version>
+				<configuration>
+					<excludes>
+						<!-- these are used only by the installer -->
+						<exclude>*.iss</exclude>
+						<exclude>runelite.ico</exclude>
+						<exclude>runelite_small.bmp</exclude>
+						<exclude>oraclejre8.json</exclude>
+					</excludes>
+				</configuration>
+			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-shade-plugin</artifactId>
@@ -145,7 +192,8 @@
 							<minimizeJar>true</minimizeJar>
 
 							<transformers>
-								<transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+								<transformer
+										implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
 									<mainClass>${main.class}</mainClass>
 								</transformer>
 							</transformers>
@@ -154,39 +202,91 @@
 				</executions>
 			</plugin>
 			<plugin>
-				<groupId>com.akathist.maven.plugins.launch4j</groupId>
-				<artifactId>launch4j-maven-plugin</artifactId>
-				<version>1.7.21</version>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<version>1.6.0</version>
+				<dependencies>
+					<dependency>
+						<groupId>com.github.libgdx</groupId>
+						<artifactId>packr</artifactId>
+						<version>master-SNAPSHOT</version>
+					</dependency>
+				</dependencies>
 				<executions>
 					<execution>
-						<id>l4j-clui</id>
-						<phase>install</phase>
+						<id>package-win64</id>
+
+						<phase>none</phase>
 						<goals>
-							<goal>launch4j</goal>
+							<goal>java</goal>
+						</goals>
+
+						<configuration>
+							<includeProjectDependencies>false</includeProjectDependencies>
+							<includePluginDependencies>true</includePluginDependencies>
+
+							<mainClass>com.badlogicgames.packr.Packr</mainClass>
+							<arguments>
+								<argument>--platform</argument>
+								<argument>windows64</argument>
+								<argument>--jdk</argument>
+								<argument>${packr.jdk}</argument>
+								<argument>--executable</argument>
+								<argument>RuneLite</argument>
+								<argument>--classpath</argument>
+								<argument>${project.build.directory}/RuneLite.jar</argument>
+								<argument>--mainclass</argument>
+								<argument>${main.class}</argument>
+								<argument>--vmargs</argument>
+								<argument>Drunelite.launcher.nojvm=true</argument>
+								<argument>Xmx512m</argument>
+								<argument>Xms2m</argument>
+								<argument>Dsun.java2d.noddraw=true</argument>
+								<argument>XX:CompileThreshold=1500</argument>
+								<argument>Xincgc</argument>
+								<argument>XX:+UseConcMarkSweepGC</argument>
+								<argument>XX:+UseParNewGC</argument>
+								<argument>--output</argument>
+								<argument>${project.build.directory}/native/win64</argument>
+								<argument>--minimizejre</argument>
+								<argument>src/main/resources/oraclejre8.json</argument>
+							</arguments>
+						</configuration>
+					</execution>
+					<!-- packr doesn't support icons... -->
+					<execution>
+						<id>icon</id>
+						<phase>none</phase>
+						<goals>
+							<goal>exec</goal>
 						</goals>
 						<configuration>
-							<headerType>gui</headerType>
-							<jar>target/RuneLite.jar</jar>
-							<outfile>target/RuneLite.exe</outfile>
-							<errTitle>${project.name}</errTitle>
-							<icon>src/main/resources/runelite.ico</icon>
-							
-							<jre>
-								<minVersion>1.8.0</minVersion>
-							</jre>
-
-							<versionInfo>
-								<fileVersion>${launch4j.version}</fileVersion>
-								<txtFileVersion>${project.version}</txtFileVersion>
-								<fileDescription>RuneLite</fileDescription>
-								<copyright>(C) 2016-2018 Adam &lt;Adam@sigterm.info&gt;</copyright>
-								<productVersion>${launch4j.version}</productVersion>
-								<txtProductVersion>${project.version}</txtProductVersion>
-								<productName>RuneLite</productName>
-								<companyName>RuneLite</companyName>
-								<internalName>RuneLite</internalName>
-								<originalFilename>RuneLite.exe</originalFilename>
-							</versionInfo>
+							<executable>${resourcehacker.path}</executable>
+							<arguments>
+								<argument>-open</argument>
+								<argument>${project.build.directory}/native/win64/RuneLite.exe</argument>
+								<argument>-save</argument>
+								<argument>${project.build.directory}/native/win64/RuneLite.exe</argument>
+								<argument>-action</argument>
+								<argument>add</argument>
+								<argument>-res</argument>
+								<argument>${basedir}/src/main/resources/runelite.ico</argument>
+								<argument>-mask</argument>
+								<argument>ICONGROUP,MAINICON,</argument>
+							</arguments>
+						</configuration>
+					</execution>
+					<execution>
+						<id>installer</id>
+						<phase>none</phase>
+						<goals>
+							<goal>exec</goal>
+						</goals>
+						<configuration>
+							<executable>${iscc.path}</executable>
+							<arguments>
+								<argument>target/classes/runelite.iss</argument>
+							</arguments>
 						</configuration>
 					</execution>
 				</executions>
