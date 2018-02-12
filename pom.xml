@@ -246,6 +246,7 @@
 								<argument>Xincgc</argument>
 								<argument>XX:+UseConcMarkSweepGC</argument>
 								<argument>XX:+UseParNewGC</argument>
+								<argument>Djna.nosys=true</argument>
 								<argument>--output</argument>
 								<argument>${project.build.directory}/native/win64</argument>
 								<argument>--minimizejre</argument>
