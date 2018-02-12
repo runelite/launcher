@@ -63,6 +63,7 @@ public class Launcher
 		parser.accepts("version").withRequiredArg();
 		parser.accepts("clientargs").withRequiredArg();
 		parser.accepts("nojvm");
+		parser.accepts("debug");
 		OptionSet options = parser.parse(args);
 
 		LauncherFrame frame = new LauncherFrame();
@@ -113,6 +114,9 @@ public class Launcher
 			}
 		}
 
+		frame.setVisible(false);
+		frame.dispose();
+
 		String clientArgs = getArgs(options);
 
 		// packr doesn't let us specify command line arguments
@@ -124,9 +128,6 @@ public class Launcher
 		{
 			JvmLauncher.launch(bootstrap, results, clientArgs, options);
 		}
-
-		frame.setVisible(false);
-		frame.dispose();
 	}
 
 	private static Bootstrap getBootstrap() throws Exception
