@@ -63,6 +63,7 @@ public class Launcher
 		parser.accepts("version").withRequiredArg();
 		parser.accepts("clientargs").withRequiredArg();
 		parser.accepts("nojvm");
+		parser.accepts("debug");
 		OptionSet options = parser.parse(args);
 
 		LauncherFrame frame = new LauncherFrame();
