@@ -114,6 +114,9 @@ public class Launcher
 			}
 		}
 
+		frame.setVisible(false);
+		frame.dispose();
+
 		String clientArgs = getArgs(options);
 
 		// packr doesn't let us specify command line arguments
@@ -125,9 +128,6 @@ public class Launcher
 		{
 			JvmLauncher.launch(bootstrap, results, clientArgs, options);
 		}
-
-		frame.setVisible(false);
-		frame.dispose();
 	}
 
 	private static Bootstrap getBootstrap() throws Exception
