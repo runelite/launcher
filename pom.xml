@@ -45,6 +45,7 @@
 		<packr.jdk></packr.jdk>
 		<iscc.path></iscc.path>
 		<resourcehacker.path></resourcehacker.path>
+		<createdmg.path></createdmg.path>
 	</properties>
 
 	<scm>
@@ -213,18 +214,16 @@
 					</dependency>
 				</dependencies>
 				<executions>
+					<!-- Windows distribution -->
 					<execution>
 						<id>package-win64</id>
-
 						<phase>none</phase>
 						<goals>
 							<goal>java</goal>
 						</goals>
-
 						<configuration>
 							<includeProjectDependencies>false</includeProjectDependencies>
 							<includePluginDependencies>true</includePluginDependencies>
-
 							<mainClass>com.badlogicgames.packr.Packr</mainClass>
 							<arguments>
 								<argument>--platform</argument>
@@ -254,9 +253,9 @@
 							</arguments>
 						</configuration>
 					</execution>
-					<!-- packr doesn't support icons... -->
 					<execution>
-						<id>icon</id>
+						<!-- packr doesn't support icons... -->
+						<id>update-windows-icon</id>
 						<phase>none</phase>
 						<goals>
 							<goal>exec</goal>
@@ -278,7 +277,7 @@
 						</configuration>
 					</execution>
 					<execution>
-						<id>installer</id>
+						<id>create-windows-installer</id>
 						<phase>none</phase>
 						<goals>
 							<goal>exec</goal>
@@ -287,6 +286,65 @@
 							<executable>${iscc.path}</executable>
 							<arguments>
 								<argument>target/classes/runelite.iss</argument>
+							</arguments>
+						</configuration>
+					</execution>
+					<!-- Darwin distribution -->
+					<execution>
+						<id>package-darwin</id>
+						<phase>none</phase>
+						<goals>
+							<goal>java</goal>
+						</goals>
+						<configuration>
+							<includeProjectDependencies>false</includeProjectDependencies>
+							<includePluginDependencies>true</includePluginDependencies>
+							<mainClass>com.badlogicgames.packr.Packr</mainClass>
+							<arguments>
+								<argument>--platform</argument>
+								<argument>mac</argument>
+								<argument>--icon</argument>
+								<argument>${project.basedir}/src/main/resources/runelite.icns</argument>
+								<argument>--jdk</argument>
+								<argument>${packr.jdk}</argument>
+								<argument>--executable</argument>
+								<argument>RuneLite</argument>
+								<argument>--classpath</argument>
+								<argument>${project.build.directory}/RuneLite.jar</argument>
+								<argument>--mainclass</argument>
+								<argument>${main.class}</argument>
+								<argument>--vmargs</argument>
+								<argument>Drunelite.launcher.nojvm=true</argument>
+								<argument>Xmx512m</argument>
+								<argument>Xms2m</argument>
+								<argument>Dsun.java2d.noddraw=true</argument>
+								<argument>XX:CompileThreshold=1500</argument>
+								<argument>Xincgc</argument>
+								<argument>XX:+UseConcMarkSweepGC</argument>
+								<argument>XX:+UseParNewGC</argument>
+								<argument>Djna.nosys=true</argument>
+								<argument>--output</argument>
+								<argument>${project.build.directory}/native/darwin/RuneLite.app</argument>
+								<argument>--minimizejre</argument>
+								<argument>src/main/resources/oraclejre8.json</argument>
+							</arguments>
+						</configuration>
+					</execution>
+					<execution>
+						<id>create-darwin-dmg</id>
+						<phase>none</phase>
+						<goals>
+							<goal>exec</goal>
+						</goals>
+						<configuration>
+							<successCodes>
+								<successCode>0</successCode>
+								<!-- For some reason, create-darwin-dmg returns 1 all the time even if successful -->
+								<successCode>1</successCode>
+							</successCodes>
+							<executable>${createdmg.path}</executable>
+							<arguments>
+								<argument>${project.build.directory}/native/darwin/RuneLite.app</argument>
 							</arguments>
 						</configuration>
 					</execution>
