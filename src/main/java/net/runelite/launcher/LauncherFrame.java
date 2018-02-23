@@ -24,8 +24,8 @@
  */
 package net.runelite.launcher;
 
+import java.awt.BorderLayout;
 import java.awt.Dimension;
-import java.awt.Toolkit;
 import javax.swing.JFrame;
 import javax.swing.JProgressBar;
 import org.eclipse.aether.transfer.TransferCancelledException;
@@ -46,18 +46,19 @@ public class LauncherFrame extends JFrame implements TransferListener
 		this.setTitle("RuneLite");
 		this.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		this.setSize(300, 70);
+		this.setLayout(new BorderLayout());
 		this.setUndecorated(true);
-
-		// Center on screen
-		Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-		this.setLocation(dim.width / 2 - this.getSize().width / 2, dim.height / 2 - this.getSize().height / 2);
 
 		bar = new JProgressBar();
 		bar.setMaximum(100);
 		bar.setStringPainted(true);
-		add(bar);
-
+		bar.setSize(300, 70);
+		bar.setPreferredSize(new Dimension(300, 70));
 		bar.setVisible(true);
+		add(bar, BorderLayout.CENTER);
+		pack();
+
+		this.setLocationRelativeTo(null);
 		this.setVisible(true);
 	}
 
