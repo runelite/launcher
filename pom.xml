@@ -240,13 +240,8 @@
 								<argument>${main.class}</argument>
 								<argument>--vmargs</argument>
 								<argument>Drunelite.launcher.nojvm=true</argument>
-								<argument>Xmx512m</argument>
-								<argument>Xms2m</argument>
-								<argument>Dsun.java2d.noddraw=true</argument>
-								<argument>XX:CompileThreshold=1500</argument>
-								<argument>Xincgc</argument>
-								<argument>XX:+UseConcMarkSweepGC</argument>
-								<argument>XX:+UseParNewGC</argument>
+								<argument>Dsun.java2d.noddraw=false</argument>
+								<argument>XX:+UseG1GC</argument>
 								<argument>Djna.nosys=true</argument>
 								<argument>--output</argument>
 								<argument>${project.build.directory}/native/win64</argument>
