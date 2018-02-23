@@ -107,6 +107,60 @@
         "jre/bin/prism_es2.dll",
         "jre/bin/prism_sw.dll"
       ]
+    },
+    {
+      "platform": "mac",
+      "paths": [
+        "jre/bin/rmid",
+        "jre/bin/rmiregistry",
+        "jre/bin/tnameserv",
+        "jre/bin/keytool",
+        "jre/bin/kinit",
+        "jre/bin/klist",
+        "jre/bin/ktab",
+        "jre/bin/policytool",
+        "jre/bin/orbd",
+        "jre/bin/servertool",
+        "jre/bin/javaws",
+        "jre/lib/libjfr.dynlib",
+
+        "jre/bin/java",
+        "jre/bin/javaw",
+        "jre/bin/javacpl",
+        "jre/bin/jucheck",
+        "jre/bin/dtplugin",
+        "jre/bin/jabswitch",
+        "jre/lib/libjava_crw_demo.dynlib",
+        "jre/lib/libJavaAccessBridge-32.dynlib",
+        "jre/lib/libJavaAccessBridge.dynlib",
+        "jre/lib/libJAWTAccessBridge-32.dynlib",
+        "jre/lib/libJAWTAccessBridge.dynlib",
+        "jre/lib/libWindowsAccessBridge-32.dynlib",
+        "jre/lib/libWindowsAccessBridge.dynlib",
+        "jre/lib/libwsdetect.dynlib",
+        "jre/bin/plugin2",
+        "jre/lib/libdeploy.dynlib",
+        "jre/bin/javacpl.cpl",
+        "jre/lib/deploy.jar",
+        "jre/lib/plugin.jar",
+        "jre/lib/deploy",
+
+        "jre/lib/libdecora-sse.dynlib",
+        "jre/lib/libfxplugins.dynlib",
+        "jre/lib/libglass.dynlib",
+        "jre/lib/libglib-lite.dynlib",
+        "jre/lib/libgstreamer-lite.dynlib",
+        "jre/lib/libjavafx-font.dynlib",
+        "jre/lib/libjavafx_font_t2k.dynlib",
+        "jre/lib/libjavafx-iio.dynlib",
+        "jre/lib/libjfxmedia.dynlib",
+        "jre/lib/libjfxwebkit.dynlib",
+        "jre/lib/libprism_common.dynlib",
+        "jre/lib/libprism-d3d.dynlib",
+        "jre/lib/libprism_es2.dynlib",
+        "jre/lib/libprism_sw.dynlib",
+        "jre/lib/libjfxwebkit.dylib"
+      ]
     }
   ]
 }
