@@ -176,6 +176,8 @@
 						<exclude>runelite.ico</exclude>
 						<exclude>runelite_small.bmp</exclude>
 						<exclude>oraclejre8.json</exclude>
+						<exclude>runelite.icns</exclude>
+						<exclude>Info.plist</exclude>
 					</excludes>
 				</configuration>
 			</plugin>
@@ -346,6 +348,32 @@
 							<arguments>
 								<argument>${project.build.directory}/native/darwin/RuneLite.app</argument>
 							</arguments>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-resources-plugin</artifactId>
+				<version>3.0.2</version>
+				<executions>
+					<execution>
+						<id>copy-darwin-plist</id>
+						<phase>none</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.build.directory}/native/darwin/RuneLite.app/Contents</outputDirectory>
+							<resources>
+								<resource>
+									<directory>${basedir}/src/main/resources</directory>
+									<includes>
+										<include>Info.plist</include>
+									</includes>
+									<filtering>true</filtering>
+								</resource>
+							</resources>
 						</configuration>
 					</execution>
 				</executions>
