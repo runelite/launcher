@@ -36,6 +36,7 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.util.List;
 import java.util.jar.JarFile;
+import javax.swing.UIManager;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 import net.runelite.launcher.beans.Bootstrap;
@@ -65,6 +66,15 @@ public class Launcher
 		parser.accepts("nojvm");
 		parser.accepts("debug");
 		OptionSet options = parser.parse(args);
+
+		try
+		{
+			UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
+		}
+		catch (Exception ex)
+		{
+			logger.warn("Unable to set cross platform look and feel", ex);
+		}
 
 		LauncherFrame frame = new LauncherFrame();
 
