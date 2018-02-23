@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017, Adam <Adam@sigterm.info>
+ * Copyright (c) 2016-2018, Adam <Adam@sigterm.info>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -22,19 +22,48 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package net.runelite.launcher.beans;
+package net.runelite.launcher;
 
-import lombok.Data;
-import org.eclipse.aether.artifact.DefaultArtifact;
+import lombok.extern.slf4j.Slf4j;
 
-@Data
-public class Bootstrap
+@Slf4j
+public class OS
 {
-	private DefaultArtifact client;
-	private String[] clientJvmArguments;
-	private String[] clientJvm9Arguments;
+	public enum OSType
+	{
+		Windows, MacOS, Linux, Other
+	}
 
-	private String[] launcherWindowsArguments;
-	private String[] launcherMacArguments;
-	private String[] launcherArguments;
+	private static final OSType DETECTED_OS;
+
+	static
+	{
+		final String OS = System
+			.getProperty("os.name", "generic")
+			.toLowerCase();
+
+		if ((OS.contains("mac")) || (OS.contains("darwin")))
+		{
+			DETECTED_OS = OSType.MacOS;
+		}
+		else if (OS.contains("win"))
+		{
+			DETECTED_OS = OSType.Windows;
+		}
+		else if (OS.contains("nux"))
+		{
+			DETECTED_OS = OSType.Linux;
+		}
+		else
+		{
+			DETECTED_OS = OSType.Other;
+		}
+
+		log.debug("Detect OS: {}", DETECTED_OS);
+	}
+
+	public static OSType getOs()
+	{
+		return DETECTED_OS;
+	}
 }

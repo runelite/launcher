@@ -70,6 +70,9 @@ public class Launcher
 
 		Bootstrap bootstrap = getBootstrap();
 
+		// update packr vmargs
+		PackrConfig.updateLauncherArgs(bootstrap);
+
 		if (options.has("version"))
 		{
 			String version = (String) options.valueOf("version");
