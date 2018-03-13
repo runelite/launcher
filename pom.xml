@@ -212,7 +212,7 @@
 					<dependency>
 						<groupId>com.github.libgdx</groupId>
 						<artifactId>packr</artifactId>
-						<version>master-SNAPSHOT</version>
+						<version>9139616e3837f0f3eb51071d786fc810769012a8</version>
 					</dependency>
 				</dependencies>
 				<executions>
