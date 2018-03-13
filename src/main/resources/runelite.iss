@@ -29,6 +29,7 @@ Source: "${project.build.directory}\native\win64\RuneLite.exe"; DestDir: "{app}"
 Source: "${project.build.directory}\native\win64\RuneLite.jar"; DestDir: "{app}"
 Source: "${project.build.directory}\native\win64\config.json"; DestDir: "{app}"
 Source: "${project.build.directory}\native\win64\jre\*"; DestDir: "{app}\jre"; Flags: recursesubdirs
+Source: "${project.build.directory}\native\win64\jre\bin\msvcr100.dll"; DestDir: "{app}"
 
 [Icons]
 ; start menu
