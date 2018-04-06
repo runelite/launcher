@@ -241,7 +241,7 @@
 								<argument>--vmargs</argument>
 								<argument>Drunelite.launcher.nojvm=true</argument>
 								<argument>Xmx512m</argument>
-								<argument>Xms2m</argument>
+								<argument>Xss2m</argument>
 								<argument>Dsun.java2d.noddraw=false</argument>
 								<argument>XX:CompileThreshold=1500</argument>
 								<argument>Xincgc</argument>
@@ -318,7 +318,7 @@
 								<argument>--vmargs</argument>
 								<argument>Drunelite.launcher.nojvm=true</argument>
 								<argument>Xmx512m</argument>
-								<argument>Xms2m</argument>
+								<argument>Xss2m</argument>
 								<argument>Dsun.java2d.noddraw=false</argument>
 								<argument>XX:CompileThreshold=1500</argument>
 								<argument>Xincgc</argument>
