@@ -69,7 +69,7 @@ class JvmLauncher
 		return javaPath.toAbsolutePath().toString();
 	}
 
-	public static void launch(Bootstrap bootstrap, List<ArtifactResult> results, String clientArgs, OptionSet options) throws Exception
+	public static void launch(Bootstrap bootstrap, List<ArtifactResult> results, String clientArgs, OptionSet options, HardwareAccelerationMode mode) throws Exception
 	{
 		StringBuilder classPath = new StringBuilder();
 		for (ArtifactResult ar : results)
@@ -113,6 +113,7 @@ class JvmLauncher
 			jvmArguments = bootstrap.getClientJvm9Arguments();
 		}
 		arguments.addAll(Arrays.asList(jvmArguments));
+		arguments.addAll(mode.toParams());
 
 		arguments.add(CLIENT_MAIN_CLASS);
 		if (clientArgs != null)
