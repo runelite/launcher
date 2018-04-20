@@ -37,6 +37,7 @@ import java.security.cert.CertificateFactory;
 import java.util.List;
 import java.util.jar.JarFile;
 import javax.swing.UIManager;
+import joptsimple.ArgumentAcceptingOptionSpec;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 import net.runelite.launcher.beans.Bootstrap;
@@ -65,7 +66,20 @@ public class Launcher
 		parser.accepts("clientargs").withRequiredArg();
 		parser.accepts("nojvm");
 		parser.accepts("debug");
+
+		// Create typed argument for the hardware acceleration mode (default to open gl for cross-platform)
+		final ArgumentAcceptingOptionSpec<HardwareAccelerationMode> mode = parser.accepts("mode")
+				.withRequiredArg()
+				.ofType(HardwareAccelerationMode.class)
+				.defaultsTo(HardwareAccelerationMode.OPENGL);
+
 		OptionSet options = parser.parse(args);
+
+		// Get hardware acceleration mode
+		final HardwareAccelerationMode hardwareAccelerationMode = options.valueOf(mode);
+
+		// Setup hardware acceleration
+		hardwareAccelerationMode.enable();
 
 		try
 		{
@@ -139,7 +153,7 @@ public class Launcher
 		}
 		else
 		{
-			JvmLauncher.launch(bootstrap, results, clientArgs, options);
+			JvmLauncher.launch(bootstrap, results, clientArgs, options, hardwareAccelerationMode);
 		}
 	}
 
