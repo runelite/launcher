@@ -27,6 +27,7 @@ package net.runelite.launcher;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.maven.repository.internal.MavenRepositorySystemUtils;
 import org.eclipse.aether.DefaultRepositorySystemSession;
 import org.eclipse.aether.RepositorySystem;
@@ -49,13 +50,10 @@ import org.eclipse.aether.transfer.TransferListener;
 import org.eclipse.aether.transport.http.HttpTransporterFactory;
 import org.eclipse.aether.util.artifact.JavaScopes;
 import org.eclipse.aether.util.filter.DependencyFilterUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+@Slf4j
 public class ArtifactResolver
 {
-	private static final Logger logger = LoggerFactory.getLogger(ArtifactResolver.class);
-
 	private final File repositoryCache;
 	private final List<RemoteRepository> repositories = new ArrayList<>();
 
@@ -64,11 +62,6 @@ public class ArtifactResolver
 	public ArtifactResolver(File repositoryCache)
 	{
 		this.repositoryCache = repositoryCache;
-	}
-
-	public TransferListener getListener()
-	{
-		return listener;
 	}
 
 	public void setListener(TransferListener listener)
@@ -117,7 +110,7 @@ public class ArtifactResolver
 			@Override
 			public void serviceCreationFailed(Class<?> type, Class<?> impl, Throwable exception)
 			{
-				logger.warn(null, exception);
+				log.warn(null, exception);
 			}
 		});
 

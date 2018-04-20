@@ -27,7 +27,9 @@ package net.runelite.launcher;
 import java.awt.GraphicsEnvironment;
 import java.util.ArrayList;
 import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public enum HardwareAccelerationMode
 {
 	OFF,
@@ -59,12 +61,18 @@ public enum HardwareAccelerationMode
 			switch (this)
 			{
 				case DIRECTDRAW:
+					log.info("Setting hardware acceleration to DirectDraw");
 					System.setProperty("sun.java2d.noddraw", "false");
 					break;
 				case OPENGL:
+					log.info("Setting hardware acceleration to OpenGL");
 					System.setProperty("sun.java2d.opengl", "true");
 					break;
 			}
+		}
+		else
+		{
+			log.warn("Hardware acceleration is not supported.");
 		}
 	}
 
@@ -87,10 +95,12 @@ public enum HardwareAccelerationMode
 			switch (this)
 			{
 				case DIRECTDRAW:
+					log.info("Setting hardware acceleration to DirectDraw");
 					params.add("-Dsun.java2d.noddraw=false");
 					params.add("-Dsun.java2d.opengl=false");
 					break;
 				case OPENGL:
+					log.info("Setting hardware acceleration to OpenGL");
 					params.add("-Dsun.java2d.noddraw=true");
 					params.add("-Dsun.java2d.opengl=true");
 					break;
@@ -98,6 +108,7 @@ public enum HardwareAccelerationMode
 		}
 		else
 		{
+			log.warn("Hardware acceleration is not supported.");
 			params.add("-Dsun.java2d.noddraw=true");
 			params.add("-Dsun.java2d.opengl=false");
 		}

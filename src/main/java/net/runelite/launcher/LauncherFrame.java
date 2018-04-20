@@ -28,17 +28,14 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import javax.swing.JFrame;
 import javax.swing.JProgressBar;
-import org.eclipse.aether.transfer.TransferCancelledException;
+import lombok.extern.slf4j.Slf4j;
 import org.eclipse.aether.transfer.TransferEvent;
 import org.eclipse.aether.transfer.TransferListener;
 import org.eclipse.aether.transfer.TransferResource;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+@Slf4j
 public class LauncherFrame extends JFrame implements TransferListener
 {
-	private static final Logger logger = LoggerFactory.getLogger(LauncherFrame.class);
-
 	private final JProgressBar bar;
 
 	public LauncherFrame()
@@ -63,17 +60,18 @@ public class LauncherFrame extends JFrame implements TransferListener
 	}
 
 	@Override
-	public void transferInitiated(TransferEvent event) throws TransferCancelledException
+	public void transferInitiated(TransferEvent event)
 	{
 	}
 
 	@Override
-	public void transferStarted(TransferEvent event) throws TransferCancelledException
+	public void transferStarted(TransferEvent event)
 	{
+		log.info("Started transfer {}", event);
 	}
 
 	@Override
-	public void transferProgressed(TransferEvent event) throws TransferCancelledException
+	public void transferProgressed(TransferEvent event)
 	{
 		TransferResource resource = event.getResource();
 
@@ -88,17 +86,19 @@ public class LauncherFrame extends JFrame implements TransferListener
 
 		int percent = (int) (((float) transferred / (float) totalLength) * 100f);
 		bar.setString(artifact + " (" + percent + "%)");
-		bar.setValue((int) percent);
+		bar.setValue(percent);
 	}
 
 	@Override
-	public void transferCorrupted(TransferEvent event) throws TransferCancelledException
+	public void transferCorrupted(TransferEvent event)
 	{
+		log.warn("Corrupted transfer {}", event);
 	}
 
 	@Override
 	public void transferSucceeded(TransferEvent event)
 	{
+		log.info("Successful transfer {}", event);
 	}
 
 	@Override
