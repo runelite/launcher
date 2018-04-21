@@ -30,15 +30,13 @@ import java.net.URLClassLoader;
 import java.util.List;
 import javax.swing.UIManager;
 import joptsimple.OptionSet;
+import lombok.extern.slf4j.Slf4j;
 import static net.runelite.launcher.Launcher.CLIENT_MAIN_CLASS;
 import org.eclipse.aether.resolution.ArtifactResult;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+@Slf4j
 class ReflectionLauncher
 {
-	private static final Logger logger = LoggerFactory.getLogger(ReflectionLauncher.class);
-
 	public static void launch(List<ArtifactResult> results, String clientArgs, OptionSet options) throws Exception
 	{
 		URL[] jarUrls = new URL[results.size()];
@@ -46,7 +44,7 @@ class ReflectionLauncher
 		for (ArtifactResult ar : results)
 		{
 			URL url = ar.getArtifact().getFile().toURI().toURL();
-			logger.debug("Adding jar: {}", url);
+			log.debug("Adding jar: {}", url);
 			jarUrls[i++] = url;
 		}
 
