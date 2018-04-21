@@ -24,6 +24,8 @@
  */
 package net.runelite.launcher;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
 import com.google.gson.Gson;
 import java.io.File;
 import java.io.IOException;
@@ -40,23 +42,23 @@ import javax.swing.UIManager;
 import joptsimple.ArgumentAcceptingOptionSpec;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
+import lombok.extern.slf4j.Slf4j;
 import net.runelite.launcher.beans.Bootstrap;
 import org.eclipse.aether.artifact.Artifact;
 import org.eclipse.aether.artifact.DefaultArtifact;
 import org.eclipse.aether.resolution.ArtifactResult;
-import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 
+@Slf4j
 public class Launcher
 {
-	private static final Logger logger = LoggerFactory.getLogger(Launcher.class);
-
-	private static boolean verify = true;
-
 	private static final File RUNELITE_DIR = new File(System.getProperty("user.home"), ".runelite");
+	private static final File LOGS_DIR = new File(RUNELITE_DIR, "logs");
+	private static final File LOGS_FILE_NAME = new File(LOGS_DIR, "launcher");
 	private static final File REPO_DIR = new File(RUNELITE_DIR, "repository");
-
 	private static final String CLIENT_BOOTSTRAP_URL = "http://static.runelite.net/bootstrap.json";
+
 	static final String CLIENT_MAIN_CLASS = "net.runelite.client.RuneLite";
 
 	public static void main(String[] args) throws Exception
@@ -75,6 +77,16 @@ public class Launcher
 
 		OptionSet options = parser.parse(args);
 
+		// Setup logger
+		LOGS_DIR.mkdirs();
+		MDC.put("logFileName", LOGS_FILE_NAME.getAbsolutePath());
+
+		if (options.has("debug"))
+		{
+			final Logger logger = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
+			logger.setLevel(Level.DEBUG);
+		}
+
 		// Get hardware acceleration mode
 		final HardwareAccelerationMode hardwareAccelerationMode = options.valueOf(mode);
 
@@ -87,7 +99,7 @@ public class Launcher
 		}
 		catch (Exception ex)
 		{
-			logger.warn("Unable to set cross platform look and feel", ex);
+			log.warn("Unable to set cross platform look and feel", ex);
 		}
 
 		LauncherFrame frame = new LauncherFrame();
@@ -97,10 +109,12 @@ public class Launcher
 		// update packr vmargs
 		PackrConfig.updateLauncherArgs(bootstrap);
 
+		boolean verify = true;
+
 		if (options.has("version"))
 		{
 			String version = (String) options.valueOf("version");
-			logger.info("Using version {}", version);
+			log.info("Using version {}", version);
 			DefaultArtifact artifact = bootstrap.getClient();
 			artifact = (DefaultArtifact) artifact.setVersion(version);
 			bootstrap.setClient(artifact);
@@ -118,7 +132,7 @@ public class Launcher
 
 		if (results.isEmpty())
 		{
-			logger.error("Unable to resolve artifacts");
+			log.error("Unable to resolve artifacts");
 			return;
 		}
 
@@ -126,18 +140,18 @@ public class Launcher
 		{
 			verifyJarSignature(results.get(0).getArtifact().getFile());
 
-			logger.info("Verified signature of {}", results.get(0).getArtifact());
+			log.info("Verified signature of {}", results.get(0).getArtifact());
 		}
 		catch (CertificateException | IOException | SecurityException ex)
 		{
 			if (verify)
 			{
-				logger.error("Unable to verify signature of jar file", ex);
+				log.error("Unable to verify signature of jar file", ex);
 				return;
 			}
 			else
 			{
-				logger.warn("Unable to verify signature of jar file", ex);
+				log.warn("Unable to verify signature of jar file", ex);
 			}
 		}
 
