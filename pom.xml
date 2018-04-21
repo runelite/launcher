@@ -41,6 +41,7 @@
 		<maven.version>3.5.3</maven.version>
 		<maven.resolver.version>1.1.1</maven.resolver.version>
 		<logback.version>1.2.3</logback.version>
+		<guava.version>23.2-jre</guava.version>
 
 		<main.class>net.runelite.launcher.Launcher</main.class>
 		<packr.jdk></packr.jdk>
@@ -127,6 +128,11 @@
 			<groupId>com.google.code.gson</groupId>
 			<artifactId>gson</artifactId>
 			<version>2.4</version>
+		</dependency>
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>${guava.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.projectlombok</groupId>

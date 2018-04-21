@@ -26,6 +26,10 @@ package net.runelite.launcher;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
+import com.google.common.hash.HashCode;
+import com.google.common.hash.HashFunction;
+import com.google.common.hash.Hashing;
+import com.google.common.io.Files;
 import com.google.gson.Gson;
 import java.io.File;
 import java.io.IOException;
@@ -37,6 +41,7 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.util.List;
+import java.util.Map;
 import java.util.jar.JarFile;
 import javax.swing.UIManager;
 import joptsimple.ArgumentAcceptingOptionSpec;
@@ -143,6 +148,7 @@ public class Launcher
 		try
 		{
 			verifyJarSignature(results.get(0).getArtifact().getFile());
+			verifyJarHashes(results, bootstrap.getDependencyHashes());
 
 			log.info("Verified signature of {}", results.get(0).getArtifact());
 		}
@@ -156,6 +162,18 @@ public class Launcher
 			else
 			{
 				log.warn("Unable to verify signature of jar file", ex);
+			}
+		}
+		catch (VerificationException ex)
+		{
+			if (verify)
+			{
+				log.error("Unable to verify hashes", ex);
+				return;
+			}
+			else
+			{
+				log.warn("Unable to verify hashes", ex);
 			}
 		}
 
@@ -203,5 +221,33 @@ public class Launcher
 		Certificate certificate = certFactory.generateCertificate(JarVerifier.class.getResourceAsStream("/runelite.crt"));
 
 		JarVerifier.verify(new JarFile(jarFile), certificate);
+	}
+
+	private static void verifyJarHashes(List<ArtifactResult> results, Map<String, String> dependencyHashes) throws VerificationException
+	{
+		HashFunction sha256 = Hashing.sha256();
+		for (ArtifactResult result : results)
+		{
+			File file = result.getArtifact().getFile();
+
+			String expectedHash = dependencyHashes.get(file.getName());
+			HashCode hashCode;
+			try
+			{
+				hashCode = Files.asByteSource(file).hash(sha256);
+			}
+			catch (IOException ex)
+			{
+				throw new VerificationException("error hashing file", ex);
+			}
+
+			String fileHash = hashCode.toString();
+			if (!fileHash.equals(expectedHash))
+			{
+				throw new VerificationException("Expected " + expectedHash + " for " + file.getName() + "(" + result.getArtifact() + ") but got " + fileHash);
+			}
+
+			log.info("Verified hash of {}", file.getName());
+		}
 	}
 }

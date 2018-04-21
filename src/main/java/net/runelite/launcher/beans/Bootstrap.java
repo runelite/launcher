@@ -24,6 +24,7 @@
  */
 package net.runelite.launcher.beans;
 
+import java.util.Map;
 import lombok.Data;
 import org.eclipse.aether.artifact.DefaultArtifact;
 
@@ -33,6 +34,7 @@ public class Bootstrap
 	private DefaultArtifact client;
 	private String[] clientJvmArguments;
 	private String[] clientJvm9Arguments;
+	private Map<String, String> dependencyHashes;
 
 	private String[] launcherWindowsArguments;
 	private String[] launcherMacArguments;
