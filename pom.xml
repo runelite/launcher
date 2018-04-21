@@ -38,8 +38,8 @@
 		<maven.compiler.target>1.8</maven.compiler.target>
 
 		<slf4j.version>1.7.12</slf4j.version>
-		<aether.version>1.1.0</aether.version>
-		<maven.version>3.1.0</maven.version>
+		<maven.version>3.5.3</maven.version>
+		<maven.resolver.version>1.1.1</maven.resolver.version>
 
 		<main.class>net.runelite.launcher.Launcher</main.class>
 		<packr.jdk></packr.jdk>
@@ -98,28 +98,28 @@
 			<version>5.0.1</version>
 		</dependency>
 		<dependency>
-			<groupId>org.eclipse.aether</groupId>
-			<artifactId>aether-api</artifactId>
-			<version>${aether.version}</version>
+			<groupId>org.apache.maven.resolver</groupId>
+			<artifactId>maven-resolver-api</artifactId>
+			<version>${maven.resolver.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>org.eclipse.aether</groupId>
-			<artifactId>aether-impl</artifactId>
-			<version>${aether.version}</version>
+			<groupId>org.apache.maven.resolver</groupId>
+			<artifactId>maven-resolver-impl</artifactId>
+			<version>${maven.resolver.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>org.eclipse.aether</groupId>
-			<artifactId>aether-connector-basic</artifactId>
-			<version>${aether.version}</version>
+			<groupId>org.apache.maven.resolver</groupId>
+			<artifactId>maven-resolver-connector-basic</artifactId>
+			<version>${maven.resolver.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>org.eclipse.aether</groupId>
-			<artifactId>aether-transport-http</artifactId>
-			<version>${aether.version}</version>
+			<groupId>org.apache.maven.resolver</groupId>
+			<artifactId>maven-resolver-transport-http</artifactId>
+			<version>${maven.resolver.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.maven</groupId>
-			<artifactId>maven-aether-provider</artifactId>
+			<artifactId>maven-resolver-provider</artifactId>
 			<version>${maven.version}</version>
 		</dependency>
 		<dependency>
