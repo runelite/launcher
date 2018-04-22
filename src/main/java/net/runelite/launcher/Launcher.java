@@ -77,6 +77,9 @@ public class Launcher
 
 		OptionSet options = parser.parse(args);
 
+		// Always use IPv4 over IPv6
+		System.setProperty("java.net.preferIPv4Stack", "true");
+
 		// Setup logger
 		LOGS_DIR.mkdirs();
 		MDC.put("logFileName", LOGS_FILE_NAME.getAbsolutePath());
