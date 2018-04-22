@@ -44,11 +44,6 @@ public enum HardwareAccelerationMode
 		System.setProperty("sun.java2d.noddraw", "true");
 		System.setProperty("sun.java2d.opengl", "false");
 
-		if (this == OFF)
-		{
-			return;
-		}
-
 		switch (this)
 		{
 			case DIRECTDRAW:
@@ -81,6 +76,7 @@ public enum HardwareAccelerationMode
 			case OFF:
 				params.add("-Dsun.java2d.noddraw=true");
 				params.add("-Dsun.java2d.opengl=false");
+				break;
 		}
 
 		return params;

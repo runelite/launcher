@@ -69,7 +69,7 @@ public class Launcher
 		parser.accepts("nojvm");
 		parser.accepts("debug");
 
-		// Create typed argument for the hardware acceleration mode (default to open gl for cross-platform)
+		// Create typed argument for the hardware acceleration mode
 		final ArgumentAcceptingOptionSpec<HardwareAccelerationMode> mode = parser.accepts("mode")
 				.withRequiredArg()
 				.ofType(HardwareAccelerationMode.class)
