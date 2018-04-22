@@ -73,7 +73,7 @@ public class Launcher
 		final ArgumentAcceptingOptionSpec<HardwareAccelerationMode> mode = parser.accepts("mode")
 				.withRequiredArg()
 				.ofType(HardwareAccelerationMode.class)
-				.defaultsTo(HardwareAccelerationMode.OPENGL);
+				.defaultsTo(HardwareAccelerationMode.OFF);
 
 		OptionSet options = parser.parse(args);
 
@@ -94,6 +94,7 @@ public class Launcher
 		final HardwareAccelerationMode hardwareAccelerationMode = options.valueOf(mode);
 
 		// Setup hardware acceleration
+		log.info("Setting hardware acceleration to {}", hardwareAccelerationMode);
 		hardwareAccelerationMode.enable();
 
 		try
