@@ -179,6 +179,7 @@
 						<exclude>oraclejre8.json</exclude>
 						<exclude>runelite.icns</exclude>
 						<exclude>Info.plist</exclude>
+						<exclude>runelite.manifest</exclude>
 					</excludes>
 				</configuration>
 			</plugin>
@@ -275,6 +276,28 @@
 								<argument>${basedir}/src/main/resources/runelite.ico</argument>
 								<argument>-mask</argument>
 								<argument>ICONGROUP,MAINICON,</argument>
+							</arguments>
+						</configuration>
+					</execution>
+					<execution>
+						<id>update-manifest</id>
+						<phase>none</phase>
+						<goals>
+							<goal>exec</goal>
+						</goals>
+						<configuration>
+							<executable>${resourcehacker.path}</executable>
+							<arguments>
+								<argument>-open</argument>
+								<argument>${project.build.directory}/native/win64/RuneLite.exe</argument>
+								<argument>-save</argument>
+								<argument>${project.build.directory}/native/win64/RuneLite.exe</argument>
+								<argument>-action</argument>
+								<argument>addoverwrite</argument>
+								<argument>-res</argument>
+								<argument>${basedir}/src/main/resources/runelite.manifest</argument>
+								<argument>-mask</argument>
+								<argument>MANIFEST,1,</argument>
 							</arguments>
 						</configuration>
 					</execution>
