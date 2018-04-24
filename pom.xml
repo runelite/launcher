@@ -202,6 +202,14 @@
 									<mainClass>${main.class}</mainClass>
 								</transformer>
 							</transformers>
+							<filters>
+								<filter>
+									<artifact>ch.qos.logback:*</artifact>
+									<includes>
+										<include>**</include>
+									</includes>
+								</filter>
+							</filters>
 						</configuration>
 					</execution>
 				</executions>
