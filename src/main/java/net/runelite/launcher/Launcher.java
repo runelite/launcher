@@ -76,11 +76,26 @@ public class Launcher
 		parser.accepts("nojvm");
 		parser.accepts("debug");
 
+		HardwareAccelerationMode defaultMode;
+		switch (OS.getOs())
+		{
+			case Windows:
+				defaultMode = HardwareAccelerationMode.DIRECTDRAW;
+				break;
+			case MacOS:
+			case Linux:
+				defaultMode = HardwareAccelerationMode.OPENGL;
+				break;
+			default:
+				defaultMode = HardwareAccelerationMode.OFF;
+				break;
+		}
+
 		// Create typed argument for the hardware acceleration mode
 		final ArgumentAcceptingOptionSpec<HardwareAccelerationMode> mode = parser.accepts("mode")
 				.withRequiredArg()
 				.ofType(HardwareAccelerationMode.class)
-				.defaultsTo(HardwareAccelerationMode.OFF);
+				.defaultsTo(defaultMode);
 
 		OptionSet options = parser.parse(args);
 
