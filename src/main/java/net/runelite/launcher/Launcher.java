@@ -35,6 +35,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.security.cert.Certificate;
@@ -52,6 +53,7 @@ import net.runelite.launcher.beans.Bootstrap;
 import org.eclipse.aether.artifact.Artifact;
 import org.eclipse.aether.artifact.DefaultArtifact;
 import org.eclipse.aether.resolution.ArtifactResult;
+import org.eclipse.aether.resolution.DependencyResolutionException;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
@@ -66,7 +68,7 @@ public class Launcher
 
 	static final String CLIENT_MAIN_CLASS = "net.runelite.client.RuneLite";
 
-	public static void main(String[] args) throws Exception
+	public static void main(String[] args)
 	{
 		OptionParser parser = new OptionParser();
 		parser.accepts("version").withRequiredArg();
@@ -113,7 +115,16 @@ public class Launcher
 
 		LauncherFrame frame = new LauncherFrame();
 
-		Bootstrap bootstrap = getBootstrap();
+		Bootstrap bootstrap;
+		try
+		{
+			bootstrap = getBootstrap();
+		}
+		catch (IOException ex)
+		{
+			log.error("error fetching bootstrap", ex);
+			return;
+		}
 
 		// update packr vmargs
 		PackrConfig.updateLauncherArgs(bootstrap);
@@ -137,7 +148,16 @@ public class Launcher
 
 		Artifact a = bootstrap.getClient();
 
-		List<ArtifactResult> results = resolver.resolveArtifacts(a);
+		List<ArtifactResult> results;
+		try
+		{
+			results = resolver.resolveArtifacts(a);
+		}
+		catch (DependencyResolutionException ex)
+		{
+			log.error("unable to resolve dependencies for client", ex);
+			return;
+		}
 
 		if (results.isEmpty())
 		{
@@ -185,15 +205,29 @@ public class Launcher
 		// packr doesn't let us specify command line arguments
 		if ("true".equals(System.getProperty("runelite.launcher.nojvm")) || options.has("nojvm"))
 		{
-			ReflectionLauncher.launch(results, clientArgs, options);
+			try
+			{
+				ReflectionLauncher.launch(results, clientArgs, options);
+			}
+			catch (MalformedURLException ex)
+			{
+				log.error("unable to launch client", ex);
+			}
 		}
 		else
 		{
-			JvmLauncher.launch(bootstrap, results, clientArgs, options, hardwareAccelerationMode);
+			try
+			{
+				JvmLauncher.launch(bootstrap, results, clientArgs, options, hardwareAccelerationMode);
+			}
+			catch (IOException ex)
+			{
+				log.error("unable to launch client", ex);
+			}
 		}
 	}
 
-	private static Bootstrap getBootstrap() throws Exception
+	private static Bootstrap getBootstrap() throws IOException
 	{
 		URL u = new URL(CLIENT_BOOTSTRAP_URL);
 		URLConnection conn = u.openConnection();

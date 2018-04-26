@@ -25,6 +25,7 @@
 package net.runelite.launcher;
 
 import java.lang.reflect.Method;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.List;
@@ -37,7 +38,7 @@ import org.eclipse.aether.resolution.ArtifactResult;
 @Slf4j
 class ReflectionLauncher
 {
-	public static void launch(List<ArtifactResult> results, String clientArgs, OptionSet options) throws Exception
+	public static void launch(List<ArtifactResult> results, String clientArgs, OptionSet options) throws MalformedURLException
 	{
 		URL[] jarUrls = new URL[results.size()];
 		int i = 0;

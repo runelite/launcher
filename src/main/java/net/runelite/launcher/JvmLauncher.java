@@ -27,6 +27,7 @@ package net.runelite.launcher;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -69,7 +70,7 @@ class JvmLauncher
 		return javaPath.toAbsolutePath().toString();
 	}
 
-	public static void launch(Bootstrap bootstrap, List<ArtifactResult> results, String clientArgs, OptionSet options, HardwareAccelerationMode mode) throws Exception
+	public static void launch(Bootstrap bootstrap, List<ArtifactResult> results, String clientArgs, OptionSet options, HardwareAccelerationMode mode) throws IOException
 	{
 		StringBuilder classPath = new StringBuilder();
 		for (ArtifactResult ar : results)
