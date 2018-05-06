@@ -158,6 +158,7 @@
 				<excludes>
 					<exclude>*.ico</exclude>
 					<exclude>*.bmp</exclude>
+					<exclude>logback.xml</exclude>
 				</excludes>
 				<filtering>true</filtering>
 			</resource>
@@ -166,6 +167,7 @@
 				<includes>
 					<include>*.ico</include>
 					<include>*.bmp</include>
+					<include>logback.xml</include>
 				</includes>
 				<filtering>false</filtering>
 			</resource>
