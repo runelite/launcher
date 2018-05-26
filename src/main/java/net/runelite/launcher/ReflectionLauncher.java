@@ -30,7 +30,6 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.List;
 import javax.swing.UIManager;
-import joptsimple.OptionSet;
 import lombok.extern.slf4j.Slf4j;
 import static net.runelite.launcher.Launcher.CLIENT_MAIN_CLASS;
 import org.eclipse.aether.resolution.ArtifactResult;
@@ -38,7 +37,7 @@ import org.eclipse.aether.resolution.ArtifactResult;
 @Slf4j
 class ReflectionLauncher
 {
-	public static void launch(List<ArtifactResult> results, String clientArgs, OptionSet options) throws MalformedURLException
+	public static void launch(List<ArtifactResult> results, String clientArgs) throws MalformedURLException
 	{
 		URL[] jarUrls = new URL[results.size()];
 		int i = 0;

@@ -222,7 +222,7 @@ public class Launcher
 		{
 			try
 			{
-				ReflectionLauncher.launch(results, clientArgs, options);
+				ReflectionLauncher.launch(results, clientArgs);
 			}
 			catch (MalformedURLException ex)
 			{
@@ -231,9 +231,11 @@ public class Launcher
 		}
 		else
 		{
+			final List<String> extraJvmParams = hardwareAccelerationMode.toParams();
+
 			try
 			{
-				JvmLauncher.launch(bootstrap, results, clientArgs, options, hardwareAccelerationMode);
+				JvmLauncher.launch(bootstrap, results, clientArgs, extraJvmParams, options.has("debug"));
 			}
 			catch (IOException ex)
 			{
