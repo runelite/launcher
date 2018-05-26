@@ -8,7 +8,7 @@ DefaultDirName={localappdata}\RuneLite
 
 ; ~30 mb for the repo the launcher downloads
 ExtraDiskSpaceRequired=30000000
-ArchitecturesAllowed=x86
+ArchitecturesAllowed=x86 x64
 PrivilegesRequired=lowest
 
 WizardSmallImageFile=runelite_small.bmp
