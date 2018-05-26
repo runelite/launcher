@@ -35,7 +35,6 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import joptsimple.OptionSet;
 import static net.runelite.launcher.Launcher.CLIENT_MAIN_CLASS;
 import net.runelite.launcher.beans.Bootstrap;
 import org.eclipse.aether.resolution.ArtifactResult;
@@ -70,7 +69,12 @@ class JvmLauncher
 		return javaPath.toAbsolutePath().toString();
 	}
 
-	public static void launch(Bootstrap bootstrap, List<ArtifactResult> results, String clientArgs, OptionSet options, HardwareAccelerationMode mode) throws IOException
+	public static void launch(
+		Bootstrap bootstrap,
+		List<ArtifactResult> results,
+		String clientArgs,
+		List<String> extraJvmParams,
+		boolean sysOut) throws IOException
 	{
 		StringBuilder classPath = new StringBuilder();
 		for (ArtifactResult ar : results)
@@ -114,7 +118,7 @@ class JvmLauncher
 			jvmArguments = bootstrap.getClientJvm9Arguments();
 		}
 		arguments.addAll(Arrays.asList(jvmArguments));
-		arguments.addAll(mode.toParams());
+		arguments.addAll(extraJvmParams);
 
 		arguments.add(CLIENT_MAIN_CLASS);
 		if (clientArgs != null)
@@ -128,7 +132,7 @@ class JvmLauncher
 		builder.redirectErrorStream(true);
 		Process process = builder.start();
 
-		if (options.has("debug"))
+		if (sysOut)
 		{
 			BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
 			for (String line; (line = reader.readLine()) != null; )

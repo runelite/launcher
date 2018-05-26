@@ -65,6 +65,7 @@ public class Launcher
 	private static final File LOGS_FILE_NAME = new File(LOGS_DIR, "launcher");
 	private static final File REPO_DIR = new File(RUNELITE_DIR, "repository");
 	private static final String CLIENT_BOOTSTRAP_URL = "http://static.runelite.net/bootstrap.json";
+	private static final LauncherProperties PROPERTIES = new LauncherProperties();
 
 	static final String CLIENT_MAIN_CLASS = "net.runelite.client.RuneLite";
 
@@ -102,11 +103,12 @@ public class Launcher
 		// Always use IPv4 over IPv6
 		System.setProperty("java.net.preferIPv4Stack", "true");
 
-		// Setup logger
+		// Setup debug
+		final boolean isDebug = options.has("debug");
 		LOGS_DIR.mkdirs();
 		MDC.put("logFileName", LOGS_FILE_NAME.getAbsolutePath());
 
-		if (options.has("debug"))
+		if (isDebug)
 		{
 			final Logger logger = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
 			logger.setLevel(Level.DEBUG);
@@ -118,6 +120,14 @@ public class Launcher
 		// Setup hardware acceleration
 		log.info("Setting hardware acceleration to {}", hardwareAccelerationMode);
 		hardwareAccelerationMode.enable();
+
+		// Setup launcher version
+		final String launcherVersion = PROPERTIES.getVersion();
+		System.setProperty(PROPERTIES.getVersionKey(), launcherVersion);
+
+		// Setup extra JVM arguments
+		final List<String> extraJvmParams = hardwareAccelerationMode.toParams();
+		extraJvmParams.add("-D" + PROPERTIES.getVersionKey() + "=" + launcherVersion);
 
 		try
 		{
@@ -256,7 +266,7 @@ public class Launcher
 		{
 			try
 			{
-				ReflectionLauncher.launch(results, clientArgs, options);
+				ReflectionLauncher.launch(results, clientArgs);
 			}
 			catch (MalformedURLException ex)
 			{
@@ -267,7 +277,7 @@ public class Launcher
 		{
 			try
 			{
-				JvmLauncher.launch(bootstrap, results, clientArgs, options, hardwareAccelerationMode);
+				JvmLauncher.launch(bootstrap, results, clientArgs, extraJvmParams, isDebug);
 			}
 			catch (IOException ex)
 			{
