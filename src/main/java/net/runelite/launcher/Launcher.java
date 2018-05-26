@@ -171,19 +171,51 @@ public class Launcher
 		catch (DependencyResolutionException ex)
 		{
 			log.error("unable to resolve dependencies for client", ex);
+			System.exit(-1);
 			return;
 		}
 
 		if (results.isEmpty())
 		{
 			log.error("Unable to resolve artifacts");
-			return;
+			System.exit(-1);
+		}
+
+		boolean verifiedHash = false;
+		try
+		{
+			verifyJarHashes(results, bootstrap.getDependencyHashes());
+			verifiedHash = true;
+		}
+		catch (VerificationException ex)
+		{
+			// verifyJarHashes deletes files with mismatched hashes... try again.
+			log.warn("Error verifying hashes, retrying", ex);
+
+			try
+			{
+				results = resolver.resolveArtifacts(a);
+			}
+			catch (DependencyResolutionException ex2)
+			{
+				log.error("unable to resolve dependencies for client", ex2);
+				System.exit(-1);
+			}
+
+			if (results.isEmpty())
+			{
+				log.error("Unable to resolve artifacts");
+				System.exit(-1);
+			}
 		}
 
 		try
 		{
 			verifyJarSignature(results.get(0).getArtifact().getFile());
-			verifyJarHashes(results, bootstrap.getDependencyHashes());
+			if (!verifiedHash)
+			{
+				verifyJarHashes(results, bootstrap.getDependencyHashes());
+			}
 
 			log.info("Verified signature of {}", results.get(0).getArtifact());
 		}
@@ -192,6 +224,7 @@ public class Launcher
 			if (verify)
 			{
 				log.error("Unable to verify signature of jar file", ex);
+				System.exit(-1);
 				return;
 			}
 			else
@@ -204,6 +237,7 @@ public class Launcher
 			if (verify)
 			{
 				log.error("Unable to verify hashes", ex);
+				System.exit(-1);
 				return;
 			}
 			else
@@ -275,6 +309,8 @@ public class Launcher
 	private static void verifyJarHashes(List<ArtifactResult> results, Map<String, String> dependencyHashes) throws VerificationException
 	{
 		HashFunction sha256 = Hashing.sha256();
+		VerificationException exception = null;
+
 		for (ArtifactResult result : results)
 		{
 			File file = result.getArtifact().getFile();
@@ -293,10 +329,19 @@ public class Launcher
 			String fileHash = hashCode.toString();
 			if (!fileHash.equals(expectedHash))
 			{
-				throw new VerificationException("Expected " + expectedHash + " for " + file.getName() + "(" + result.getArtifact() + ") but got " + fileHash);
+				file.delete();
+
+				log.warn("Expected {} for {} ({}) but got {}", expectedHash, file.getName(), result.getArtifact(), fileHash);
+				exception = new VerificationException("Expected " + expectedHash + " for " + file.getName() + "(" + result.getArtifact() + ") but got " + fileHash);
+				continue;
 			}
 
 			log.info("Verified hash of {}", file.getName());
+		}
+
+		if (exception != null)
+		{
+			throw exception;
 		}
 	}
 }
