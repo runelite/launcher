@@ -273,6 +273,43 @@
 						</configuration>
 					</execution>
 					<execution>
+						<id>package-win32</id>
+						<phase>none</phase>
+						<goals>
+							<goal>java</goal>
+						</goals>
+						<configuration>
+							<includeProjectDependencies>false</includeProjectDependencies>
+							<includePluginDependencies>true</includePluginDependencies>
+							<mainClass>com.badlogicgames.packr.Packr</mainClass>
+							<arguments>
+								<argument>--platform</argument>
+								<argument>windows32</argument>
+								<argument>--jdk</argument>
+								<argument>${packr.jdk32}</argument>
+								<argument>--executable</argument>
+								<argument>RuneLite</argument>
+								<argument>--classpath</argument>
+								<argument>${project.build.directory}/RuneLite.jar</argument>
+								<argument>--mainclass</argument>
+								<argument>${main.class}</argument>
+								<argument>--vmargs</argument>
+								<argument>Drunelite.launcher.nojvm=true</argument>
+								<argument>Xmx512m</argument>
+								<argument>Xss2m</argument>
+								<argument>XX:CompileThreshold=1500</argument>
+								<argument>Xincgc</argument>
+								<argument>XX:+UseConcMarkSweepGC</argument>
+								<argument>XX:+UseParNewGC</argument>
+								<argument>Djna.nosys=true</argument>
+								<argument>--output</argument>
+								<argument>${project.build.directory}/native/win32</argument>
+								<argument>--minimizejre</argument>
+								<argument>src/main/resources/oraclejre8.json</argument>
+							</arguments>
+						</configuration>
+					</execution>
+					<execution>
 						<!-- packr doesn't support icons... -->
 						<id>update-windows-icon</id>
 						<phase>none</phase>
@@ -286,6 +323,29 @@
 								<argument>${project.build.directory}/native/win64/RuneLite.exe</argument>
 								<argument>-save</argument>
 								<argument>${project.build.directory}/native/win64/RuneLite.exe</argument>
+								<argument>-action</argument>
+								<argument>add</argument>
+								<argument>-res</argument>
+								<argument>${basedir}/src/main/resources/runelite.ico</argument>
+								<argument>-mask</argument>
+								<argument>ICONGROUP,MAINICON,</argument>
+							</arguments>
+						</configuration>
+					</execution>
+					<execution>
+						<!-- packr doesn't support icons... -->
+						<id>update-windows-icon32</id>
+						<phase>none</phase>
+						<goals>
+							<goal>exec</goal>
+						</goals>
+						<configuration>
+							<executable>${resourcehacker.path}</executable>
+							<arguments>
+								<argument>-open</argument>
+								<argument>${project.build.directory}/native/win32/RuneLite.exe</argument>
+								<argument>-save</argument>
+								<argument>${project.build.directory}/native/win32/RuneLite.exe</argument>
 								<argument>-action</argument>
 								<argument>add</argument>
 								<argument>-res</argument>
@@ -318,6 +378,28 @@
 						</configuration>
 					</execution>
 					<execution>
+						<id>update-manifest32</id>
+						<phase>none</phase>
+						<goals>
+							<goal>exec</goal>
+						</goals>
+						<configuration>
+							<executable>${resourcehacker.path}</executable>
+							<arguments>
+								<argument>-open</argument>
+								<argument>${project.build.directory}/native/win32/RuneLite.exe</argument>
+								<argument>-save</argument>
+								<argument>${project.build.directory}/native/win32/RuneLite.exe</argument>
+								<argument>-action</argument>
+								<argument>addoverwrite</argument>
+								<argument>-res</argument>
+								<argument>${basedir}/src/main/resources/runelite.manifest</argument>
+								<argument>-mask</argument>
+								<argument>MANIFEST,1,</argument>
+							</arguments>
+						</configuration>
+					</execution>
+					<execution>
 						<id>create-windows-installer</id>
 						<phase>none</phase>
 						<goals>
@@ -327,6 +409,19 @@
 							<executable>${iscc.path}</executable>
 							<arguments>
 								<argument>target/classes/runelite.iss</argument>
+							</arguments>
+						</configuration>
+					</execution>
+					<execution>
+						<id>create-windows-installer32</id>
+						<phase>none</phase>
+						<goals>
+							<goal>exec</goal>
+						</goals>
+						<configuration>
+							<executable>${iscc.path}</executable>
+							<arguments>
+								<argument>target/classes/runelite32.iss</argument>
 							</arguments>
 						</configuration>
 					</execution>
