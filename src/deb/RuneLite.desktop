@@ -1,0 +1,10 @@
+[Desktop Entry]
+Encoding=UTF-8
+Name=RuneLite
+Comment=OldSchool RuneScape client
+Terminal=false
+Type=Application
+Categories=Game
+StartupNotify=true
+Exec=/usr/games/runelite
+Icon=/usr/share/runelite/runelite.png

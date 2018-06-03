@@ -486,6 +486,62 @@
 				</executions>
 			</plugin>
 			<plugin>
+				<artifactId>jdeb</artifactId>
+				<groupId>org.vafer</groupId>
+				<version>1.6</version>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>jdeb</goal>
+						</goals>
+						<configuration>
+							<deb>${project.build.directory}/runelite_${version}.deb</deb>
+							<dataSet>
+								<data>
+									<src>${project.build.directory}/${project.build.finalName}.jar</src>
+									<type>file</type>
+									<dst>/usr/share/runelite/RuneLite.jar</dst>
+								</data>
+								<data>
+									<src>${basedir}/src/deb/runelite</src>
+									<type>file</type>
+									<mapper>
+										<type>perm</type>
+										<prefix>/usr/games/</prefix>
+										<filemode>755</filemode>
+									</mapper>
+								</data>
+								<data>
+									<src>${basedir}/src/deb/RuneLite.desktop</src>
+									<type>file</type>
+									<mapper>
+										<type>perm</type>
+										<prefix>/usr/share/applications</prefix>
+									</mapper>
+								</data>
+								<data>
+									<src>${basedir}/src/deb/runelite.png</src>
+									<type>file</type>
+									<mapper>
+										<type>perm</type>
+										<prefix>/usr/share/runelite</prefix>
+									</mapper>
+								</data>
+								<data>
+									<src>${basedir}/src/deb/copyright</src>
+									<type>file</type>
+									<mapper>
+										<type>perm</type>
+										<prefix>/usr/share/common-licenses/runelite</prefix>
+									</mapper>
+								</data>
+							</dataSet>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-resources-plugin</artifactId>
 				<version>3.0.2</version>
