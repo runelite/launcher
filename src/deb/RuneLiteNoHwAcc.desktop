@@ -1,0 +1,10 @@
+[Desktop Entry]
+Encoding=UTF-8
+Name=RuneLite (disabled hardware acceleration)
+Comment=OldSchool RuneScape client. Launches with disabled hardware acceleration.
+Terminal=false
+Type=Application
+Categories=Game
+StartupNotify=true
+Exec=/usr/games/runelite-no-hw-acc
+Icon=/usr/share/runelite/runelite.png
