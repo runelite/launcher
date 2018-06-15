@@ -194,8 +194,11 @@ public class Launcher
 		boolean verifiedHash = false;
 		try
 		{
-			verifyJarHashes(results, bootstrap.getDependencyHashes());
-			verifiedHash = true;
+			if (verify)
+			{
+				verifyJarHashes(results, bootstrap.getDependencyHashes(), verify);
+				verifiedHash = true;
+			}
 		}
 		catch (VerificationException ex)
 		{
@@ -224,7 +227,7 @@ public class Launcher
 			verifyJarSignature(results.get(0).getArtifact().getFile());
 			if (!verifiedHash)
 			{
-				verifyJarHashes(results, bootstrap.getDependencyHashes());
+				verifyJarHashes(results, bootstrap.getDependencyHashes(), verify);
 			}
 
 			log.info("Verified signature of {}", results.get(0).getArtifact());
@@ -316,7 +319,7 @@ public class Launcher
 		JarVerifier.verify(new JarFile(jarFile), certificate);
 	}
 
-	private static void verifyJarHashes(List<ArtifactResult> results, Map<String, String> dependencyHashes) throws VerificationException
+	private static void verifyJarHashes(List<ArtifactResult> results, Map<String, String> dependencyHashes, boolean verify) throws VerificationException
 	{
 		HashFunction sha256 = Hashing.sha256();
 		VerificationException exception = null;
@@ -339,7 +342,11 @@ public class Launcher
 			String fileHash = hashCode.toString();
 			if (!fileHash.equals(expectedHash))
 			{
-				file.delete();
+				if (verify)
+				{
+					// delete it and retry
+					file.delete();
+				}
 
 				log.warn("Expected {} for {} ({}) but got {}", expectedHash, file.getName(), result.getArtifact(), fileHash);
 				exception = new VerificationException("Expected " + expectedHash + " for " + file.getName() + "(" + result.getArtifact() + ") but got " + fileHash);
