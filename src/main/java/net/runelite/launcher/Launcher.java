@@ -49,6 +49,7 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -105,9 +106,6 @@ public class Launcher
 
 		OptionSet options = parser.parse(args);
 
-		// Always use IPv4 over IPv6
-		System.setProperty("java.net.preferIPv4Stack", "true");
-
 		// Setup debug
 		final boolean isDebug = options.has("debug");
 		LOGS_DIR.mkdirs();
@@ -121,18 +119,20 @@ public class Launcher
 
 		// Get hardware acceleration mode
 		final HardwareAccelerationMode hardwareAccelerationMode = options.valueOf(mode);
-
-		// Setup hardware acceleration
 		log.info("Setting hardware acceleration to {}", hardwareAccelerationMode);
-		hardwareAccelerationMode.enable();
 
-		// Setup launcher version
-		final String launcherVersion = PROPERTIES.getVersion();
-		System.setProperty(PROPERTIES.getVersionKey(), launcherVersion);
-
-		// Setup extra JVM arguments
+		// Enable hardware acceleration
 		final List<String> extraJvmParams = hardwareAccelerationMode.toParams();
-		extraJvmParams.add("-D" + PROPERTIES.getVersionKey() + "=" + launcherVersion);
+
+		// Always use IPv4 over IPv6
+		extraJvmParams.add("-Djava.net.preferIPv4Stack=true");
+		extraJvmParams.add("-Djava.net.preferIPv4Addresses=true");
+
+		// Stream launcher version
+		extraJvmParams.add("-D" + PROPERTIES.getVersionKey() + "=" + PROPERTIES.getVersion());
+
+		// Set all JVM params
+		setJvmParams(extraJvmParams);
 
 		try
 		{
@@ -221,6 +221,15 @@ public class Launcher
 			{
 				log.error("unable to launch client", ex);
 			}
+		}
+	}
+
+	private static void setJvmParams(final Collection<String> params)
+	{
+		for (String param : params)
+		{
+			final String[] split = param.replace("-D", "").split("=");
+			System.setProperty(split[0], split[1]);
 		}
 	}
 

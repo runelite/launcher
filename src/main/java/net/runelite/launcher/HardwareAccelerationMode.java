@@ -36,27 +36,8 @@ public enum HardwareAccelerationMode
 	OPENGL;
 
 	/**
-	 * Enables OpenGL or DirectDraw hardware rendering on systems that support it.
+	 * Gets list of JVM properties to enable Hardware Acceleration for this mode.
 	 * See https://docs.oracle.com/javase/8/docs/technotes/guides/2d/flags.html for reference
-	 */
-	public void enable()
-	{
-		System.setProperty("sun.java2d.noddraw", "true");
-		System.setProperty("sun.java2d.opengl", "false");
-
-		switch (this)
-		{
-			case DIRECTDRAW:
-				System.setProperty("sun.java2d.noddraw", "false");
-				break;
-			case OPENGL:
-				System.setProperty("sun.java2d.opengl", "true");
-				break;
-		}
-	}
-
-	/**
-	 * Convert hardware acceleration mode to list of params to be passed to JVM
 	 * @return list of params
 	 */
 	public List<String> toParams()
