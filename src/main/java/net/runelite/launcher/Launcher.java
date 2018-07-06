@@ -49,11 +49,8 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.util.Arrays;
-import java.util.Enumeration;
 import java.util.List;
 import java.util.Objects;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
 import java.util.stream.Collectors;
 import javax.swing.UIManager;
 import joptsimple.ArgumentAcceptingOptionSpec;
@@ -187,9 +184,8 @@ public class Launcher
 		try
 		{
 			verifyJarHashes(bootstrap.getArtifacts());
-			verify(results, CLIENT_MAIN_CLASS.replace('.', '/') + ".class");
 		}
-		catch (IOException | VerificationException | CertificateException ex)
+		catch (VerificationException ex)
 		{
 			log.error("Unable to verify artifacts", ex);
 			frame.setVisible(false);
@@ -314,41 +310,6 @@ public class Launcher
 		}
 	}
 
-	private static void verifyJarSignature(File jarFile) throws CertificateException, IOException
-	{
-		Certificate certificate = getCertificate();
-
-		JarVerifier.verify(new JarFile(jarFile), certificate);
-	}
-
-	private static void verify(List<File> jarFiles, String mainClass) throws IOException, CertificateException, VerificationException
-	{
-		boolean verified = false;
-
-		for (File jarFile : jarFiles)
-		{
-			JarFile jf = new JarFile(jarFile);
-			Enumeration entries = jf.entries();
-
-			while (entries.hasMoreElements())
-			{
-				JarEntry je = (JarEntry) entries.nextElement();
-
-				if (je.getName().equals(mainClass))
-				{
-					verifyJarSignature(jarFile);
-					verified = true;
-					break;
-				}
-			}
-		}
-
-		if (!verified)
-		{
-			throw new VerificationException("No artifact matches main class");
-		}
-	}
-
 	private static void verifyJarHashes(Artifact[] artifacts) throws VerificationException
 	{
 		for (Artifact artifact : artifacts)
@@ -383,7 +344,7 @@ public class Launcher
 	private static Certificate getCertificate() throws CertificateException
 	{
 		CertificateFactory certFactory = CertificateFactory.getInstance("X.509");
-		Certificate certificate = certFactory.generateCertificate(JarVerifier.class.getResourceAsStream("/runelite.crt"));
+		Certificate certificate = certFactory.generateCertificate(Launcher.class.getResourceAsStream("/runelite.crt"));
 		return certificate;
 	}
 }
