@@ -24,6 +24,7 @@
  */
 package net.runelite.launcher;
 
+import java.io.File;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -32,20 +33,18 @@ import java.util.List;
 import javax.swing.UIManager;
 import lombok.extern.slf4j.Slf4j;
 import static net.runelite.launcher.Launcher.CLIENT_MAIN_CLASS;
-import org.eclipse.aether.resolution.ArtifactResult;
 
 @Slf4j
 class ReflectionLauncher
 {
-	public static void launch(List<ArtifactResult> results, String clientArgs) throws MalformedURLException
+	public static void launch(List<File> results, String clientArgs) throws MalformedURLException
 	{
 		URL[] jarUrls = new URL[results.size()];
 		int i = 0;
-		for (ArtifactResult ar : results)
+		for (File file : results)
 		{
-			URL url = ar.getArtifact().getFile().toURI().toURL();
-			log.debug("Adding jar: {}", url);
-			jarUrls[i++] = url;
+			log.debug("Adding jar: {}", file);
+			jarUrls[i++] = file.toURI().toURL();
 		}
 
 		URLClassLoader loader = new URLClassLoader(jarUrls, null);

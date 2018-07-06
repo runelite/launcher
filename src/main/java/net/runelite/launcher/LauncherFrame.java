@@ -29,12 +29,9 @@ import java.awt.Dimension;
 import javax.swing.JFrame;
 import javax.swing.JProgressBar;
 import lombok.extern.slf4j.Slf4j;
-import org.eclipse.aether.transfer.TransferEvent;
-import org.eclipse.aether.transfer.TransferListener;
-import org.eclipse.aether.transfer.TransferResource;
 
 @Slf4j
-public class LauncherFrame extends JFrame implements TransferListener
+public class LauncherFrame extends JFrame
 {
 	private final JProgressBar bar;
 
@@ -59,74 +56,15 @@ public class LauncherFrame extends JFrame implements TransferListener
 		this.setVisible(true);
 	}
 
-	@Override
-	public void transferInitiated(TransferEvent event)
+	void progress(String filename, int bytes, int total)
 	{
-	}
-
-	@Override
-	public void transferStarted(TransferEvent event)
-	{
-		log.info("Started transfer {}", event);
-	}
-
-	@Override
-	public void transferProgressed(TransferEvent event)
-	{
-		TransferResource resource = event.getResource();
-
-		long transferred = event.getTransferredBytes();
-		long totalLength = resource.getContentLength();
-		String artifact = getArtifactName(resource);
-
-		if (totalLength <= 0L)
+		if (total == 0)
 		{
 			return;
 		}
 
-		int percent = (int) (((float) transferred / (float) totalLength) * 100f);
-		bar.setString(artifact + " (" + percent + "%)");
+		int percent = (int) (((float) bytes / (float) total) * 100f);
+		bar.setString(filename + " (" + percent + "%)");
 		bar.setValue(percent);
 	}
-
-	@Override
-	public void transferCorrupted(TransferEvent event)
-	{
-		log.warn("Corrupted transfer {}", event);
-	}
-
-	@Override
-	public void transferSucceeded(TransferEvent event)
-	{
-		log.info("Successful transfer {}", event);
-	}
-
-	@Override
-	public void transferFailed(TransferEvent event)
-	{
-		// This happens when trying to look up runelite artifacts in central,
-		// and vice versa
-	}
-
-	/** Get an artifact name from a transfer resource
-	 * @param resource
-	 * @return
-	 */
-	private static String getArtifactName(TransferResource resource)
-	{
-		String name = resource.getResourceName();
-		if (name == null)
-		{
-			return "";
-		}
-
-		int idx = name.lastIndexOf('/');
-		if (idx == -1)
-		{
-			return name;
-		}
-
-		return name.substring(idx + 1);
-	}
-
 }
