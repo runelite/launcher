@@ -28,8 +28,10 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
+import com.google.common.io.ByteStreams;
 import com.google.common.io.Files;
 import com.google.gson.Gson;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -39,6 +41,10 @@ import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.Signature;
+import java.security.SignatureException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
@@ -54,8 +60,8 @@ import joptsimple.ArgumentAcceptingOptionSpec;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 import lombok.extern.slf4j.Slf4j;
-import net.runelite.launcher.beans.Bootstrap;
 import net.runelite.launcher.beans.Artifact;
+import net.runelite.launcher.beans.Bootstrap;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
@@ -67,6 +73,7 @@ public class Launcher
 	private static final File LOGS_FILE_NAME = new File(LOGS_DIR, "launcher");
 	private static final File REPO_DIR = new File(RUNELITE_DIR, "repository2");
 	private static final String CLIENT_BOOTSTRAP_URL = "http://static.runelite.net/bootstrap.json";
+	private static final String CLIENT_BOOTSTRAP_SHA256_URL = "http://static.runelite.net/bootstrap.json.sha256";
 	private static final LauncherProperties PROPERTIES = new LauncherProperties();
 
 	static final String CLIENT_MAIN_CLASS = "net.runelite.client.RuneLite";
@@ -146,7 +153,7 @@ public class Launcher
 		{
 			bootstrap = getBootstrap();
 		}
-		catch (IOException ex)
+		catch (IOException | VerificationException | CertificateException | SignatureException | InvalidKeyException | NoSuchAlgorithmException ex)
 		{
 			log.error("error fetching bootstrap", ex);
 			frame.setVisible(false);
@@ -221,15 +228,35 @@ public class Launcher
 		}
 	}
 
-	private static Bootstrap getBootstrap() throws IOException
+	private static Bootstrap getBootstrap() throws IOException, CertificateException, NoSuchAlgorithmException, InvalidKeyException, SignatureException, VerificationException
 	{
 		URL u = new URL(CLIENT_BOOTSTRAP_URL);
+		URL signatureUrl = new URL(CLIENT_BOOTSTRAP_SHA256_URL);
+
 		URLConnection conn = u.openConnection();
+		URLConnection signatureConn = signatureUrl.openConnection();
+
 		conn.setRequestProperty("User-Agent", "Mozilla/5.0");
-		try (InputStream i = conn.getInputStream())
+		signatureConn.setRequestProperty("User-Agent", "Mozilla/5.0");
+
+		try (InputStream i = conn.getInputStream();
+			InputStream signatureIn = signatureConn.getInputStream())
 		{
+			byte[] bytes = ByteStreams.toByteArray(i);
+			byte[] signature = ByteStreams.toByteArray(signatureIn);
+
+			Certificate certificate = getCertificate();
+			Signature s = Signature.getInstance("SHA256withRSA");
+			s.initVerify(certificate);
+			s.update(bytes);
+
+			if (!s.verify(signature))
+			{
+				throw new VerificationException("Unable to verify bootstrap signature");
+			}
+
 			Gson g = new Gson();
-			return g.fromJson(new InputStreamReader(i), Bootstrap.class);
+			return g.fromJson(new InputStreamReader(new ByteArrayInputStream(bytes)), Bootstrap.class);
 		}
 	}
 
@@ -289,8 +316,7 @@ public class Launcher
 
 	private static void verifyJarSignature(File jarFile) throws CertificateException, IOException
 	{
-		CertificateFactory certFactory = CertificateFactory.getInstance("X.509");
-		Certificate certificate = certFactory.generateCertificate(JarVerifier.class.getResourceAsStream("/runelite.crt"));
+		Certificate certificate = getCertificate();
 
 		JarVerifier.verify(new JarFile(jarFile), certificate);
 	}
@@ -352,5 +378,12 @@ public class Launcher
 	{
 		HashFunction sha256 = Hashing.sha256();
 		return Files.asByteSource(file).hash(sha256).toString();
+	}
+
+	private static Certificate getCertificate() throws CertificateException
+	{
+		CertificateFactory certFactory = CertificateFactory.getInstance("X.509");
+		Certificate certificate = certFactory.generateCertificate(JarVerifier.class.getResourceAsStream("/runelite.crt"));
+		return certificate;
 	}
 }
