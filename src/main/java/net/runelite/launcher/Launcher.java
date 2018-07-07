@@ -50,8 +50,10 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.Objects;
+import java.util.Properties;
 import java.util.stream.Collectors;
 import javax.swing.UIManager;
 import joptsimple.ArgumentAcceptingOptionSpec;
@@ -115,6 +117,21 @@ public class Launcher
 		{
 			final Logger logger = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
 			logger.setLevel(Level.DEBUG);
+		}
+
+		// Print out system info
+		if (log.isDebugEnabled())
+		{
+			log.debug("Java Environment:");
+			final Properties p = System.getProperties();
+			final Enumeration keys = p.keys();
+
+			while (keys.hasMoreElements())
+			{
+				final String key = (String) keys.nextElement();
+				final String value = (String) p.get(key);
+				log.debug("  {}: {}", key, value);
+			}
 		}
 
 		// Get hardware acceleration mode
