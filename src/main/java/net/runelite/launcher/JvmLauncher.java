@@ -37,7 +37,6 @@ import java.util.Arrays;
 import java.util.List;
 import static net.runelite.launcher.Launcher.CLIENT_MAIN_CLASS;
 import net.runelite.launcher.beans.Bootstrap;
-import org.eclipse.aether.resolution.ArtifactResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -71,16 +70,14 @@ class JvmLauncher
 
 	public static void launch(
 		Bootstrap bootstrap,
-		List<ArtifactResult> results,
+		List<File> results,
 		String clientArgs,
 		List<String> extraJvmParams,
 		boolean sysOut) throws IOException
 	{
 		StringBuilder classPath = new StringBuilder();
-		for (ArtifactResult ar : results)
+		for (File f : results)
 		{
-			File f = ar.getArtifact().getFile();
-
 			if (classPath.length() > 0)
 			{
 				classPath.append(File.pathSeparatorChar);

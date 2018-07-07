@@ -26,34 +26,39 @@ package net.runelite.launcher;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
-import com.google.common.hash.HashCode;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
+import com.google.common.io.ByteStreams;
 import com.google.common.io.Files;
 import com.google.gson.Gson;
+import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.Signature;
+import java.security.SignatureException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
-import java.util.jar.JarFile;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import javax.swing.UIManager;
 import joptsimple.ArgumentAcceptingOptionSpec;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 import lombok.extern.slf4j.Slf4j;
+import net.runelite.launcher.beans.Artifact;
 import net.runelite.launcher.beans.Bootstrap;
-import org.eclipse.aether.artifact.Artifact;
-import org.eclipse.aether.artifact.DefaultArtifact;
-import org.eclipse.aether.resolution.ArtifactResult;
-import org.eclipse.aether.resolution.DependencyResolutionException;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
@@ -63,8 +68,9 @@ public class Launcher
 	private static final File RUNELITE_DIR = new File(System.getProperty("user.home"), ".runelite");
 	private static final File LOGS_DIR = new File(RUNELITE_DIR, "logs");
 	private static final File LOGS_FILE_NAME = new File(LOGS_DIR, "launcher");
-	private static final File REPO_DIR = new File(RUNELITE_DIR, "repository");
+	private static final File REPO_DIR = new File(RUNELITE_DIR, "repository2");
 	private static final String CLIENT_BOOTSTRAP_URL = "http://static.runelite.net/bootstrap.json";
+	private static final String CLIENT_BOOTSTRAP_SHA256_URL = "http://static.runelite.net/bootstrap.json.sha256";
 	private static final LauncherProperties PROPERTIES = new LauncherProperties();
 
 	static final String CLIENT_MAIN_CLASS = "net.runelite.client.RuneLite";
@@ -72,7 +78,6 @@ public class Launcher
 	public static void main(String[] args)
 	{
 		OptionParser parser = new OptionParser();
-		parser.accepts("version").withRequiredArg();
 		parser.accepts("clientargs").withRequiredArg();
 		parser.accepts("nojvm");
 		parser.accepts("debug");
@@ -94,9 +99,9 @@ public class Launcher
 
 		// Create typed argument for the hardware acceleration mode
 		final ArgumentAcceptingOptionSpec<HardwareAccelerationMode> mode = parser.accepts("mode")
-				.withRequiredArg()
-				.ofType(HardwareAccelerationMode.class)
-				.defaultsTo(defaultMode);
+			.withRequiredArg()
+			.ofType(HardwareAccelerationMode.class)
+			.defaultsTo(defaultMode);
 
 		OptionSet options = parser.parse(args);
 
@@ -145,118 +150,48 @@ public class Launcher
 		{
 			bootstrap = getBootstrap();
 		}
-		catch (IOException ex)
+		catch (IOException | VerificationException | CertificateException | SignatureException | InvalidKeyException | NoSuchAlgorithmException ex)
 		{
 			log.error("error fetching bootstrap", ex);
+			frame.setVisible(false);
+			frame.dispose();
+			System.exit(-1);
 			return;
 		}
 
 		// update packr vmargs
 		PackrConfig.updateLauncherArgs(bootstrap);
 
-		boolean verify = true;
+		REPO_DIR.mkdirs();
 
-		if (options.has("version"))
-		{
-			String version = (String) options.valueOf("version");
-			log.info("Using version {}", version);
-			DefaultArtifact artifact = bootstrap.getClient();
-			artifact = (DefaultArtifact) artifact.setVersion(version);
-			bootstrap.setClient(artifact);
-
-			verify = false; // non-releases are not signed
-		}
-
-		ArtifactResolver resolver = new ArtifactResolver(REPO_DIR);
-		resolver.setListener(frame);
-		resolver.addRepositories();
-
-		Artifact a = bootstrap.getClient();
-
-		List<ArtifactResult> results;
 		try
 		{
-			results = resolver.resolveArtifacts(a);
+			download(frame, bootstrap);
 		}
-		catch (DependencyResolutionException ex)
+		catch (IOException ex)
 		{
-			log.error("unable to resolve dependencies for client", ex);
+			log.error("unable to download artifacts", ex);
+			frame.setVisible(false);
+			frame.dispose();
 			System.exit(-1);
 			return;
 		}
 
-		if (results.isEmpty())
+		List<File> results = Arrays.stream(bootstrap.getArtifacts())
+			.map(dep -> new File(REPO_DIR, dep.getName()))
+			.collect(Collectors.toList());
+
+		try
 		{
-			log.error("Unable to resolve artifacts");
+			verifyJarHashes(bootstrap.getArtifacts());
+		}
+		catch (VerificationException ex)
+		{
+			log.error("Unable to verify artifacts", ex);
+			frame.setVisible(false);
+			frame.dispose();
 			System.exit(-1);
-		}
-
-		boolean verifiedHash = false;
-		try
-		{
-			if (verify)
-			{
-				verifyJarHashes(results, bootstrap.getDependencyHashes(), verify);
-				verifiedHash = true;
-			}
-		}
-		catch (VerificationException ex)
-		{
-			// verifyJarHashes deletes files with mismatched hashes... try again.
-			log.warn("Error verifying hashes, retrying", ex);
-
-			try
-			{
-				results = resolver.resolveArtifacts(a);
-			}
-			catch (DependencyResolutionException ex2)
-			{
-				log.error("unable to resolve dependencies for client", ex2);
-				System.exit(-1);
-			}
-
-			if (results.isEmpty())
-			{
-				log.error("Unable to resolve artifacts");
-				System.exit(-1);
-			}
-		}
-
-		try
-		{
-			verifyJarSignature(results.get(0).getArtifact().getFile());
-			if (!verifiedHash)
-			{
-				verifyJarHashes(results, bootstrap.getDependencyHashes(), verify);
-			}
-
-			log.info("Verified signature of {}", results.get(0).getArtifact());
-		}
-		catch (CertificateException | IOException | SecurityException ex)
-		{
-			if (verify)
-			{
-				log.error("Unable to verify signature of jar file", ex);
-				System.exit(-1);
-				return;
-			}
-			else
-			{
-				log.warn("Unable to verify signature of jar file", ex);
-			}
-		}
-		catch (VerificationException ex)
-		{
-			if (verify)
-			{
-				log.error("Unable to verify hashes", ex);
-				System.exit(-1);
-				return;
-			}
-			else
-			{
-				log.warn("Unable to verify hashes", ex);
-			}
+			return;
 		}
 
 		frame.setVisible(false);
@@ -289,15 +224,35 @@ public class Launcher
 		}
 	}
 
-	private static Bootstrap getBootstrap() throws IOException
+	private static Bootstrap getBootstrap() throws IOException, CertificateException, NoSuchAlgorithmException, InvalidKeyException, SignatureException, VerificationException
 	{
 		URL u = new URL(CLIENT_BOOTSTRAP_URL);
+		URL signatureUrl = new URL(CLIENT_BOOTSTRAP_SHA256_URL);
+
 		URLConnection conn = u.openConnection();
+		URLConnection signatureConn = signatureUrl.openConnection();
+
 		conn.setRequestProperty("User-Agent", "Mozilla/5.0");
-		try (InputStream i = conn.getInputStream())
+		signatureConn.setRequestProperty("User-Agent", "Mozilla/5.0");
+
+		try (InputStream i = conn.getInputStream();
+			InputStream signatureIn = signatureConn.getInputStream())
 		{
+			byte[] bytes = ByteStreams.toByteArray(i);
+			byte[] signature = ByteStreams.toByteArray(signatureIn);
+
+			Certificate certificate = getCertificate();
+			Signature s = Signature.getInstance("SHA256withRSA");
+			s.initVerify(certificate);
+			s.update(bytes);
+
+			if (!s.verify(signature))
+			{
+				throw new VerificationException("Unable to verify bootstrap signature");
+			}
+
 			Gson g = new Gson();
-			return g.fromJson(new InputStreamReader(i), Bootstrap.class);
+			return g.fromJson(new InputStreamReader(new ByteArrayInputStream(bytes)), Bootstrap.class);
 		}
 	}
 
@@ -311,54 +266,85 @@ public class Launcher
 		return clientArgs;
 	}
 
-	private static void verifyJarSignature(File jarFile) throws CertificateException, IOException
+	private static void download(LauncherFrame frame, Bootstrap bootstrap) throws IOException
 	{
-		CertificateFactory certFactory = CertificateFactory.getInstance("X.509");
-		Certificate certificate = certFactory.generateCertificate(JarVerifier.class.getResourceAsStream("/runelite.crt"));
-
-		JarVerifier.verify(new JarFile(jarFile), certificate);
-	}
-
-	private static void verifyJarHashes(List<ArtifactResult> results, Map<String, String> dependencyHashes, boolean verify) throws VerificationException
-	{
-		HashFunction sha256 = Hashing.sha256();
-		VerificationException exception = null;
-
-		for (ArtifactResult result : results)
+		Artifact[] artifacts = bootstrap.getArtifacts();
+		for (Artifact artifact : artifacts)
 		{
-			File file = result.getArtifact().getFile();
+			File dest = new File(REPO_DIR, artifact.getName());
 
-			String expectedHash = dependencyHashes.get(file.getName());
-			HashCode hashCode;
+			String hash;
 			try
 			{
-				hashCode = Files.asByteSource(file).hash(sha256);
+				hash = hash(dest);
 			}
-			catch (IOException ex)
+			catch (FileNotFoundException ex)
 			{
-				throw new VerificationException("error hashing file", ex);
+				hash = null;
 			}
 
-			String fileHash = hashCode.toString();
-			if (!fileHash.equals(expectedHash))
+			if (Objects.equals(hash, artifact.getHash()))
 			{
-				if (verify)
-				{
-					// delete it and retry
-					file.delete();
-				}
-
-				log.warn("Expected {} for {} ({}) but got {}", expectedHash, file.getName(), result.getArtifact(), fileHash);
-				exception = new VerificationException("Expected " + expectedHash + " for " + file.getName() + "(" + result.getArtifact() + ") but got " + fileHash);
+				log.debug("Hash for {} up to date", artifact.getName());
 				continue;
 			}
 
-			log.info("Verified hash of {}", file.getName());
-		}
+			log.debug("Downloading {}", artifact.getName());
 
-		if (exception != null)
-		{
-			throw exception;
+			URL url = new URL(artifact.getPath());
+			URLConnection conn = url.openConnection();
+			conn.setRequestProperty("User-Agent", "Mozilla/5.0");
+			try (InputStream in = conn.getInputStream();
+				FileOutputStream fout = new FileOutputStream(dest))
+			{
+				int i;
+				int bytes = 0;
+				byte[] buffer = new byte[1024 * 1024];
+				while ((i = in.read(buffer)) != -1)
+				{
+					bytes += i;
+					fout.write(buffer, 0, i);
+					frame.progress(artifact.getName(), bytes, artifact.getSize());
+				}
+			}
 		}
+	}
+
+	private static void verifyJarHashes(Artifact[] artifacts) throws VerificationException
+	{
+		for (Artifact artifact : artifacts)
+		{
+			String expectedHash = artifact.getHash();
+			String fileHash;
+			try
+			{
+				fileHash = hash(new File(REPO_DIR, artifact.getName()));
+			}
+			catch (IOException e)
+			{
+				throw new VerificationException("unable to hash file", e);
+			}
+
+			if (!fileHash.equals(expectedHash))
+			{
+				log.warn("Expected {} for {} but got {}", expectedHash, artifact.getName(), fileHash);
+				throw new VerificationException("Expected " + expectedHash + " for " + artifact.getName() + " but got " + fileHash);
+			}
+
+			log.info("Verified hash of {}", artifact.getName());
+		}
+	}
+
+	private static String hash(File file) throws IOException
+	{
+		HashFunction sha256 = Hashing.sha256();
+		return Files.asByteSource(file).hash(sha256).toString();
+	}
+
+	private static Certificate getCertificate() throws CertificateException
+	{
+		CertificateFactory certFactory = CertificateFactory.getInstance("X.509");
+		Certificate certificate = certFactory.generateCertificate(Launcher.class.getResourceAsStream("/runelite.crt"));
+		return certificate;
 	}
 }
