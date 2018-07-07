@@ -41,3 +41,4 @@ Filename: "{app}\RuneLite.exe"; Description: "&Open RuneLite"; Flags: postinstal
 
 [UninstallDelete]
 Type: filesandordirs; Name: "{%USERPROFILE}\.runelite\repository"
+Type: filesandordirs; Name: "{%USERPROFILE}\.runelite\repository2"
