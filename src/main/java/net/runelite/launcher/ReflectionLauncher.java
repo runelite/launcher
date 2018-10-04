@@ -65,7 +65,7 @@ class ReflectionLauncher
 				}
 				catch (Exception ex)
 				{
-					ex.printStackTrace();
+					log.error("Unable to launch client", ex);
 				}
 			}
 		};
