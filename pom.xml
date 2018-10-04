@@ -39,6 +39,7 @@
 
 		<logback.version>1.2.3</logback.version>
 		<guava.version>23.2-jre</guava.version>
+		<packr.version>9139616e3837f0f3eb51071d786fc810769012a8</packr.version>
 
 		<main.class>net.runelite.launcher.Launcher</main.class>
 		<packr.jdk></packr.jdk>
@@ -108,6 +109,12 @@
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
 			<version>1.16.20</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency> <!-- hack to lock check packr -->
+			<groupId>com.github.libgdx</groupId>
+			<artifactId>packr</artifactId>
+			<version>${packr.version}</version>
 			<scope>provided</scope>
 		</dependency>
 
@@ -212,7 +219,7 @@
 					<dependency>
 						<groupId>com.github.libgdx</groupId>
 						<artifactId>packr</artifactId>
-						<version>9139616e3837f0f3eb51071d786fc810769012a8</version>
+						<version>${packr.version}</version>
 					</dependency>
 				</dependencies>
 				<executions>
@@ -510,6 +517,88 @@
 					<configLocation>checkstyle.xml</configLocation>
 					<!-- exclude generated sources from checkstyle https://stackoverflow.com/a/30406454/7189686 -->
 					<sourceDirectory>${project.build.sourceDirectory}</sourceDirectory>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>net.runelite.maven</groupId>
+				<artifactId>dependency-lock-plugin</artifactId>
+				<version>1.0</version>
+				<executions>
+					<execution>
+						<phase>verify</phase>
+						<goals>
+							<goal>verify</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<locks>
+						<lock>
+							<groupId>org.slf4j</groupId>
+							<artifactId>slf4j-api</artifactId>
+							<hash>SHA-256:18c4a0095d5c1da6b817592e767bb23d29dd2f560ad74df75ff3961dbde25b79</hash>
+						</lock>
+						<lock>
+							<groupId>ch.qos.logback</groupId>
+							<artifactId>logback-classic</artifactId>
+							<hash>SHA-256:fb53f8539e7fcb8f093a56e138112056ec1dc809ebb020b59d8a36a5ebac37e0</hash>
+						</lock>
+						<lock>
+							<groupId>ch.qos.logback</groupId>
+							<artifactId>logback-core</artifactId>
+							<hash>SHA-256:5946d837fe6f960c02a53eda7a6926ecc3c758bbdd69aa453ee429f858217f22</hash>
+						</lock>
+						<lock>
+							<groupId>net.sf.jopt-simple</groupId>
+							<artifactId>jopt-simple</artifactId>
+							<hash>SHA-256:9f0c8d50fa4b79b6ff1502dbec8502179d6b9497cacbe17a13074001aed537ec</hash>
+						</lock>
+						<lock>
+							<groupId>com.google.code.gson</groupId>
+							<artifactId>gson</artifactId>
+							<hash>SHA-256:233a0149fc365c9f6edbd683cfe266b19bdc773be98eabdaf6b3c924b48e7d81</hash>
+						</lock>
+						<lock>
+							<groupId>com.google.guava</groupId>
+							<artifactId>guava</artifactId>
+							<hash>SHA-256:5be9a7d05ba0ccd74708bc8018ae412255f85843c0b92302e9b9befa6ed52564</hash>
+						</lock>
+						<lock>
+							<groupId>com.google.code.findbugs</groupId>
+							<artifactId>jsr305</artifactId>
+							<hash>SHA-256:905721a0eea90a81534abb7ee6ef4ea2e5e645fa1def0a5cd88402df1b46c9ed</hash>
+						</lock>
+						<lock>
+							<groupId>com.google.errorprone</groupId>
+							<artifactId>error_prone_annotations</artifactId>
+							<hash>SHA-256:cb4cfad870bf563a07199f3ebea5763f0dec440fcda0b318640b1feaa788656b</hash>
+						</lock>
+						<lock>
+							<groupId>com.google.j2objc</groupId>
+							<artifactId>j2objc-annotations</artifactId>
+							<hash>SHA-256:2994a7eb78f2710bd3d3bfb639b2c94e219cedac0d4d084d516e78c16dddecf6</hash>
+						</lock>
+						<lock>
+							<groupId>org.codehaus.mojo</groupId>
+							<artifactId>animal-sniffer-annotations</artifactId>
+							<hash>SHA-256:2068320bd6bad744c3673ab048f67e30bef8f518996fa380033556600669905d</hash>
+						</lock>
+						<lock>
+							<groupId>org.projectlombok</groupId>
+							<artifactId>lombok</artifactId>
+							<hash>SHA-256:c5178b18caaa1a15e17b99ba5e4023d2de2ebc18b58cde0f5a04ca4b31c10e6d</hash>
+						</lock>
+						<lock>
+							<groupId>com.github.libgdx</groupId>
+							<artifactId>packr</artifactId>
+							<hash>SHA-256:8e672a0aa2b2016521c07625c01aec1d3faa6ab5cedd36fb707b68e122c8c266</hash>
+						</lock>
+						<lock>
+							<groupId>net.runelite.maven</groupId>
+							<artifactId>dependency-lock-plugin</artifactId>
+							<hash>SHA-256:4e2198381f454dc96aaa9792319f431c32a8383b3edaacef9972e8b3e3d05ca4</hash>
+						</lock>
+					</locks>
 				</configuration>
 			</plugin>
 		</plugins>
