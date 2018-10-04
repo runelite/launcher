@@ -538,7 +538,7 @@
 			<plugin>
 				<groupId>net.runelite.maven</groupId>
 				<artifactId>dependency-lock-plugin</artifactId>
-				<version>1.0</version>
+				<version>1.1</version>
 				<executions>
 					<execution>
 						<phase>verify</phase>
@@ -617,7 +617,7 @@
 						<lock>
 							<groupId>net.runelite.maven</groupId>
 							<artifactId>dependency-lock-plugin</artifactId>
-							<hash>SHA-256:4e2198381f454dc96aaa9792319f431c32a8383b3edaacef9972e8b3e3d05ca4</hash>
+							<hash>SHA-256:3a03d05adcbb095650e0a8e01b704ef214b0ba98e25d38835f70224b5fba68c2</hash>
 						</lock>
 					</locks>
 				</configuration>
