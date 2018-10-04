@@ -72,8 +72,8 @@ public class Launcher
 	private static final File LOGS_DIR = new File(RUNELITE_DIR, "logs");
 	private static final File LOGS_FILE_NAME = new File(LOGS_DIR, "launcher");
 	private static final File REPO_DIR = new File(RUNELITE_DIR, "repository2");
-	private static final String CLIENT_BOOTSTRAP_URL = "http://static.runelite.net/bootstrap.json";
-	private static final String CLIENT_BOOTSTRAP_SHA256_URL = "http://static.runelite.net/bootstrap.json.sha256";
+	private static final String CLIENT_BOOTSTRAP_URL = "https://static.runelite.net/bootstrap.json";
+	private static final String CLIENT_BOOTSTRAP_SHA256_URL = "https://static.runelite.net/bootstrap.json.sha256";
 	private static final LauncherProperties PROPERTIES = new LauncherProperties();
 
 	static final String CLIENT_MAIN_CLASS = "net.runelite.client.RuneLite";
