@@ -520,6 +520,18 @@
 				</configuration>
 			</plugin>
 			<plugin>
+				<groupId>io.github.zlika</groupId>
+				<artifactId>reproducible-build-maven-plugin</artifactId>
+				<version>0.7</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>strip-jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
 				<groupId>net.runelite.maven</groupId>
 				<artifactId>dependency-lock-plugin</artifactId>
 				<version>1.0</version>
@@ -592,6 +604,11 @@
 							<groupId>com.github.libgdx</groupId>
 							<artifactId>packr</artifactId>
 							<hash>SHA-256:8e672a0aa2b2016521c07625c01aec1d3faa6ab5cedd36fb707b68e122c8c266</hash>
+						</lock>
+						<lock>
+							<groupId>io.github.zlika</groupId>
+							<artifactId>reproducible-build-maven-plugi</artifactId>
+							<hash>SHA-256:ecdd21e005f64431fdadf04bbf00744e7afaa0d70515ab217510b9c8d20e1915</hash>
 						</lock>
 						<lock>
 							<groupId>net.runelite.maven</groupId>
