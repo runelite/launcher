@@ -472,6 +472,8 @@
 							</successCodes>
 							<executable>${createdmg.path}</executable>
 							<arguments>
+								<argument>--format</argument>
+								<argument>UDBZ</argument>
 								<argument>${project.build.directory}/native/darwin/RuneLite.app</argument>
 							</arguments>
 						</configuration>
