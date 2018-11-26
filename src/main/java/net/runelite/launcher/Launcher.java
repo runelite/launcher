@@ -26,6 +26,8 @@ package net.runelite.launcher;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
+import com.google.common.base.Splitter;
+import com.google.common.base.Strings;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
 import com.google.common.io.ByteStreams;
@@ -51,9 +53,11 @@ import java.security.cert.CertificateFactory;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Enumeration;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Properties;
+import java.util.Set;
 import java.util.stream.Collectors;
 import javax.swing.UIManager;
 import joptsimple.ArgumentAcceptingOptionSpec;
@@ -214,7 +218,12 @@ public class Launcher
 		frame.setVisible(false);
 		frame.dispose();
 
-		String clientArgs = getArgs(options);
+		final Collection<String> clientArgs = getClientArgs(options);
+
+		if (log.isDebugEnabled())
+		{
+			clientArgs.add("--debug");
+		}
 
 		// packr doesn't let us specify command line arguments
 		if ("true".equals(System.getProperty("runelite.launcher.nojvm")) || options.has("nojvm"))
@@ -232,7 +241,7 @@ public class Launcher
 		{
 			try
 			{
-				JvmLauncher.launch(bootstrap, results, clientArgs, extraJvmParams, isDebug);
+				JvmLauncher.launch(bootstrap, results, clientArgs, extraJvmParams);
 			}
 			catch (IOException ex)
 			{
@@ -282,14 +291,16 @@ public class Launcher
 		}
 	}
 
-	private static String getArgs(OptionSet options)
+	private static Set<String> getClientArgs(OptionSet options)
 	{
 		String clientArgs = System.getenv("RUNELITE_ARGS");
 		if (options.has("clientargs"))
 		{
 			clientArgs = (String) options.valueOf("clientargs");
 		}
-		return clientArgs;
+		return !Strings.isNullOrEmpty(clientArgs)
+			? new HashSet<>(Splitter.on(' ').omitEmptyStrings().trimResults().splitToList(clientArgs))
+			: new HashSet<>();
 	}
 
 	private static void download(LauncherFrame frame, Bootstrap bootstrap) throws IOException

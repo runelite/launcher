@@ -34,12 +34,15 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 import static net.runelite.launcher.Launcher.CLIENT_MAIN_CLASS;
 import net.runelite.launcher.beans.Bootstrap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@Slf4j
 class JvmLauncher
 {
 	private static final Logger logger = LoggerFactory.getLogger(JvmLauncher.class);
@@ -68,12 +71,11 @@ class JvmLauncher
 		return javaPath.toAbsolutePath().toString();
 	}
 
-	public static void launch(
+	static void launch(
 		Bootstrap bootstrap,
 		List<File> results,
-		String clientArgs,
-		List<String> extraJvmParams,
-		boolean sysOut) throws IOException
+		Collection<String> clientArgs,
+		List<String> extraJvmParams) throws IOException
 	{
 		StringBuilder classPath = new StringBuilder();
 		for (File f : results)
@@ -118,10 +120,7 @@ class JvmLauncher
 		arguments.addAll(extraJvmParams);
 
 		arguments.add(CLIENT_MAIN_CLASS);
-		if (clientArgs != null)
-		{
-			arguments.add(clientArgs);
-		}
+		arguments.addAll(clientArgs);
 
 		logger.info("Running {}", arguments);
 
@@ -129,7 +128,7 @@ class JvmLauncher
 		builder.redirectErrorStream(true);
 		Process process = builder.start();
 
-		if (sysOut)
+		if (log.isDebugEnabled())
 		{
 			BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
 			for (String line; (line = reader.readLine()) != null; )
