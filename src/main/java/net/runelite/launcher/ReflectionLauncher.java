@@ -30,6 +30,7 @@ import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.Collection;
 import java.util.List;
 import javax.swing.UIManager;
 import lombok.extern.slf4j.Slf4j;
@@ -38,7 +39,7 @@ import static net.runelite.launcher.Launcher.CLIENT_MAIN_CLASS;
 @Slf4j
 class ReflectionLauncher
 {
-	public static void launch(List<File> results, String clientArgs) throws MalformedURLException
+	static void launch(List<File> results, Collection<String> clientArgs) throws MalformedURLException
 	{
 		URL[] jarUrls = new URL[results.size()];
 		int i = 0;
@@ -73,9 +74,7 @@ class ReflectionLauncher
 					Class<?> mainClass = loader.loadClass(CLIENT_MAIN_CLASS);
 
 					Method main = mainClass.getMethod("main", String[].class);
-
-					String[] args = clientArgs != null ? clientArgs.split(" ") : new String[0];
-					main.invoke(null, (Object) args);
+					main.invoke(null, (Object) clientArgs.toArray(new String[0]));
 				}
 				catch (Exception ex)
 				{
