@@ -54,6 +54,7 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.Objects;
 import java.util.Properties;
+import java.util.Set;
 import java.util.stream.Collectors;
 import javax.swing.UIManager;
 import joptsimple.ArgumentAcceptingOptionSpec;
@@ -180,6 +181,9 @@ public class Launcher
 		PackrConfig.updateLauncherArgs(bootstrap);
 
 		REPO_DIR.mkdirs();
+
+		// Clean out old artifacts from the repository
+		clean(bootstrap.getArtifacts());
 
 		try
 		{
@@ -331,6 +335,35 @@ public class Launcher
 					bytes += i;
 					fout.write(buffer, 0, i);
 					frame.progress(artifact.getName(), bytes, artifact.getSize());
+				}
+			}
+		}
+	}
+
+	private static void clean(Artifact[] artifacts)
+	{
+		File[] existingFiles = REPO_DIR.listFiles();
+
+		if (existingFiles == null)
+		{
+			return;
+		}
+
+		Set<String> artifactNames = Arrays.stream(artifacts)
+			.map(Artifact::getName)
+			.collect(Collectors.toSet());
+
+		for (File file : existingFiles)
+		{
+			if (file.isFile() && !artifactNames.contains(file.getName()))
+			{
+				if (file.delete())
+				{
+					log.debug("Deleted old artifact {}", file);
+				}
+				else
+				{
+					log.warn("Unable to delete old artifact {}", file);
 				}
 			}
 		}
