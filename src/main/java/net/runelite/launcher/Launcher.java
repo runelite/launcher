@@ -64,14 +64,12 @@ import lombok.extern.slf4j.Slf4j;
 import net.runelite.launcher.beans.Artifact;
 import net.runelite.launcher.beans.Bootstrap;
 import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
 
 @Slf4j
 public class Launcher
 {
 	private static final File RUNELITE_DIR = new File(System.getProperty("user.home"), ".runelite");
 	private static final File LOGS_DIR = new File(RUNELITE_DIR, "logs");
-	private static final File LOGS_FILE_NAME = new File(LOGS_DIR, "launcher");
 	private static final File REPO_DIR = new File(RUNELITE_DIR, "repository2");
 	private static final String CLIENT_BOOTSTRAP_URL = "https://static.runelite.net/bootstrap.json";
 	private static final String CLIENT_BOOTSTRAP_SHA256_URL = "https://static.runelite.net/bootstrap.json.sha256";
@@ -112,7 +110,6 @@ public class Launcher
 		// Setup debug
 		final boolean isDebug = options.has("debug");
 		LOGS_DIR.mkdirs();
-		MDC.put("logFileName", LOGS_FILE_NAME.getAbsolutePath());
 
 		if (isDebug)
 		{
