@@ -76,6 +76,7 @@ import javax.swing.SwingUtilities;
 import joptsimple.ArgumentAcceptingOptionSpec;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
+import joptsimple.OptionSpec;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.launcher.beans.Artifact;
 import net.runelite.launcher.beans.Bootstrap;
@@ -102,6 +103,7 @@ public class Launcher
 		parser.accepts("nojvm");
 		parser.accepts("debug");
 		parser.accepts("nodiff");
+		OptionSpec<String> jvmargs = parser.accepts("jvmargs").withRequiredArg();
 
 		HardwareAccelerationMode defaultMode;
 		switch (OS.getOs())
@@ -173,6 +175,9 @@ public class Launcher
 
 			// Stream launcher version
 			extraJvmParams.add("-D" + LauncherProperties.getVersionKey() + "=" + LauncherProperties.getVersion());
+
+			// Add user specified options
+			extraJvmParams.addAll(jvmargs.values(options));
 
 			// Set all JVM params
 			setJvmParams(extraJvmParams);
