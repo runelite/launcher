@@ -613,7 +613,7 @@
 						</lock>
 						<lock>
 							<groupId>io.github.zlika</groupId>
-							<artifactId>reproducible-build-maven-plugi</artifactId>
+							<artifactId>reproducible-build-maven-plugin</artifactId>
 							<hash>SHA-256:ecdd21e005f64431fdadf04bbf00744e7afaa0d70515ab217510b9c8d20e1915</hash>
 						</lock>
 						<lock>
