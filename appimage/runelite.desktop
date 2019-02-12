@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=RuneLite
+Comment=RuneLite Launcher
+Exec=RuneLite
+Icon=runelite
+Terminal=false
+Type=Application
+Categories=Game;
