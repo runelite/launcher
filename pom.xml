@@ -64,6 +64,10 @@
 
 	<repositories>
 		<repository>
+			<id>central</id>
+			<url>http://repo1.maven.org/maven2</url>
+		</repository>
+		<repository>
 			<id>runelite</id>
 			<name>RuneLite</name>
 			<url>http://repo.runelite.net</url>
@@ -76,12 +80,16 @@
 
 	<pluginRepositories>
 		<pluginRepository>
-			<id>jitpack.io</id>
-			<url>https://jitpack.io</url>
+			<id>central</id>
+			<url>http://repo1.maven.org/maven2</url>
 		</pluginRepository>
 		<pluginRepository>
 			<id>runelite</id>
 			<url>http://repo.runelite.net</url>
+		</pluginRepository>
+		<pluginRepository>
+			<id>jitpack.io</id>
+			<url>https://jitpack.io</url>
 		</pluginRepository>
 	</pluginRepositories>
 
