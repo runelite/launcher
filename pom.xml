@@ -76,12 +76,12 @@
 
 	<pluginRepositories>
 		<pluginRepository>
-			<id>jitpack.io</id>
-			<url>https://jitpack.io</url>
-		</pluginRepository>
-		<pluginRepository>
 			<id>runelite</id>
 			<url>http://repo.runelite.net</url>
+		</pluginRepository>
+		<pluginRepository>
+			<id>jitpack.io</id>
+			<url>https://jitpack.io</url>
 		</pluginRepository>
 	</pluginRepositories>
 
