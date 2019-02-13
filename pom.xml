@@ -513,6 +513,7 @@
 								<argument>--resources</argument>
 								<argument>appimage/runelite.desktop</argument>
 								<argument>appimage/runelite.png</argument>
+								<argument>appimage/usr</argument>
 							</arguments>
 						</configuration>
 					</execution>
@@ -553,6 +554,7 @@
 								<argument>--resources</argument>
 								<argument>appimage/runelite.desktop</argument>
 								<argument>appimage/runelite.png</argument>
+								<argument>appimage/usr</argument>
 							</arguments>
 						</configuration>
 					</execution>

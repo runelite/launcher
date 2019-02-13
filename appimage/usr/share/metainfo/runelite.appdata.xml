@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+	<id>net.runelite.launcher</id>
+	<metadata_license>BSD-2-Clause</metadata_license>
+	<project_license>BSD-2-Clause</project_license>
+	<name>RuneLite</name>
+	<summary>RuneLite Launcher</summary>
+	<description>
+		<p>Launcher for RuneLite</p>
+	</description>
+	<launchable type="desktop-id">runelite.desktop</launchable>
+	<url type="homepage">https://runelite.net</url>
+	<screenshots>
+		<screenshot type="default">
+			<image>https://runelite.net/img/carousel/1.png</image>
+		</screenshot>
+	</screenshots>
+	<provides>
+		<id>runelite.desktop</id>
+	</provides>
+</component>
