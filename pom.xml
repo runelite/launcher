@@ -179,16 +179,6 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
 				<version>3.0.2</version>
-				<configuration>
-					<excludes>
-						<!-- these are used only by the installer -->
-						<exclude>runelite.ico</exclude>
-						<exclude>oraclejre8.json</exclude>
-						<exclude>runelite.icns</exclude>
-						<exclude>Info.plist</exclude>
-						<exclude>runelite.manifest</exclude>
-					</excludes>
-				</configuration>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -267,7 +257,7 @@
 								<argument>--output</argument>
 								<argument>${project.build.directory}/native/win64</argument>
 								<argument>--minimizejre</argument>
-								<argument>src/main/resources/oraclejre8.json</argument>
+								<argument>packr/oraclejre8.json</argument>
 							</arguments>
 						</configuration>
 					</execution>
@@ -304,7 +294,7 @@
 								<argument>--output</argument>
 								<argument>${project.build.directory}/native/win32</argument>
 								<argument>--minimizejre</argument>
-								<argument>src/main/resources/oraclejre8.json</argument>
+								<argument>packr/oraclejre8.json</argument>
 							</arguments>
 						</configuration>
 					</execution>
@@ -325,7 +315,7 @@
 								<argument>-action</argument>
 								<argument>add</argument>
 								<argument>-res</argument>
-								<argument>${basedir}/src/main/resources/runelite.ico</argument>
+								<argument>${basedir}/runelite.ico</argument>
 								<argument>-mask</argument>
 								<argument>ICONGROUP,MAINICON,</argument>
 							</arguments>
@@ -348,7 +338,7 @@
 								<argument>-action</argument>
 								<argument>add</argument>
 								<argument>-res</argument>
-								<argument>${basedir}/src/main/resources/runelite.ico</argument>
+								<argument>${basedir}/runelite.ico</argument>
 								<argument>-mask</argument>
 								<argument>ICONGROUP,MAINICON,</argument>
 							</arguments>
@@ -370,7 +360,7 @@
 								<argument>-action</argument>
 								<argument>addoverwrite</argument>
 								<argument>-res</argument>
-								<argument>${basedir}/src/main/resources/runelite.manifest</argument>
+								<argument>${basedir}/packr/runelite.manifest</argument>
 								<argument>-mask</argument>
 								<argument>MANIFEST,1,</argument>
 							</arguments>
@@ -392,7 +382,7 @@
 								<argument>-action</argument>
 								<argument>addoverwrite</argument>
 								<argument>-res</argument>
-								<argument>${basedir}/src/main/resources/runelite.manifest</argument>
+								<argument>${basedir}/packr/runelite.manifest</argument>
 								<argument>-mask</argument>
 								<argument>MANIFEST,1,</argument>
 							</arguments>
@@ -439,7 +429,7 @@
 								<argument>--platform</argument>
 								<argument>mac</argument>
 								<argument>--icon</argument>
-								<argument>${project.basedir}/src/main/resources/runelite.icns</argument>
+								<argument>${project.basedir}/packr/runelite.icns</argument>
 								<argument>--jdk</argument>
 								<argument>${packr.jdk}</argument>
 								<argument>--executable</argument>
@@ -460,7 +450,7 @@
 								<argument>--output</argument>
 								<argument>${project.build.directory}/native/darwin/RuneLite.app</argument>
 								<argument>--minimizejre</argument>
-								<argument>src/main/resources/oraclejre8.json</argument>
+								<argument>packr/oraclejre8.json</argument>
 							</arguments>
 						</configuration>
 					</execution>
@@ -517,7 +507,7 @@
 							<outputDirectory>${project.build.directory}/native/darwin/RuneLite.app/Contents</outputDirectory>
 							<resources>
 								<resource>
-									<directory>${basedir}/src/main/resources</directory>
+									<directory>${basedir}/packr</directory>
 									<includes>
 										<include>Info.plist</include>
 									</includes>
