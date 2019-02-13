@@ -31,6 +31,7 @@
 	<artifactId>launcher</artifactId>
 	<version>1.6.2-SNAPSHOT</version>
 	<name>RuneLite Launcher</name>
+	<description>Launcher for RuneLite client</description>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -492,7 +493,7 @@
 								<argument>--jdk</argument>
 								<argument>${packr.jdk}</argument>
 								<argument>--executable</argument>
-								<argument>RuneLite</argument>
+								<argument>${project.build.finalName}</argument>
 								<argument>--classpath</argument>
 								<argument>${project.build.directory}/RuneLite.jar</argument>
 								<argument>--mainclass</argument>
@@ -511,9 +512,9 @@
 								<argument>--minimizejre</argument>
 								<argument>src/main/resources/oraclejre8.json</argument>
 								<argument>--resources</argument>
-								<argument>appimage/runelite.desktop</argument>
+								<argument>target/filtered-resources/runelite.desktop</argument>
+								<argument>target/filtered-resources/usr</argument>
 								<argument>appimage/runelite.png</argument>
-								<argument>appimage/usr</argument>
 							</arguments>
 						</configuration>
 					</execution>
@@ -533,7 +534,7 @@
 								<argument>--jdk</argument>
 								<argument>${packr.jdk32}</argument>
 								<argument>--executable</argument>
-								<argument>RuneLite</argument>
+								<argument>${project.build.finalName}</argument>
 								<argument>--classpath</argument>
 								<argument>${project.build.directory}/RuneLite.jar</argument>
 								<argument>--mainclass</argument>
@@ -552,9 +553,9 @@
 								<argument>--minimizejre</argument>
 								<argument>src/main/resources/oraclejre8.json</argument>
 								<argument>--resources</argument>
-								<argument>appimage/runelite.desktop</argument>
+								<argument>target/filtered-resources/runelite.desktop</argument>
+								<argument>target/filtered-resources/usr</argument>
 								<argument>appimage/runelite.png</argument>
-								<argument>appimage/usr</argument>
 							</arguments>
 						</configuration>
 					</execution>
@@ -628,6 +629,13 @@
 						<configuration>
 							<outputDirectory>${basedir}/target/filtered-resources</outputDirectory>
 							<resources>
+								<resource>
+									<directory>appimage</directory>
+									<filtering>true</filtering>
+									<excludes>
+										<exclude>*.png</exclude>
+									</excludes>
+								</resource>
 								<resource>
 									<directory>innosetup</directory>
 									<filtering>true</filtering>
