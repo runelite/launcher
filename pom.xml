@@ -182,9 +182,7 @@
 				<configuration>
 					<excludes>
 						<!-- these are used only by the installer -->
-						<exclude>*.iss</exclude>
 						<exclude>runelite.ico</exclude>
-						<exclude>runelite_small.bmp</exclude>
 						<exclude>oraclejre8.json</exclude>
 						<exclude>runelite.icns</exclude>
 						<exclude>Info.plist</exclude>
@@ -409,7 +407,7 @@
 						<configuration>
 							<executable>${iscc.path}</executable>
 							<arguments>
-								<argument>target/classes/runelite.iss</argument>
+								<argument>target/filtered-resources/runelite.iss</argument>
 							</arguments>
 						</configuration>
 					</execution>
@@ -422,7 +420,7 @@
 						<configuration>
 							<executable>${iscc.path}</executable>
 							<arguments>
-								<argument>target/classes/runelite32.iss</argument>
+								<argument>target/filtered-resources/runelite32.iss</argument>
 							</arguments>
 						</configuration>
 					</execution>
@@ -493,6 +491,22 @@
 				<artifactId>maven-resources-plugin</artifactId>
 				<version>3.0.2</version>
 				<executions>
+					<execution>
+						<id>copy-resources</id>
+						<phase>validate</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${basedir}/target/filtered-resources</outputDirectory>
+							<resources>
+								<resource>
+									<directory>innosetup</directory>
+									<filtering>true</filtering>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
 					<execution>
 						<id>copy-darwin-plist</id>
 						<phase>none</phase>
