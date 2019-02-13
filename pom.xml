@@ -451,6 +451,8 @@
 								<argument>${project.build.directory}/native/darwin/RuneLite.app</argument>
 								<argument>--minimizejre</argument>
 								<argument>packr/oraclejre8.json</argument>
+								<argument>--resources</argument>
+								<argument>target/filtered-resources/Info.plist</argument>
 							</arguments>
 						</configuration>
 					</execution>
@@ -494,24 +496,12 @@
 									<directory>innosetup</directory>
 									<filtering>true</filtering>
 								</resource>
-							</resources>
-						</configuration>
-					</execution>
-					<execution>
-						<id>copy-darwin-plist</id>
-						<phase>none</phase>
-						<goals>
-							<goal>copy-resources</goal>
-						</goals>
-						<configuration>
-							<outputDirectory>${project.build.directory}/native/darwin/RuneLite.app/Contents</outputDirectory>
-							<resources>
 								<resource>
-									<directory>${basedir}/packr</directory>
-									<includes>
-										<include>Info.plist</include>
-									</includes>
+									<directory>packr</directory>
 									<filtering>true</filtering>
+									<excludes>
+										<exclude>*.icns</exclude>
+									</excludes>
 								</resource>
 							</resources>
 						</configuration>
