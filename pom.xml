@@ -493,6 +493,9 @@
 								<resource>
 									<directory>innosetup</directory>
 									<filtering>true</filtering>
+									<excludes>
+										<exclude>*.bmp</exclude>
+									</excludes>
 								</resource>
 							</resources>
 						</configuration>
