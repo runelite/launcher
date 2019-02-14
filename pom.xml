@@ -518,47 +518,7 @@
 						</configuration>
 					</execution>
 					<execution>
-						<id>package-linux32</id>
-						<phase>none</phase>
-						<goals>
-							<goal>java</goal>
-						</goals>
-						<configuration>
-							<includeProjectDependencies>false</includeProjectDependencies>
-							<includePluginDependencies>true</includePluginDependencies>
-							<mainClass>com.badlogicgames.packr.Packr</mainClass>
-							<arguments>
-								<argument>--platform</argument>
-								<argument>linux32</argument>
-								<argument>--jdk</argument>
-								<argument>${packr.jdk32}</argument>
-								<argument>--executable</argument>
-								<argument>${project.build.finalName}</argument>
-								<argument>--classpath</argument>
-								<argument>${project.build.directory}/RuneLite.jar</argument>
-								<argument>--mainclass</argument>
-								<argument>${main.class}</argument>
-								<argument>--vmargs</argument>
-								<argument>Drunelite.launcher.nojvm=true</argument>
-								<argument>Xmx512m</argument>
-								<argument>Xss2m</argument>
-								<argument>XX:CompileThreshold=1500</argument>
-								<argument>Xincgc</argument>
-								<argument>XX:+UseConcMarkSweepGC</argument>
-								<argument>XX:+UseParNewGC</argument>
-								<argument>Djna.nosys=true</argument>
-								<argument>--output</argument>
-								<argument>${project.build.directory}/native/linux32/RuneLite32.AppDir/</argument>
-								<argument>--minimizejre</argument>
-								<argument>src/main/resources/oraclejre8.json</argument>
-								<argument>--resources</argument>
-								<argument>target/filtered-resources/runelite.desktop</argument>
-								<argument>appimage/runelite.png</argument>
-							</arguments>
-						</configuration>
-					</execution>
-					<execution>
-						<id>prepare-linux-appimage</id>
+						<id>prepare-linux64-appimage</id>
 						<phase>none</phase>
 						<goals>
 							<goal>exec</goal>
@@ -571,20 +531,7 @@
 						</configuration>
 					</execution>
 					<execution>
-						<id>prepare-linux32-appimage</id>
-						<phase>none</phase>
-						<goals>
-							<goal>exec</goal>
-						</goals>
-						<configuration>
-							<executable>appimage/prepare-appimage.sh</executable>
-							<arguments>
-								<argument>${project.build.directory}/native/linux32/RuneLite32.AppDir/</argument>
-							</arguments>
-						</configuration>
-					</execution>
-					<execution>
-						<id>create-linux-appimage</id>
+						<id>create-linux64-appimage</id>
 						<phase>none</phase>
 						<goals>
 							<goal>exec</goal>
@@ -594,20 +541,6 @@
 							<arguments>
 								<argument>${project.build.directory}/native/linux64/RuneLite.AppDir/</argument>
 								<argument>${project.build.directory}/native/linux64/RuneLite.AppImage</argument>
-							</arguments>
-						</configuration>
-					</execution>
-					<execution>
-						<id>create-linux32-appimage</id>
-						<phase>none</phase>
-						<goals>
-							<goal>exec</goal>
-						</goals>
-						<configuration>
-							<executable>${appimagetool.path}</executable>
-							<arguments>
-								<argument>${project.build.directory}/native/linux32/RuneLite32.AppDir/</argument>
-								<argument>${project.build.directory}/native/linux32/RuneLite32.AppImage</argument>
 							</arguments>
 						</configuration>
 					</execution>
