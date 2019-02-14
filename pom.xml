@@ -513,7 +513,6 @@
 								<argument>src/main/resources/oraclejre8.json</argument>
 								<argument>--resources</argument>
 								<argument>target/filtered-resources/runelite.desktop</argument>
-								<argument>target/filtered-resources/usr</argument>
 								<argument>appimage/runelite.png</argument>
 							</arguments>
 						</configuration>
@@ -554,7 +553,6 @@
 								<argument>src/main/resources/oraclejre8.json</argument>
 								<argument>--resources</argument>
 								<argument>target/filtered-resources/runelite.desktop</argument>
-								<argument>target/filtered-resources/usr</argument>
 								<argument>appimage/runelite.png</argument>
 							</arguments>
 						</configuration>
