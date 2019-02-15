@@ -240,7 +240,7 @@
 								<argument>--jdk</argument>
 								<argument>${packr.jdk}</argument>
 								<argument>--executable</argument>
-								<argument>RuneLite</argument>
+								<argument>${project.build.finalName}</argument>
 								<argument>--classpath</argument>
 								<argument>${project.build.directory}/RuneLite.jar</argument>
 								<argument>--mainclass</argument>
@@ -277,7 +277,7 @@
 								<argument>--jdk</argument>
 								<argument>${packr.jdk32}</argument>
 								<argument>--executable</argument>
-								<argument>RuneLite</argument>
+								<argument>${project.build.finalName}</argument>
 								<argument>--classpath</argument>
 								<argument>${project.build.directory}/RuneLite.jar</argument>
 								<argument>--mainclass</argument>
@@ -433,7 +433,7 @@
 								<argument>--jdk</argument>
 								<argument>${packr.jdk}</argument>
 								<argument>--executable</argument>
-								<argument>RuneLite</argument>
+								<argument>${project.build.finalName}</argument>
 								<argument>--classpath</argument>
 								<argument>${project.build.directory}/RuneLite.jar</argument>
 								<argument>--mainclass</argument>
