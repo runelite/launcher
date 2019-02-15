@@ -478,6 +478,19 @@
 						</configuration>
 					</execution>
 					<execution>
+						<id>prepare-darwin-image</id>
+						<phase>none</phase>
+						<goals>
+							<goal>exec</goal>
+						</goals>
+						<configuration>
+							<executable>packr/prepare-darwin.sh</executable>
+							<arguments>
+								<argument>${project.build.directory}/native/darwin/RuneLite.App/</argument>
+							</arguments>
+						</configuration>
+					</execution>
+					<execution>
 						<id>package-linux64</id>
 						<phase>none</phase>
 						<goals>
