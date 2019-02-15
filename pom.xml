@@ -31,6 +31,7 @@
 	<artifactId>launcher</artifactId>
 	<version>1.6.2-SNAPSHOT</version>
 	<name>RuneLite Launcher</name>
+	<description>Launcher for RuneLite client</description>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -43,9 +44,11 @@
 
 		<main.class>net.runelite.launcher.Launcher</main.class>
 		<packr.jdk></packr.jdk>
+		<packr.jdk32></packr.jdk32>
 		<iscc.path></iscc.path>
 		<resourcehacker.path></resourcehacker.path>
 		<createdmg.path></createdmg.path>
+		<appimagetool.path></appimagetool.path>
 	</properties>
 
 	<scm>
@@ -474,6 +477,73 @@
 							</arguments>
 						</configuration>
 					</execution>
+					<execution>
+						<id>package-linux64</id>
+						<phase>none</phase>
+						<goals>
+							<goal>java</goal>
+						</goals>
+						<configuration>
+							<includeProjectDependencies>false</includeProjectDependencies>
+							<includePluginDependencies>true</includePluginDependencies>
+							<mainClass>com.badlogicgames.packr.Packr</mainClass>
+							<arguments>
+								<argument>--platform</argument>
+								<argument>linux64</argument>
+								<argument>--jdk</argument>
+								<argument>${packr.jdk}</argument>
+								<argument>--executable</argument>
+								<argument>${project.build.finalName}</argument>
+								<argument>--classpath</argument>
+								<argument>${project.build.directory}/RuneLite.jar</argument>
+								<argument>--mainclass</argument>
+								<argument>${main.class}</argument>
+								<argument>--vmargs</argument>
+								<argument>Drunelite.launcher.nojvm=true</argument>
+								<argument>Xmx512m</argument>
+								<argument>Xss2m</argument>
+								<argument>XX:CompileThreshold=1500</argument>
+								<argument>Xincgc</argument>
+								<argument>XX:+UseConcMarkSweepGC</argument>
+								<argument>XX:+UseParNewGC</argument>
+								<argument>Djna.nosys=true</argument>
+								<argument>--output</argument>
+								<argument>${project.build.directory}/native/linux64/RuneLite.AppDir/</argument>
+								<argument>--minimizejre</argument>
+								<argument>src/main/resources/oraclejre8.json</argument>
+								<argument>--resources</argument>
+								<argument>target/filtered-resources/runelite.desktop</argument>
+								<argument>appimage/runelite.png</argument>
+							</arguments>
+						</configuration>
+					</execution>
+					<execution>
+						<id>prepare-linux64-appimage</id>
+						<phase>none</phase>
+						<goals>
+							<goal>exec</goal>
+						</goals>
+						<configuration>
+							<executable>appimage/prepare-appimage.sh</executable>
+							<arguments>
+								<argument>${project.build.directory}/native/linux64/RuneLite.AppDir/</argument>
+							</arguments>
+						</configuration>
+					</execution>
+					<execution>
+						<id>create-linux64-appimage</id>
+						<phase>none</phase>
+						<goals>
+							<goal>exec</goal>
+						</goals>
+						<configuration>
+							<executable>${appimagetool.path}</executable>
+							<arguments>
+								<argument>${project.build.directory}/native/linux64/RuneLite.AppDir/</argument>
+								<argument>${project.build.directory}/native/linux64/RuneLite.AppImage</argument>
+							</arguments>
+						</configuration>
+					</execution>
 				</executions>
 			</plugin>
 			<plugin>
@@ -490,6 +560,13 @@
 						<configuration>
 							<outputDirectory>${basedir}/target/filtered-resources</outputDirectory>
 							<resources>
+								<resource>
+									<directory>appimage</directory>
+									<filtering>true</filtering>
+									<excludes>
+										<exclude>*.png</exclude>
+									</excludes>
+								</resource>
 								<resource>
 									<directory>innosetup</directory>
 									<filtering>true</filtering>
