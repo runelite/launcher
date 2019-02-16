@@ -33,7 +33,6 @@ import com.google.common.io.Files;
 import com.google.gson.Gson;
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -305,7 +304,7 @@ public class Launcher
 			{
 				hash = hash(dest);
 			}
-			catch (FileNotFoundException ex)
+			catch (IOException ex)
 			{
 				hash = null;
 			}
@@ -314,6 +313,11 @@ public class Launcher
 			{
 				log.debug("Hash for {} up to date", artifact.getName());
 				continue;
+			}
+
+			if (dest.exists() && dest.delete())
+			{
+				log.debug("Deleted existing invalid artifact {}", dest);
 			}
 
 			log.debug("Downloading {}", artifact.getName());
