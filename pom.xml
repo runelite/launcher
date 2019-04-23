@@ -51,29 +51,15 @@
 		<appimagetool.path></appimagetool.path>
 	</properties>
 
-	<scm>
-		<url>https://github.com/runelite/launcher</url>
-		<connection>scm:git:git://github.com/runelite/launcher</connection>
-		<developerConnection>scm:git:git@github.com:runelite/launcher</developerConnection>
-		<tag>HEAD</tag>
-	</scm>
-
-	<distributionManagement>
-		<repository>
-			<id>runelite</id>
-			<url>dav:http://repo.runelite.net</url>
-		</repository>
-	</distributionManagement>
-
 	<repositories>
 		<repository>
 			<id>central</id>
 			<url>http://repo1.maven.org/maven2</url>
 		</repository>
 		<repository>
-			<id>runelite</id>
-			<name>RuneLite</name>
-			<url>http://repo.runelite.net</url>
+			<id>RuneLit</id>
+			<name>RuneLit</name>
+			<url>https://raw.githubusercontent.com/runelite-extended/maven-repo/master</url>
 		</repository>
 		<repository>
 			<id>jitpack.io</id>

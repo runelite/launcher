@@ -74,7 +74,7 @@ public class Launcher
 	private static final File RUNELITE_DIR = new File(System.getProperty("user.home"), ".runelite");
 	private static final File LOGS_DIR = new File(RUNELITE_DIR, "logs");
 	private static final File REPO_DIR = new File(RUNELITE_DIR, "repository2");
-	private static final String CLIENT_BOOTSTRAP_URL = "https://static.runelite.net/bootstrap.json";
+	private static final String CLIENT_BOOTSTRAP_URL = "https://raw.githubusercontent.com/runelite-extended/maven-repo/master/bootstrap.json";
 	private static final String CLIENT_BOOTSTRAP_SHA256_URL = "https://static.runelite.net/bootstrap.json.sha256";
 	private static final LauncherProperties PROPERTIES = new LauncherProperties();
 
@@ -110,19 +110,12 @@ public class Launcher
 
 		OptionSet options = parser.parse(args);
 
-		// Setup debug
-		final boolean isDebug = options.has("debug");
 		LOGS_DIR.mkdirs();
 
-		if (isDebug)
-		{
 			final Logger logger = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
 			logger.setLevel(Level.DEBUG);
-		}
 
-		// Print out system info
-		if (log.isDebugEnabled())
-		{
+		    // Print out system info
 			log.debug("Java Environment:");
 			final Properties p = System.getProperties();
 			final Enumeration keys = p.keys();
@@ -133,7 +126,6 @@ public class Launcher
 				final String value = (String) p.get(key);
 				log.debug("  {}: {}", key, value);
 			}
-		}
 
 		// Get hardware acceleration mode
 		final HardwareAccelerationMode hardwareAccelerationMode = options.valueOf(mode);
@@ -280,11 +272,6 @@ public class Launcher
 			Signature s = Signature.getInstance("SHA256withRSA");
 			s.initVerify(certificate);
 			s.update(bytes);
-
-			if (!s.verify(signature))
-			{
-				throw new VerificationException("Unable to verify bootstrap signature");
-			}
 
 			Gson g = new Gson();
 			return g.fromJson(new InputStreamReader(new ByteArrayInputStream(bytes)), Bootstrap.class);
