@@ -135,6 +135,9 @@ public class Launcher
 			}
 		}
 
+		//Log launcher version for assistance in debugging
+		log.info("Launcher version = {}", PROPERTIES.getVersion());
+
 		// Get hardware acceleration mode
 		final HardwareAccelerationMode hardwareAccelerationMode = options.valueOf(mode);
 		log.info("Setting hardware acceleration to {}", hardwareAccelerationMode);
