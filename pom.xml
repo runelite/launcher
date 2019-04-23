@@ -598,25 +598,6 @@
 				</executions>
 			</plugin>
 			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-checkstyle-plugin</artifactId>
-				<version>2.17</version>
-				<executions>
-					<execution>
-						<id>verify-style</id>
-						<phase>process-classes</phase>
-						<goals>
-							<goal>check</goal>
-						</goals>
-					</execution>
-				</executions>
-				<configuration>
-					<configLocation>checkstyle.xml</configLocation>
-					<!-- exclude generated sources from checkstyle https://stackoverflow.com/a/30406454/7189686 -->
-					<sourceDirectory>${project.build.sourceDirectory}</sourceDirectory>
-				</configuration>
-			</plugin>
-			<plugin>
 				<groupId>io.github.zlika</groupId>
 				<artifactId>reproducible-build-maven-plugin</artifactId>
 				<version>0.7</version>
