@@ -75,8 +75,11 @@ public class Launcher
 	private static final File LOGS_DIR = new File(RUNELITE_DIR, "logs");
 	private static final File REPO_DIR = new File(RUNELITE_DIR, "repository2");
 	private static final String CLIENT_BOOTSTRAP_URL = "https://raw.githubusercontent.com/runelite-extended/maven-repo/master/bootstrap.json";
+	private static final String CLIENT_BOOTSTRAP_STAGING_URL = "https://raw.githubusercontent.com/runelite-extended/maven-repo/master/bootstrap-staging.json";
 	private static final String CLIENT_BOOTSTRAP_SHA256_URL = "https://static.runelite.net/bootstrap.json.sha256";
 	private static final LauncherProperties PROPERTIES = new LauncherProperties();
+	private static final boolean enforceDependencyHashing = true;
+	private static final boolean staging = true;
 
 	static final String CLIENT_MAIN_CLASS = "net.runelite.client.RuneLite";
 
@@ -113,6 +116,8 @@ public class Launcher
 		LOGS_DIR.mkdirs();
 
 			final Logger logger = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
+
+			if (options.has("debug"))
 			logger.setLevel(Level.DEBUG);
 
 		    // Print out system info
@@ -253,7 +258,9 @@ public class Launcher
 
 	private static Bootstrap getBootstrap() throws IOException, CertificateException, NoSuchAlgorithmException, InvalidKeyException, SignatureException, VerificationException
 	{
-		URL u = new URL(CLIENT_BOOTSTRAP_URL);
+	    URL u = new URL(CLIENT_BOOTSTRAP_URL);
+	    if (staging)
+            u = new URL(CLIENT_BOOTSTRAP_STAGING_URL);
 		URL signatureUrl = new URL(CLIENT_BOOTSTRAP_SHA256_URL);
 
 		URLConnection conn = u.openConnection();
@@ -381,6 +388,8 @@ public class Launcher
 			if (!fileHash.equals(expectedHash))
 			{
 				log.warn("Expected {} for {} but got {}", expectedHash, artifact.getName(), fileHash);
+
+				if (enforceDependencyHashing)
 				throw new VerificationException("Expected " + expectedHash + " for " + artifact.getName() + " but got " + fileHash);
 			}
 
