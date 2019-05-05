@@ -77,6 +77,7 @@ public class Launcher
 	private static final String CLIENT_BOOTSTRAP_URL = "https://static.runelite.net/bootstrap.json";
 	private static final String CLIENT_BOOTSTRAP_SHA256_URL = "https://static.runelite.net/bootstrap.json.sha256";
 	private static final LauncherProperties PROPERTIES = new LauncherProperties();
+	private static final String USER_AGENT = "RuneLite/" + PROPERTIES.getVersion();
 
 	static final String CLIENT_MAIN_CLASS = "net.runelite.client.RuneLite";
 
@@ -267,8 +268,8 @@ public class Launcher
 		URLConnection conn = u.openConnection();
 		URLConnection signatureConn = signatureUrl.openConnection();
 
-		conn.setRequestProperty("User-Agent", "Mozilla/5.0");
-		signatureConn.setRequestProperty("User-Agent", "Mozilla/5.0");
+		conn.setRequestProperty("User-Agent", USER_AGENT);
+		signatureConn.setRequestProperty("User-Agent", USER_AGENT);
 
 		try (InputStream i = conn.getInputStream();
 			InputStream signatureIn = signatureConn.getInputStream())
@@ -330,7 +331,7 @@ public class Launcher
 
 			URL url = new URL(artifact.getPath());
 			URLConnection conn = url.openConnection();
-			conn.setRequestProperty("User-Agent", "Mozilla/5.0");
+			conn.setRequestProperty("User-Agent", USER_AGENT);
 			try (InputStream in = conn.getInputStream();
 				FileOutputStream fout = new FileOutputStream(dest))
 			{
