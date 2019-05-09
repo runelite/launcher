@@ -79,7 +79,7 @@ public class Launcher
 	private static final String CLIENT_BOOTSTRAP_SHA256_URL = "https://static.runelite.net/bootstrap.json.sha256";
 	private static final LauncherProperties PROPERTIES = new LauncherProperties();
 	private static final boolean enforceDependencyHashing = true;
-	private static final boolean staging = true;
+	private static final boolean staging = false;
 
 	static final String CLIENT_MAIN_CLASS = "net.runelite.client.RuneLite";
 
