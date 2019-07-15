@@ -32,6 +32,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.launcher.beans.Bootstrap;
@@ -40,7 +43,7 @@ import net.runelite.launcher.beans.Bootstrap;
 public class PackrConfig
 {
 	// Update the packr vmargs
-	public static void updateLauncherArgs(Bootstrap bootstrap)
+	public static void updateLauncherArgs(Bootstrap bootstrap, Collection<String> extraJvmArgs)
 	{
 		File configFile = new File("config.json").getAbsoluteFile();
 
@@ -63,12 +66,16 @@ public class PackrConfig
 			return;
 		}
 
-		String[] args = getArgs(bootstrap);
-		if (args == null || args.length == 0)
+		String[] argsArr = getArgs(bootstrap);
+		if (argsArr == null || argsArr.length == 0)
 		{
 			log.warn("Launcher args are empty");
 			return;
 		}
+
+		// Insert JVM arguments to config.json because some of them require restart
+		List<String> args = Arrays.asList(argsArr);
+		args.addAll(extraJvmArgs);
 
 		config.put("vmArgs", args);
 

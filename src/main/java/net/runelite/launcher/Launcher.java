@@ -74,6 +74,7 @@ public class Launcher
 	private static final File RUNELITE_DIR = new File(System.getProperty("user.home"), ".runelite");
 	private static final File LOGS_DIR = new File(RUNELITE_DIR, "logs");
 	private static final File REPO_DIR = new File(RUNELITE_DIR, "repository2");
+	private static final File CRASH_FILES = new File(LOGS_DIR, "jvm_crash_pid_%p.log");
 	private static final String CLIENT_BOOTSTRAP_URL = "https://static.runelite.net/bootstrap.json";
 	private static final String CLIENT_BOOTSTRAP_SHA256_URL = "https://static.runelite.net/bootstrap.json.sha256";
 	private static final LauncherProperties PROPERTIES = new LauncherProperties();
@@ -153,6 +154,10 @@ public class Launcher
 		// Set all JVM params
 		setJvmParams(extraJvmParams);
 
+		// Set hs_err_pid location (do this after setJvmParams because it can't be set at runtime)
+		log.debug("Setting JVM crash log location to {}", CRASH_FILES);
+		extraJvmParams.add("-XX:ErrorFile=" + CRASH_FILES.getAbsolutePath());
+
 		try
 		{
 			UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
@@ -179,7 +184,7 @@ public class Launcher
 		}
 
 		// update packr vmargs
-		PackrConfig.updateLauncherArgs(bootstrap);
+		PackrConfig.updateLauncherArgs(bootstrap, extraJvmParams);
 
 		REPO_DIR.mkdirs();
 
