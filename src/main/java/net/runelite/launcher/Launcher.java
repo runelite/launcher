@@ -194,13 +194,43 @@ public class Launcher
 			return;
 		}
 
+		frame.setMessage("Checking launcher version...", 10);
+		final String[] versions = bootstrap.getAcceptedLauncherVersions();
+		final String installedVersion = PROPERTIES.getVersion();
+		if (versions != null && installedVersion != null)
+		{
+			boolean contains = false;
+			for (final String version : versions)
+			{
+				if (installedVersion.equalsIgnoreCase(version))
+				{
+					contains = true;
+					break;
+				}
+			}
+
+			if (!contains)
+			{
+				try
+				{
+					SwingUtilities.invokeAndWait(frame::invalidVersion);
+					System.exit(0);
+				}
+				catch (Exception ex)
+				{
+					log.warn("Invalid launcher version. Error create invalid version dialog box.", ex);
+					System.exit(-1);
+				}
+			}
+		}
+
 		// update packr vmargs
 		PackrConfig.updateLauncherArgs(bootstrap, extraJvmParams);
 
 		REPO_DIR.mkdirs();
 
 		// Clean out old artifacts from the repository
-		frame.setMessage("Removing unused artifacts...", 10);
+		frame.setMessage("Removing unused artifacts...", 15);
 		clean(bootstrap.getArtifacts());
 
 		frame.setMessage("Updating files...", 20);
