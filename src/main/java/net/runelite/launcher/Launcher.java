@@ -59,6 +59,7 @@ import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import joptsimple.ArgumentAcceptingOptionSpec;
 import joptsimple.OptionParser;
@@ -66,6 +67,7 @@ import joptsimple.OptionSet;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.launcher.beans.Artifact;
 import net.runelite.launcher.beans.Bootstrap;
+import net.runelite.splashscreen.RuneLiteSplashScreen;
 import org.slf4j.LoggerFactory;
 
 @Slf4j
@@ -79,8 +81,11 @@ public class Launcher
 	private static final String CLIENT_BOOTSTRAP_SHA256_URL = "https://static.runelite.net/bootstrap.json.sha256";
 	private static final LauncherProperties PROPERTIES = new LauncherProperties();
 	private static final String USER_AGENT = "RuneLite/" + PROPERTIES.getVersion();
+	private static final File LOG_FILE = new File(LOGS_DIR, "launcher.log");
 
 	static final String CLIENT_MAIN_CLASS = "net.runelite.client.RuneLite";
+
+	private static RuneLiteSplashScreen frame;
 
 	public static void main(String[] args)
 	{
@@ -161,13 +166,19 @@ public class Launcher
 		try
 		{
 			UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
+			SwingUtilities.invokeAndWait(() ->
+			{
+				RuneLiteSplashScreen.setTheme();
+				frame = new RuneLiteSplashScreen(LOG_FILE, "Launcher Version " + PROPERTIES.getVersion());
+			});
 		}
 		catch (Exception ex)
 		{
-			log.warn("Unable to set cross platform look and feel", ex);
+			log.warn("Unable to create launcher frame", ex);
+			System.exit(-1);
 		}
 
-		LauncherFrame frame = new LauncherFrame();
+		frame.setMessage("Downloading Bootstrap...", 0);
 
 		Bootstrap bootstrap;
 		try
@@ -177,8 +188,8 @@ public class Launcher
 		catch (IOException | VerificationException | CertificateException | SignatureException | InvalidKeyException | NoSuchAlgorithmException ex)
 		{
 			log.error("error fetching bootstrap", ex);
-			frame.setVisible(false);
-			frame.dispose();
+			frame.errorMessage("Error fetching bootstrap");
+			frame.close();
 			System.exit(-1);
 			return;
 		}
@@ -189,8 +200,13 @@ public class Launcher
 		REPO_DIR.mkdirs();
 
 		// Clean out old artifacts from the repository
+		frame.setMessage("Removing unused artifacts...", 10);
 		clean(bootstrap.getArtifacts());
 
+		frame.setMessage("Updating files...", 20);
+
+		frame.setProgressStartingPercent(20);
+		frame.setProgressEndingPercent(95);
 		try
 		{
 			download(frame, bootstrap);
@@ -198,8 +214,8 @@ public class Launcher
 		catch (IOException ex)
 		{
 			log.error("unable to download artifacts", ex);
-			frame.setVisible(false);
-			frame.dispose();
+			frame.errorMessage("Error downloading artifacts");
+			frame.close();
 			System.exit(-1);
 			return;
 		}
@@ -208,6 +224,7 @@ public class Launcher
 			.map(dep -> new File(REPO_DIR, dep.getName()))
 			.collect(Collectors.toList());
 
+		frame.setMessage("Verifying artifact integrity...", 95);
 		try
 		{
 			verifyJarHashes(bootstrap.getArtifacts());
@@ -215,14 +232,14 @@ public class Launcher
 		catch (VerificationException ex)
 		{
 			log.error("Unable to verify artifacts", ex);
-			frame.setVisible(false);
-			frame.dispose();
+			frame.errorMessage("Error verifying artifact integrity");
+			frame.close();
 			System.exit(-1);
 			return;
 		}
 
-		frame.setVisible(false);
-		frame.dispose();
+		frame.setMessage("Launching client...", 100);
+		frame.close();
 
 		final Collection<String> clientArgs = getClientArgs(options);
 
@@ -309,8 +326,10 @@ public class Launcher
 			: new ArrayList<>();
 	}
 
-	private static void download(LauncherFrame frame, Bootstrap bootstrap) throws IOException
+	private static void download(RuneLiteSplashScreen frame, Bootstrap bootstrap) throws IOException
 	{
+		final Collection<Artifact> fetchArtifacts = new ArrayList<>();
+		long fetchBytes = 0;
 		Artifact[] artifacts = bootstrap.getArtifacts();
 		for (Artifact artifact : artifacts)
 		{
@@ -332,6 +351,16 @@ public class Launcher
 				continue;
 			}
 
+			fetchArtifacts.add(artifact);
+			fetchBytes += artifact.getSize();
+		}
+
+		frame.setFetchBytes(fetchBytes);
+
+		for (final Artifact artifact : fetchArtifacts)
+		{
+			final File dest = new File(REPO_DIR, artifact.getName());
+
 			log.debug("Downloading {}", artifact.getName());
 
 			URL url = new URL(artifact.getPath());
@@ -350,6 +379,7 @@ public class Launcher
 					frame.progress(artifact.getName(), bytes, artifact.getSize());
 				}
 			}
+			frame.processed(artifact.getSize());
 		}
 	}
 
