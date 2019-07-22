@@ -81,6 +81,7 @@ public class Launcher
 	private static final String USER_AGENT = "RuneLite/" + PROPERTIES.getVersion();
 	private static final boolean enforceDependencyHashing = true;
 	private static final boolean staging = false;
+	private static final File CRASH_FILES = new File(LOGS_DIR, "jvm_crash_pid_%p.log");
 
 	static final String CLIENT_MAIN_CLASS = "net.runelite.client.RuneLite";
 
@@ -150,6 +151,10 @@ public class Launcher
 		// Set all JVM params
 		setJvmParams(extraJvmParams);
 
+		// Set hs_err_pid location (do this after setJvmParams because it can't be set at runtime)
+		log.debug("Setting JVM crash log location to {}", CRASH_FILES);
+		extraJvmParams.add("-XX:ErrorFile=" + CRASH_FILES.getAbsolutePath());
+
 		try
 		{
 			UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
@@ -176,7 +181,7 @@ public class Launcher
 		}
 
 		// update packr vmargs
-		PackrConfig.updateLauncherArgs(bootstrap);
+		PackrConfig.updateLauncherArgs(bootstrap, extraJvmParams);
 
 		REPO_DIR.mkdirs();
 
