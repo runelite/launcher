@@ -32,6 +32,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -74,7 +75,8 @@ public class PackrConfig
 		}
 
 		// Insert JVM arguments to config.json because some of them require restart
-		List<String> args = Arrays.asList(argsArr);
+		List<String> args = new ArrayList<>();
+		args.addAll(Arrays.asList(argsArr));
 		args.addAll(extraJvmArgs);
 
 		config.put("vmArgs", args);
