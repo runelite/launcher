@@ -169,7 +169,7 @@ public class Launcher
 			SwingUtilities.invokeAndWait(() ->
 			{
 				RuneLiteSplashScreen.setTheme();
-				frame = new RuneLiteSplashScreen(LOG_FILE, "Launcher Version " + PROPERTIES.getVersion());
+				frame = new RuneLiteSplashScreen(LOG_FILE, "Launcher " + PROPERTIES.getVersion());
 			});
 		}
 		catch (Exception ex)
@@ -218,7 +218,7 @@ public class Launcher
 				}
 				catch (Exception ex)
 				{
-					log.warn("Invalid launcher version. Error create invalid version dialog box.", ex);
+					log.warn("Error creating invalid launcher version dialog box", ex);
 					System.exit(-1);
 				}
 			}
