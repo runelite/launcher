@@ -33,7 +33,7 @@ public class Bootstrap
 	private String[] clientJvm9Arguments;
 	private Artifact[] artifacts;
 
-	private String[] launcherWindowsArguments;
-	private String[] launcherMacArguments;
-	private String[] launcherArguments;
+	private String[] launcherJvm11WindowsArguments;
+	private String[] launcherJvm11MacArguments;
+	private String[] launcherJvm11Arguments;
 }

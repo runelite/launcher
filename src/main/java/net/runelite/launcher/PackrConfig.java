@@ -96,20 +96,20 @@ public class PackrConfig
 		switch (OS.getOs())
 		{
 			case Windows:
-				if (bootstrap.getLauncherWindowsArguments() != null)
+				if (bootstrap.getLauncherJvm11WindowsArguments() != null)
 				{
-					return bootstrap.getLauncherWindowsArguments();
+					return bootstrap.getLauncherJvm11WindowsArguments();
 				}
-				return bootstrap.getLauncherArguments();
+				return bootstrap.getLauncherJvm11Arguments();
 			case MacOS:
-				if (bootstrap.getLauncherMacArguments() != null)
+				if (bootstrap.getLauncherJvm11MacArguments() != null)
 				{
-					return bootstrap.getLauncherMacArguments();
+					return bootstrap.getLauncherJvm11MacArguments();
 				}
-				return bootstrap.getLauncherArguments();
+				return bootstrap.getLauncherJvm11Arguments();
 
 			default:
-				return bootstrap.getLauncherArguments();
+				return bootstrap.getLauncherJvm11Arguments();
 		}
 	}
 }

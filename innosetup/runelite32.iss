@@ -11,7 +11,7 @@ ExtraDiskSpaceRequired=30000000
 ArchitecturesAllowed=x86 x64
 PrivilegesRequired=lowest
 
-WizardSmallImageFile=runelite_small.bmp
+WizardSmallImageFile=${basedir}/innosetup/runelite_small.bmp
 SetupIconFile=${basedir}/runelite.ico
 UninstallDisplayIcon={app}\RuneLite.exe
 
@@ -25,11 +25,12 @@ OutputBaseFilename=RuneLiteSetup32
 Name: DesktopIcon; Description: "Create a &desktop icon";
 
 [Files]
-Source: "${project.build.directory}\native\win32\RuneLite.exe"; DestDir: "{app}"
-Source: "${project.build.directory}\native\win32\RuneLite.jar"; DestDir: "{app}"
-Source: "${project.build.directory}\native\win32\config.json"; DestDir: "{app}"
-Source: "${project.build.directory}\native\win32\jre\*"; DestDir: "{app}\jre"; Flags: recursesubdirs
-Source: "${project.build.directory}\native\win32\jre\bin\msvcr100.dll"; DestDir: "{app}"
+Source: "${basedir}\native-win32\RuneLite.exe"; DestDir: "{app}"
+Source: "${basedir}\native-win32\RuneLite.jar"; DestDir: "{app}"
+Source: "${basedir}\native-win32\config.json"; DestDir: "{app}"
+Source: "${basedir}\native-win32\jre\*"; DestDir: "{app}\jre"; Flags: recursesubdirs
+; this is a dependency of jvm.dll
+Source: "${basedir}\native-win32\jre\bin\msvcr120.dll"; DestDir: "{app}"
 
 [Icons]
 ; start menu
@@ -40,5 +41,4 @@ Name: "{commondesktop}\RuneLite"; Filename: "{app}\RuneLite.exe"; Tasks: Desktop
 Filename: "{app}\RuneLite.exe"; Description: "&Open RuneLite"; Flags: postinstall skipifsilent nowait
 
 [UninstallDelete]
-Type: filesandordirs; Name: "{%USERPROFILE}\.runelite\repository"
 Type: filesandordirs; Name: "{%USERPROFILE}\.runelite\repository2"

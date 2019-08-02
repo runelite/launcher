@@ -25,7 +25,6 @@
 package net.runelite.launcher;
 
 import java.io.File;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -49,19 +48,7 @@ class ReflectionLauncher
 			jarUrls[i++] = file.toURI().toURL();
 		}
 
-		//Needed for support on JDK9+
-		ClassLoader parent;
-
-		try
-		{
-			Method getPlatformClassLoaderMethod =  ClassLoader.class.getMethod("getPlatformClassLoader");
-			parent = (ClassLoader) getPlatformClassLoaderMethod.invoke(null);
-		}
-		catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException ex)
-		{
-			parent = null;
-		}
-
+		ClassLoader parent = ClassLoader.getPlatformClassLoader();
 		URLClassLoader loader = new URLClassLoader(jarUrls, parent);
 
 		UIManager.put("ClassLoader", loader); // hack for Substance
