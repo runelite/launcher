@@ -416,7 +416,7 @@ public class Launcher
 	private static Certificate getCertificate() throws CertificateException
 	{
 		CertificateFactory certFactory = CertificateFactory.getInstance("X.509");
-		Certificate certificate = certFactory.generateCertificate(Launcher.class.getResourceAsStream("/runelite.crt"));
+		Certificate certificate = certFactory.generateCertificate(Launcher.class.getResourceAsStream("runelite.crt"));
 		return certificate;
 	}
 }
