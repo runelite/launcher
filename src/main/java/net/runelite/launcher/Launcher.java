@@ -195,32 +195,19 @@ public class Launcher
 		}
 
 		frame.setMessage("Checking launcher version...", 10);
-		final String[] versions = bootstrap.getAcceptedLauncherVersions();
+		final String minimumLauncherVersion = bootstrap.getMinimumLauncherVersion();
 		final String installedVersion = PROPERTIES.getVersion();
-		if (versions != null && installedVersion != null)
+		if (minimumLauncherVersion != null && installedVersion != null && minimumLauncherVersion.compareTo(installedVersion) > 0)
 		{
-			boolean contains = false;
-			for (final String version : versions)
+			try
 			{
-				if (installedVersion.equalsIgnoreCase(version))
-				{
-					contains = true;
-					break;
-				}
+				SwingUtilities.invokeAndWait(frame::invalidVersion);
+				System.exit(0);
 			}
-
-			if (!contains)
+			catch (Exception ex)
 			{
-				try
-				{
-					SwingUtilities.invokeAndWait(frame::invalidVersion);
-					System.exit(0);
-				}
-				catch (Exception ex)
-				{
-					log.warn("Error creating invalid launcher version dialog box", ex);
-					System.exit(-1);
-				}
+				log.warn("Error creating invalid launcher version dialog box", ex);
+				System.exit(-1);
 			}
 		}
 

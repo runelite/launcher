@@ -37,4 +37,5 @@ public class Bootstrap
 	private String[] launcherJvm11MacArguments;
 	private String[] launcherJvm11Arguments;
 	private String[] acceptedLauncherVersions;
+	private String minimumLauncherVersion;
 }
