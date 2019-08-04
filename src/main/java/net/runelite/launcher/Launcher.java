@@ -59,6 +59,7 @@ import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.annotation.Nullable;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import joptsimple.ArgumentAcceptingOptionSpec;
@@ -195,9 +196,12 @@ public class Launcher
 		}
 
 		frame.setMessage("Checking launcher version...", 10);
-		final String minimumLauncherVersion = bootstrap.getMinimumLauncherVersion();
-		final String installedVersion = PROPERTIES.getVersion();
-		if (minimumLauncherVersion != null && installedVersion != null && minimumLauncherVersion.compareTo(installedVersion) > 0)
+		final String minLauncherVersion = bootstrap.getMinimumLauncherVersion();
+		final String launcherVersion = PROPERTIES.getVersion();
+		final String minJavaVersion = bootstrap.getMinimumJavaVersion();
+		final String javaVersion = getJavaVersion();
+		if ((minLauncherVersion != null && launcherVersion != null && minLauncherVersion.compareTo(launcherVersion) > 0)
+			|| (minJavaVersion != null && javaVersion != null && Integer.parseInt(minJavaVersion) < Integer.parseInt(javaVersion)))
 		{
 			try
 			{
@@ -465,5 +469,28 @@ public class Launcher
 		CertificateFactory certFactory = CertificateFactory.getInstance("X.509");
 		Certificate certificate = certFactory.generateCertificate(Launcher.class.getResourceAsStream("runelite.crt"));
 		return certificate;
+	}
+
+	@Nullable
+	private static String getJavaVersion()
+	{
+		final String version = System.getProperty("java.version");
+		if (version == null)
+		{
+			return null;
+		}
+
+		if (version.startsWith("1."))
+		{
+			return version.substring(2, 3);
+		}
+
+		final int dotIndex = version.indexOf(".");
+		if (dotIndex != -1)
+		{
+			return version.substring(0, dotIndex);
+		}
+
+		return version.substring(0, 1);
 	}
 }
