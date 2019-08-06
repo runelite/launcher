@@ -96,9 +96,9 @@ public class Launcher
 				defaultMode = HardwareAccelerationMode.DIRECTDRAW;
 				break;
 			case MacOS:
-			case Linux:
 				defaultMode = HardwareAccelerationMode.OPENGL;
 				break;
+			case Linux:
 			default:
 				defaultMode = HardwareAccelerationMode.OFF;
 				break;
