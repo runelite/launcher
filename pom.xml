@@ -63,6 +63,10 @@
 			<name>RuneLite</name>
 			<url>http://repo.runelite.net</url>
 		</repository>
+		<repository>
+			<id>jitpack.io</id>
+			<url>https://jitpack.io</url>
+		</repository>
 	</repositories>
 
 	<pluginRepositories>
@@ -163,6 +167,8 @@
 				<version>3.8.1</version>
 				<configuration>
 					<release>11</release>
+					<source>11</source>
+					<target>11</target>
 				</configuration>
 			</plugin>
 			<plugin>

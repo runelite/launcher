@@ -198,10 +198,10 @@ public class Launcher
 		frame.setMessage("Checking launcher version...", 10);
 		final String minLauncherVersion = bootstrap.getMinimumLauncherVersion();
 		final String launcherVersion = PROPERTIES.getVersion();
-		final String minJavaVersion = bootstrap.getMinimumJavaVersion();
-		final String javaVersion = getJavaVersion();
+		final Integer minJavaVersion = bootstrap.getMinimumJavaVersion();
+		final Integer javaVersion = getJavaFeatureVersion();
 		if ((minLauncherVersion != null && launcherVersion != null && minLauncherVersion.compareTo(launcherVersion) > 0)
-			|| (minJavaVersion != null && javaVersion != null && Integer.parseInt(minJavaVersion) < Integer.parseInt(javaVersion)))
+			|| (minJavaVersion != null && javaVersion != null && minJavaVersion < javaVersion))
 		{
 			try
 			{
@@ -472,7 +472,7 @@ public class Launcher
 	}
 
 	@Nullable
-	private static String getJavaVersion()
+	private static Integer getJavaFeatureVersion()
 	{
 		final String version = System.getProperty("java.version");
 		if (version == null)
@@ -480,17 +480,7 @@ public class Launcher
 			return null;
 		}
 
-		if (version.startsWith("1."))
-		{
-			return version.substring(2, 3);
-		}
-
-		final int dotIndex = version.indexOf(".");
-		if (dotIndex != -1)
-		{
-			return version.substring(0, dotIndex);
-		}
-
-		return version.substring(0, 1);
+		final Runtime.Version parsed = Runtime.Version.parse(version);
+		return parsed.feature();
 	}
 }
