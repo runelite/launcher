@@ -26,6 +26,7 @@ package net.runelite.launcher;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.hash.HashFunction;
@@ -58,6 +59,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import javax.swing.SwingUtilities;
 import joptsimple.ArgumentAcceptingOptionSpec;
@@ -177,6 +179,45 @@ public class Launcher
 
 			SplashScreen.stage(.10, null, "Tidying the cache");
 
+			boolean launcherTooOld = bootstrap.getRequiredLauncherVersion() != null &&
+				compareVersion(bootstrap.getRequiredLauncherVersion(), LauncherProperties.getVersion()) > 0;
+
+			boolean jvmTooOld = false;
+			try
+			{
+				if (bootstrap.getRequiredJVMVersion() != null)
+				{
+					jvmTooOld = Runtime.Version.parse(bootstrap.getRequiredJVMVersion())
+						.compareTo(Runtime.version()) > 0;
+				}
+			}
+			catch (IllegalArgumentException e)
+			{
+				log.warn("Unable to parse bootstrap version", e);
+			}
+
+			boolean nojvm = "true".equals(System.getProperty("runelite.launcher.nojvm"));
+
+			if (launcherTooOld || (nojvm && jvmTooOld))
+			{
+				SwingUtilities.invokeLater(() ->
+					new FatalErrorDialog("Your launcher is to old to start RuneLite. Please download and install a more " +
+						"recent one from RuneLite.net.")
+						.addButton("RuneLite.net", () -> LinkBrowser.browse(LauncherProperties.getDownloadLink()))
+						.open());
+				return;
+			}
+			if (jvmTooOld)
+			{
+				SwingUtilities.invokeLater(() ->
+					new FatalErrorDialog("Your Java installation is too old. RuneLite now requires Java " +
+						bootstrap.getRequiredJVMVersion() + " to run. You can get a platform specific version from RuneLite.net," +
+						" or install a newer version of Java.")
+						.addButton("RuneLite.net", () -> LinkBrowser.browse(LauncherProperties.getDownloadLink()))
+						.open());
+				return;
+			}
+
 			// update packr vmargs
 			PackrConfig.updateLauncherArgs(bootstrap, extraJvmParams);
 
@@ -222,7 +263,7 @@ public class Launcher
 			SplashScreen.stage(.90, "Starting the client", "");
 
 			// packr doesn't let us specify command line arguments
-			if ("true".equals(System.getProperty("runelite.launcher.nojvm")) || options.has("nojvm"))
+			if (nojvm || options.has("nojvm"))
 			{
 				try
 				{
@@ -434,5 +475,56 @@ public class Launcher
 		CertificateFactory certFactory = CertificateFactory.getInstance("X.509");
 		Certificate certificate = certFactory.generateCertificate(Launcher.class.getResourceAsStream("runelite.crt"));
 		return certificate;
+	}
+
+	@VisibleForTesting
+	static int compareVersion(String a, String b)
+	{
+		Pattern tok = Pattern.compile("[^0-9a-zA-Z]");
+		return Arrays.compare(tok.split(a), tok.split(b), (x, y) ->
+		{
+			Integer ix = null;
+			try
+			{
+				ix = Integer.parseInt(x);
+			}
+			catch (NumberFormatException e)
+			{
+			}
+
+			Integer iy = null;
+			try
+			{
+				iy = Integer.parseInt(y);
+			}
+			catch (NumberFormatException e)
+			{
+			}
+
+			if (ix == null && iy == null)
+			{
+				return x.compareToIgnoreCase(y);
+			}
+
+			if (ix == null)
+			{
+				return -1;
+			}
+			if (iy == null)
+			{
+				return 1;
+			}
+
+			if (ix > iy)
+			{
+				return 1;
+			}
+			if (ix < iy)
+			{
+				return -1;
+			}
+
+			return 0;
+		});
 	}
 }

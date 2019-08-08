@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017, Adam <Adam@sigterm.info>
+ * Copyright (c) 2019 Abex
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -22,21 +22,21 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package net.runelite.launcher.beans;
+package net.runelite.launcher;
 
-import lombok.Data;
+import org.junit.Assert;
+import org.junit.Test;
 
-@Data
-public class Bootstrap
+public class VersionTest
 {
-	private String[] clientJvmArguments;
-	private String[] clientJvm9Arguments;
-	private Artifact[] artifacts;
-
-	private String[] launcherJvm11WindowsArguments;
-	private String[] launcherJvm11MacArguments;
-	private String[] launcherJvm11Arguments;
-
-	private String requiredLauncherVersion;
-	private String requiredJVMVersion;
+	@Test
+	public void testVersionCompare()
+	{
+		Assert.assertTrue(Launcher.compareVersion("1.2.3-SNAPSHOT", "1.2.3") > 0);
+		Assert.assertTrue(Launcher.compareVersion("1.2.3", "1.2.3") == 0);
+		Assert.assertTrue(Launcher.compareVersion("1.2.3", "1.2") > 0);
+		Assert.assertTrue(Launcher.compareVersion("2.2.3", "1.2.3") > 0);
+		Assert.assertTrue(Launcher.compareVersion("1.2.3", "1.2.3.1") < 0);
+		Assert.assertTrue(Launcher.compareVersion("1.2.3-SNAPSHOT", "1.2.3.1") < 0);
+	}
 }
