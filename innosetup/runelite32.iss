@@ -1,8 +1,8 @@
 [Setup]
-AppName=RuneLite
+AppName=RuneLite Launcher
 AppPublisher=RuneLite
 UninstallDisplayName=RuneLite
-AppVersion=Launcher ${project.version}
+AppVersion=${project.version}
 AppSupportURL=https://runelite.net/
 DefaultDirName={localappdata}\RuneLite
 
@@ -35,10 +35,14 @@ Source: "${basedir}\native-win32\jre\bin\msvcr120.dll"; DestDir: "{app}"
 [Icons]
 ; start menu
 Name: "{userprograms}\RuneLite"; Filename: "{app}\RuneLite.exe"
-Name: "{commondesktop}\RuneLite"; Filename: "{app}\RuneLite.exe"; Tasks: DesktopIcon
+Name: "{userdesktop}\RuneLite"; Filename: "{app}\RuneLite.exe"; Tasks: DesktopIcon
 
 [Run]
 Filename: "{app}\RuneLite.exe"; Description: "&Open RuneLite"; Flags: postinstall skipifsilent nowait
+
+[InstallDelete]
+; Delete the old jvm so it doesn't try to load old stuff with the new vm and crash
+Type: filesandordirs; Name: "{app}"
 
 [UninstallDelete]
 Type: filesandordirs; Name: "{%USERPROFILE}\.runelite\repository2"
