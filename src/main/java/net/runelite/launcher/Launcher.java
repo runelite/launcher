@@ -59,6 +59,7 @@ import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.swing.SwingUtilities;
 import joptsimple.ArgumentAcceptingOptionSpec;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
@@ -76,8 +77,7 @@ public class Launcher
 	public static final File CRASH_FILES = new File(LOGS_DIR, "jvm_crash_pid_%p.log");
 	private static final String CLIENT_BOOTSTRAP_URL = "https://static.runelite.net/bootstrap.json";
 	private static final String CLIENT_BOOTSTRAP_SHA256_URL = "https://static.runelite.net/bootstrap.json.sha256";
-	private static final LauncherProperties PROPERTIES = new LauncherProperties();
-	private static final String USER_AGENT = "RuneLite/" + PROPERTIES.getVersion();
+	private static final String USER_AGENT = "RuneLite/" + LauncherProperties.getVersion();
 
 	static final String CLIENT_MAIN_CLASS = "net.runelite.client.RuneLite";
 
@@ -153,7 +153,7 @@ public class Launcher
 			extraJvmParams.add("-Djava.net.preferIPv4Addresses=true");
 
 			// Stream launcher version
-			extraJvmParams.add("-D" + PROPERTIES.getVersionKey() + "=" + PROPERTIES.getVersion());
+			extraJvmParams.add("-D" + LauncherProperties.getVersionKey() + "=" + LauncherProperties.getVersion());
 
 			// Set all JVM params
 			setJvmParams(extraJvmParams);
@@ -171,8 +171,7 @@ public class Launcher
 			catch (IOException | VerificationException | CertificateException | SignatureException | InvalidKeyException | NoSuchAlgorithmException ex)
 			{
 				log.error("error fetching bootstrap", ex);
-				SplashScreen.stop();
-				System.exit(-1);
+				SwingUtilities.invokeLater(() -> FatalErrorDialog.showNetErrorWindow("downloading the bootstrap", ex));
 				return;
 			}
 
@@ -193,8 +192,7 @@ public class Launcher
 			catch (IOException ex)
 			{
 				log.error("unable to download artifacts", ex);
-				SplashScreen.stop();
-				System.exit(-1);
+				SwingUtilities.invokeLater(() -> FatalErrorDialog.showNetErrorWindow("downloading the client", ex));
 				return;
 			}
 
@@ -210,8 +208,7 @@ public class Launcher
 			catch (VerificationException ex)
 			{
 				log.error("Unable to verify artifacts", ex);
-				SplashScreen.stop();
-				System.exit(-1);
+				SwingUtilities.invokeLater(() -> FatalErrorDialog.showNetErrorWindow("verifying downloaded files", ex));
 				return;
 			}
 
@@ -247,6 +244,13 @@ public class Launcher
 					log.error("unable to launch client", ex);
 				}
 			}
+		}
+		catch (Exception e)
+		{
+			log.warn("Failure during startup", e);
+			SwingUtilities.invokeLater(() ->
+				new FatalErrorDialog("RuneLite has encountered an unexpected error during startup.")
+					.open());
 		}
 		finally
 		{
