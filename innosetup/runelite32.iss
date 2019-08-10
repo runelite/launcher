@@ -2,7 +2,7 @@
 AppName=RuneLite Launcher
 AppPublisher=RuneLite
 UninstallDisplayName=RuneLite
-AppVersion=Launcher ${project.version}
+AppVersion=${project.version}
 AppSupportURL=https://runelite.net/
 DefaultDirName={localappdata}\RuneLite
 
