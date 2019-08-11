@@ -136,6 +136,7 @@
 				<excludes>
 					<exclude>*.ico</exclude>
 					<exclude>*.bmp</exclude>
+					<exclude>*.png</exclude>
 					<exclude>logback.xml</exclude>
 				</excludes>
 				<filtering>true</filtering>
@@ -145,6 +146,7 @@
 				<includes>
 					<include>*.ico</include>
 					<include>*.bmp</include>
+					<include>*.png</include>
 					<include>logback.xml</include>
 				</includes>
 				<filtering>false</filtering>
