@@ -128,6 +128,8 @@ public class Launcher
 			SplashScreen.init();
 			SplashScreen.stage(0, "Preparing", "Setting up environment");
 
+			log.info("RuneLite Launcher version {}", LauncherProperties.getVersion());
+
 			// Print out system info
 			if (log.isDebugEnabled())
 			{
