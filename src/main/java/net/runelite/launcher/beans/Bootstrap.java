@@ -36,4 +36,7 @@ public class Bootstrap
 	private String[] launcherJvm11WindowsArguments;
 	private String[] launcherJvm11MacArguments;
 	private String[] launcherJvm11Arguments;
+
+	private String requiredLauncherVersion;
+	private String requiredJVMVersion;
 }

@@ -128,6 +128,8 @@ class JvmLauncher
 		builder.redirectErrorStream(true);
 		Process process = builder.start();
 
+		SplashScreen.stop();
+
 		if (log.isDebugEnabled())
 		{
 			BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));

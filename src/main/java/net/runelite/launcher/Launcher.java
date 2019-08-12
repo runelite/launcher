@@ -26,6 +26,7 @@ package net.runelite.launcher;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.hash.HashFunction;
@@ -58,8 +59,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import javax.swing.UIManager;
+import javax.swing.SwingUtilities;
 import joptsimple.ArgumentAcceptingOptionSpec;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
@@ -72,13 +74,12 @@ import org.slf4j.LoggerFactory;
 public class Launcher
 {
 	private static final File RUNELITE_DIR = new File(System.getProperty("user.home"), ".runelite");
-	private static final File LOGS_DIR = new File(RUNELITE_DIR, "logs");
+	public static final File LOGS_DIR = new File(RUNELITE_DIR, "logs");
 	private static final File REPO_DIR = new File(RUNELITE_DIR, "repository2");
-	private static final File CRASH_FILES = new File(LOGS_DIR, "jvm_crash_pid_%p.log");
+	public static final File CRASH_FILES = new File(LOGS_DIR, "jvm_crash_pid_%p.log");
 	private static final String CLIENT_BOOTSTRAP_URL = "https://static.runelite.net/bootstrap.json";
 	private static final String CLIENT_BOOTSTRAP_SHA256_URL = "https://static.runelite.net/bootstrap.json.sha256";
-	private static final LauncherProperties PROPERTIES = new LauncherProperties();
-	private static final String USER_AGENT = "RuneLite/" + PROPERTIES.getVersion();
+	private static final String USER_AGENT = "RuneLite/" + LauncherProperties.getVersion();
 
 	static final String CLIENT_MAIN_CLASS = "net.runelite.client.RuneLite";
 
@@ -122,137 +123,179 @@ public class Launcher
 			logger.setLevel(Level.DEBUG);
 		}
 
-		// Print out system info
-		if (log.isDebugEnabled())
+		try
 		{
-			log.debug("Java Environment:");
-			final Properties p = System.getProperties();
-			final Enumeration keys = p.keys();
+			SplashScreen.init();
+			SplashScreen.stage(0, "Preparing", "Setting up environment");
 
-			while (keys.hasMoreElements())
+			// Print out system info
+			if (log.isDebugEnabled())
 			{
-				final String key = (String) keys.nextElement();
-				final String value = (String) p.get(key);
-				log.debug("  {}: {}", key, value);
+				log.debug("Java Environment:");
+				final Properties p = System.getProperties();
+				final Enumeration keys = p.keys();
+
+				while (keys.hasMoreElements())
+				{
+					final String key = (String) keys.nextElement();
+					final String value = (String) p.get(key);
+					log.debug("  {}: {}", key, value);
+				}
 			}
-		}
 
-		// Get hardware acceleration mode
-		final HardwareAccelerationMode hardwareAccelerationMode = options.valueOf(mode);
-		log.info("Setting hardware acceleration to {}", hardwareAccelerationMode);
+			// Get hardware acceleration mode
+			final HardwareAccelerationMode hardwareAccelerationMode = options.valueOf(mode);
+			log.info("Setting hardware acceleration to {}", hardwareAccelerationMode);
 
-		// Enable hardware acceleration
-		final List<String> extraJvmParams = hardwareAccelerationMode.toParams();
+			// Enable hardware acceleration
+			final List<String> extraJvmParams = hardwareAccelerationMode.toParams();
 
-		// Always use IPv4 over IPv6
-		extraJvmParams.add("-Djava.net.preferIPv4Stack=true");
-		extraJvmParams.add("-Djava.net.preferIPv4Addresses=true");
+			// Always use IPv4 over IPv6
+			extraJvmParams.add("-Djava.net.preferIPv4Stack=true");
+			extraJvmParams.add("-Djava.net.preferIPv4Addresses=true");
 
-		// Stream launcher version
-		extraJvmParams.add("-D" + PROPERTIES.getVersionKey() + "=" + PROPERTIES.getVersion());
+			// Stream launcher version
+			extraJvmParams.add("-D" + LauncherProperties.getVersionKey() + "=" + LauncherProperties.getVersion());
 
-		// Set all JVM params
-		setJvmParams(extraJvmParams);
+			// Set all JVM params
+			setJvmParams(extraJvmParams);
 
-		// Set hs_err_pid location (do this after setJvmParams because it can't be set at runtime)
-		log.debug("Setting JVM crash log location to {}", CRASH_FILES);
-		extraJvmParams.add("-XX:ErrorFile=" + CRASH_FILES.getAbsolutePath());
+			// Set hs_err_pid location (do this after setJvmParams because it can't be set at runtime)
+			log.debug("Setting JVM crash log location to {}", CRASH_FILES);
+			extraJvmParams.add("-XX:ErrorFile=" + CRASH_FILES.getAbsolutePath());
 
-		try
-		{
-			UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
-		}
-		catch (Exception ex)
-		{
-			log.warn("Unable to set cross platform look and feel", ex);
-		}
-
-		LauncherFrame frame = new LauncherFrame();
-
-		Bootstrap bootstrap;
-		try
-		{
-			bootstrap = getBootstrap();
-		}
-		catch (IOException | VerificationException | CertificateException | SignatureException | InvalidKeyException | NoSuchAlgorithmException ex)
-		{
-			log.error("error fetching bootstrap", ex);
-			frame.setVisible(false);
-			frame.dispose();
-			System.exit(-1);
-			return;
-		}
-
-		// update packr vmargs
-		PackrConfig.updateLauncherArgs(bootstrap, extraJvmParams);
-
-		REPO_DIR.mkdirs();
-
-		// Clean out old artifacts from the repository
-		clean(bootstrap.getArtifacts());
-
-		try
-		{
-			download(frame, bootstrap);
-		}
-		catch (IOException ex)
-		{
-			log.error("unable to download artifacts", ex);
-			frame.setVisible(false);
-			frame.dispose();
-			System.exit(-1);
-			return;
-		}
-
-		List<File> results = Arrays.stream(bootstrap.getArtifacts())
-			.map(dep -> new File(REPO_DIR, dep.getName()))
-			.collect(Collectors.toList());
-
-		try
-		{
-			verifyJarHashes(bootstrap.getArtifacts());
-		}
-		catch (VerificationException ex)
-		{
-			log.error("Unable to verify artifacts", ex);
-			frame.setVisible(false);
-			frame.dispose();
-			System.exit(-1);
-			return;
-		}
-
-		frame.setVisible(false);
-		frame.dispose();
-
-		final Collection<String> clientArgs = getClientArgs(options);
-
-		if (log.isDebugEnabled())
-		{
-			clientArgs.add("--debug");
-		}
-
-		// packr doesn't let us specify command line arguments
-		if ("true".equals(System.getProperty("runelite.launcher.nojvm")) || options.has("nojvm"))
-		{
+			SplashScreen.stage(.05, null, "Downloading bootstrap");
+			Bootstrap bootstrap;
 			try
 			{
-				ReflectionLauncher.launch(results, clientArgs);
+				bootstrap = getBootstrap();
 			}
-			catch (MalformedURLException ex)
+			catch (IOException | VerificationException | CertificateException | SignatureException | InvalidKeyException | NoSuchAlgorithmException ex)
 			{
-				log.error("unable to launch client", ex);
+				log.error("error fetching bootstrap", ex);
+				SwingUtilities.invokeLater(() -> FatalErrorDialog.showNetErrorWindow("downloading the bootstrap", ex));
+				return;
 			}
-		}
-		else
-		{
+
+			SplashScreen.stage(.10, null, "Tidying the cache");
+
+			boolean launcherTooOld = bootstrap.getRequiredLauncherVersion() != null &&
+				compareVersion(bootstrap.getRequiredLauncherVersion(), LauncherProperties.getVersion()) > 0;
+
+			boolean jvmTooOld = false;
 			try
 			{
-				JvmLauncher.launch(bootstrap, results, clientArgs, extraJvmParams);
+				if (bootstrap.getRequiredJVMVersion() != null)
+				{
+					jvmTooOld = Runtime.Version.parse(bootstrap.getRequiredJVMVersion())
+						.compareTo(Runtime.version()) > 0;
+				}
+			}
+			catch (IllegalArgumentException e)
+			{
+				log.warn("Unable to parse bootstrap version", e);
+			}
+
+			boolean nojvm = "true".equals(System.getProperty("runelite.launcher.nojvm"));
+
+			if (launcherTooOld || (nojvm && jvmTooOld))
+			{
+				SwingUtilities.invokeLater(() ->
+					new FatalErrorDialog("Your launcher is to old to start RuneLite. Please download and install a more " +
+						"recent one from RuneLite.net.")
+						.addButton("RuneLite.net", () -> LinkBrowser.browse(LauncherProperties.getDownloadLink()))
+						.open());
+				return;
+			}
+			if (jvmTooOld)
+			{
+				SwingUtilities.invokeLater(() ->
+					new FatalErrorDialog("Your Java installation is too old. RuneLite now requires Java " +
+						bootstrap.getRequiredJVMVersion() + " to run. You can get a platform specific version from RuneLite.net," +
+						" or install a newer version of Java.")
+						.addButton("RuneLite.net", () -> LinkBrowser.browse(LauncherProperties.getDownloadLink()))
+						.open());
+				return;
+			}
+
+			// update packr vmargs
+			PackrConfig.updateLauncherArgs(bootstrap, extraJvmParams);
+
+			REPO_DIR.mkdirs();
+
+			// Clean out old artifacts from the repository
+			clean(bootstrap.getArtifacts());
+
+			try
+			{
+				download(bootstrap);
 			}
 			catch (IOException ex)
 			{
-				log.error("unable to launch client", ex);
+				log.error("unable to download artifacts", ex);
+				SwingUtilities.invokeLater(() -> FatalErrorDialog.showNetErrorWindow("downloading the client", ex));
+				return;
 			}
+
+			List<File> results = Arrays.stream(bootstrap.getArtifacts())
+				.map(dep -> new File(REPO_DIR, dep.getName()))
+				.collect(Collectors.toList());
+
+			SplashScreen.stage(.80, null, "Verifying");
+			try
+			{
+				verifyJarHashes(bootstrap.getArtifacts());
+			}
+			catch (VerificationException ex)
+			{
+				log.error("Unable to verify artifacts", ex);
+				SwingUtilities.invokeLater(() -> FatalErrorDialog.showNetErrorWindow("verifying downloaded files", ex));
+				return;
+			}
+
+			final Collection<String> clientArgs = getClientArgs(options);
+
+			if (log.isDebugEnabled())
+			{
+				clientArgs.add("--debug");
+			}
+
+			SplashScreen.stage(.90, "Starting the client", "");
+
+			// packr doesn't let us specify command line arguments
+			if (nojvm || options.has("nojvm"))
+			{
+				try
+				{
+					ReflectionLauncher.launch(results, clientArgs);
+				}
+				catch (MalformedURLException ex)
+				{
+					log.error("unable to launch client", ex);
+				}
+			}
+			else
+			{
+				try
+				{
+					JvmLauncher.launch(bootstrap, results, clientArgs, extraJvmParams);
+				}
+				catch (IOException ex)
+				{
+					log.error("unable to launch client", ex);
+				}
+			}
+		}
+		catch (Exception e)
+		{
+			log.warn("Failure during startup", e);
+			SwingUtilities.invokeLater(() ->
+				new FatalErrorDialog("RuneLite has encountered an unexpected error during startup.")
+					.open());
+		}
+		finally
+		{
+			SplashScreen.stop();
 		}
 	}
 
@@ -309,9 +352,12 @@ public class Launcher
 			: new ArrayList<>();
 	}
 
-	private static void download(LauncherFrame frame, Bootstrap bootstrap) throws IOException
+	private static void download(Bootstrap bootstrap) throws IOException
 	{
 		Artifact[] artifacts = bootstrap.getArtifacts();
+		List<Artifact> toDownload = new ArrayList<>(artifacts.length);
+		int totalDownloadBytes = 0;
+
 		for (Artifact artifact : artifacts)
 		{
 			File dest = new File(REPO_DIR, artifact.getName());
@@ -332,6 +378,18 @@ public class Launcher
 				continue;
 			}
 
+			toDownload.add(artifact);
+			totalDownloadBytes += artifact.getSize();
+		}
+
+		final double START_PROGRESS = .15;
+		int downloaded = 0;
+		SplashScreen.stage(START_PROGRESS, "Downloading", "");
+
+		for (Artifact artifact : toDownload)
+		{
+			File dest = new File(REPO_DIR, artifact.getName());
+
 			log.debug("Downloading {}", artifact.getName());
 
 			URL url = new URL(artifact.getPath());
@@ -341,13 +399,12 @@ public class Launcher
 				FileOutputStream fout = new FileOutputStream(dest))
 			{
 				int i;
-				int bytes = 0;
 				byte[] buffer = new byte[1024 * 1024];
 				while ((i = in.read(buffer)) != -1)
 				{
-					bytes += i;
 					fout.write(buffer, 0, i);
-					frame.progress(artifact.getName(), bytes, artifact.getSize());
+					downloaded += i;
+					SplashScreen.stage(START_PROGRESS, .80, null, artifact.getName(), downloaded, totalDownloadBytes, true);
 				}
 			}
 		}
@@ -418,5 +475,56 @@ public class Launcher
 		CertificateFactory certFactory = CertificateFactory.getInstance("X.509");
 		Certificate certificate = certFactory.generateCertificate(Launcher.class.getResourceAsStream("runelite.crt"));
 		return certificate;
+	}
+
+	@VisibleForTesting
+	static int compareVersion(String a, String b)
+	{
+		Pattern tok = Pattern.compile("[^0-9a-zA-Z]");
+		return Arrays.compare(tok.split(a), tok.split(b), (x, y) ->
+		{
+			Integer ix = null;
+			try
+			{
+				ix = Integer.parseInt(x);
+			}
+			catch (NumberFormatException e)
+			{
+			}
+
+			Integer iy = null;
+			try
+			{
+				iy = Integer.parseInt(y);
+			}
+			catch (NumberFormatException e)
+			{
+			}
+
+			if (ix == null && iy == null)
+			{
+				return x.compareToIgnoreCase(y);
+			}
+
+			if (ix == null)
+			{
+				return -1;
+			}
+			if (iy == null)
+			{
+				return 1;
+			}
+
+			if (ix > iy)
+			{
+				return 1;
+			}
+			if (ix < iy)
+			{
+				return -1;
+			}
+
+			return 0;
+		});
 	}
 }

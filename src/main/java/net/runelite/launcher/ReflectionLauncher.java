@@ -71,5 +71,7 @@ class ReflectionLauncher
 		};
 		thread.setName("RuneLite");
 		thread.start();
+
+		SplashScreen.stop();
 	}
 }
