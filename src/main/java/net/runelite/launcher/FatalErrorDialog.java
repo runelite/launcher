@@ -162,6 +162,7 @@ public class FatalErrorDialog extends JDialog
 
 		pack();
 		SplashScreen.stop();
+		setLocationRelativeTo(null);
 		setVisible(true);
 	}
 
