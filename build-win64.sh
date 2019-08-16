@@ -49,5 +49,12 @@ resourcehacker \
     -res runelite.ico \
     -mask ICONGROUP,MAINICON,
 
+if ! [ -f vcredist_x64.exe ] ; then
+    # Visual C++ Redistributable for Visual Studio 2015
+    curl -Lo vcredist_x64.exe https://download.microsoft.com/download/9/3/F/93FCF1E7-E6A4-478B-96E7-D4B285925B00/vc_redist.x64.exe
+fi
+
+echo "5eea714e1f22f1875c1cb7b1738b0c0b1f02aec5ecb95f0fdb1c5171c6cd93a3 *vcredist_x64.exe" | sha256sum -c
+
 # We use the filtered iss file
 iscc target/filtered-resources/runelite.iss
