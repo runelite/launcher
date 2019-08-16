@@ -290,10 +290,16 @@ public class Launcher
 		}
 		catch (Exception e)
 		{
-			log.warn("Failure during startup", e);
+			log.error("Failure during startup", e);
 			SwingUtilities.invokeLater(() ->
 				new FatalErrorDialog("RuneLite has encountered an unexpected error during startup.")
 					.open());
+		}
+		catch (Error e)
+		{
+			// packr seems to eat exceptions thrown out of main, so at least try to log it
+			log.error("Failure during startup", e);
+			throw e;
 		}
 		finally
 		{
