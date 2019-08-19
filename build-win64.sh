@@ -40,6 +40,14 @@ java -jar packr.jar \
     --output \
     native-win64
 
+# modify packr exe manifest to enable Windows dpi scaling
+resourcehacker \
+    -open native-win64/RuneLite.exe \
+    -save native-win64/RuneLite.exe \
+    -action addoverwrite \
+    -res packr/runelite.manifest \
+    -mask MANIFEST,1,
+
 # packr on Windows doesn't support icons, so we use resourcehacker to include it
 
 resourcehacker \
