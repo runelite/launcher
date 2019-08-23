@@ -1,0 +1,3 @@
+[submodule "packr/packr"]
+	path = packr/packr
+	url = https://github.com/libgdx/packr
