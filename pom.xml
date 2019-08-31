@@ -29,26 +29,14 @@
 
 	<groupId>net.runelite</groupId>
 	<artifactId>launcher</artifactId>
-	<version>1.6.3-SNAPSHOT</version>
+	<version>2.0.2-SNAPSHOT</version>
 	<name>RuneLite Launcher</name>
 	<description>Launcher for RuneLite client</description>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<maven.compiler.source>1.8</maven.compiler.source>
-		<maven.compiler.target>1.8</maven.compiler.target>
-
-		<logback.version>1.2.3</logback.version>
-		<guava.version>23.2-jre</guava.version>
-		<packr.version>9139616e3837f0f3eb51071d786fc810769012a8</packr.version>
 
 		<main.class>net.runelite.launcher.Launcher</main.class>
-		<packr.jdk></packr.jdk>
-		<packr.jdk32></packr.jdk32>
-		<iscc.path></iscc.path>
-		<resourcehacker.path></resourcehacker.path>
-		<createdmg.path></createdmg.path>
-		<appimagetool.path></appimagetool.path>
 	</properties>
 
 	<repositories>
@@ -61,10 +49,6 @@
 			<name>RuneLit</name>
 			<url>https://raw.githubusercontent.com/runelite-extended/maven-repo/master</url>
 		</repository>
-		<repository>
-			<id>jitpack.io</id>
-			<url>https://jitpack.io</url>
-		</repository>
 	</repositories>
 
 	<pluginRepositories>
@@ -75,10 +59,6 @@
 		<pluginRepository>
 			<id>runelite</id>
 			<url>http://repo.runelite.net</url>
-		</pluginRepository>
-		<pluginRepository>
-			<id>jitpack.io</id>
-			<url>https://jitpack.io</url>
 		</pluginRepository>
 	</pluginRepositories>
 
@@ -104,18 +84,12 @@
 		<dependency>
 			<groupId>com.google.guava</groupId>
 			<artifactId>guava</artifactId>
-			<version>${guava.version}</version>
+			<version>23.2-jre</version>
 		</dependency>
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
 			<version>1.16.22</version>
-			<scope>provided</scope>
-		</dependency>
-		<dependency> <!-- hack to lock check packr -->
-			<groupId>com.github.libgdx</groupId>
-			<artifactId>packr</artifactId>
-			<version>${packr.version}</version>
 			<scope>provided</scope>
 		</dependency>
 
@@ -132,7 +106,7 @@
 			<dependency>
 				<groupId>ch.qos.logback</groupId>
 				<artifactId>logback-parent</artifactId>
-				<version>${logback.version}</version>
+				<version>1.2.3</version>
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
@@ -148,6 +122,7 @@
 				<excludes>
 					<exclude>*.ico</exclude>
 					<exclude>*.bmp</exclude>
+					<exclude>*.png</exclude>
 					<exclude>logback.xml</exclude>
 				</excludes>
 				<filtering>true</filtering>
@@ -157,6 +132,7 @@
 				<includes>
 					<include>*.ico</include>
 					<include>*.bmp</include>
+					<include>*.png</include>
 					<include>logback.xml</include>
 				</includes>
 				<filtering>false</filtering>
@@ -166,13 +142,21 @@
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.8.1</version>
+				<configuration>
+					<release>11</release>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
-				<version>3.0.2</version>
+				<version>3.1.2</version>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-shade-plugin</artifactId>
-				<version>3.2.0</version>
+				<version>3.2.1</version>
 				<executions>
 					<execution>
 						<phase>package</phase>
@@ -196,351 +180,6 @@
 									</includes>
 								</filter>
 							</filters>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>exec-maven-plugin</artifactId>
-				<version>1.6.0</version>
-				<dependencies>
-					<dependency>
-						<groupId>com.github.libgdx</groupId>
-						<artifactId>packr</artifactId>
-						<version>${packr.version}</version>
-					</dependency>
-				</dependencies>
-				<executions>
-					<!-- Windows distribution -->
-					<execution>
-						<id>package-win64</id>
-						<phase>none</phase>
-						<goals>
-							<goal>java</goal>
-						</goals>
-						<configuration>
-							<includeProjectDependencies>false</includeProjectDependencies>
-							<includePluginDependencies>true</includePluginDependencies>
-							<mainClass>com.badlogicgames.packr.Packr</mainClass>
-							<arguments>
-								<argument>--platform</argument>
-								<argument>windows64</argument>
-								<argument>--jdk</argument>
-								<argument>${packr.jdk}</argument>
-								<argument>--executable</argument>
-								<argument>${project.build.finalName}</argument>
-								<argument>--classpath</argument>
-								<argument>${project.build.directory}/RuneLite.jar</argument>
-								<argument>--mainclass</argument>
-								<argument>${main.class}</argument>
-								<argument>--vmargs</argument>
-								<argument>Drunelite.launcher.nojvm=true</argument>
-								<argument>Xmx512m</argument>
-								<argument>Xss2m</argument>
-								<argument>XX:CompileThreshold=1500</argument>
-								<argument>Xincgc</argument>
-								<argument>XX:+UseConcMarkSweepGC</argument>
-								<argument>XX:+UseParNewGC</argument>
-								<argument>Djna.nosys=true</argument>
-								<argument>--output</argument>
-								<argument>${project.build.directory}/native/win64</argument>
-								<argument>--minimizejre</argument>
-								<argument>packr/oraclejre8.json</argument>
-							</arguments>
-						</configuration>
-					</execution>
-					<execution>
-						<id>package-win32</id>
-						<phase>none</phase>
-						<goals>
-							<goal>java</goal>
-						</goals>
-						<configuration>
-							<includeProjectDependencies>false</includeProjectDependencies>
-							<includePluginDependencies>true</includePluginDependencies>
-							<mainClass>com.badlogicgames.packr.Packr</mainClass>
-							<arguments>
-								<argument>--platform</argument>
-								<argument>windows32</argument>
-								<argument>--jdk</argument>
-								<argument>${packr.jdk32}</argument>
-								<argument>--executable</argument>
-								<argument>${project.build.finalName}</argument>
-								<argument>--classpath</argument>
-								<argument>${project.build.directory}/RuneLite.jar</argument>
-								<argument>--mainclass</argument>
-								<argument>${main.class}</argument>
-								<argument>--vmargs</argument>
-								<argument>Drunelite.launcher.nojvm=true</argument>
-								<argument>Xmx512m</argument>
-								<argument>Xss2m</argument>
-								<argument>XX:CompileThreshold=1500</argument>
-								<argument>Xincgc</argument>
-								<argument>XX:+UseConcMarkSweepGC</argument>
-								<argument>XX:+UseParNewGC</argument>
-								<argument>Djna.nosys=true</argument>
-								<argument>--output</argument>
-								<argument>${project.build.directory}/native/win32</argument>
-								<argument>--minimizejre</argument>
-								<argument>packr/oraclejre8.json</argument>
-							</arguments>
-						</configuration>
-					</execution>
-					<execution>
-						<!-- packr doesn't support icons... -->
-						<id>update-windows-icon</id>
-						<phase>none</phase>
-						<goals>
-							<goal>exec</goal>
-						</goals>
-						<configuration>
-							<executable>${resourcehacker.path}</executable>
-							<arguments>
-								<argument>-open</argument>
-								<argument>${project.build.directory}/native/win64/RuneLite.exe</argument>
-								<argument>-save</argument>
-								<argument>${project.build.directory}/native/win64/RuneLite.exe</argument>
-								<argument>-action</argument>
-								<argument>add</argument>
-								<argument>-res</argument>
-								<argument>${basedir}/runelite.ico</argument>
-								<argument>-mask</argument>
-								<argument>ICONGROUP,MAINICON,</argument>
-							</arguments>
-						</configuration>
-					</execution>
-					<execution>
-						<!-- packr doesn't support icons... -->
-						<id>update-windows-icon32</id>
-						<phase>none</phase>
-						<goals>
-							<goal>exec</goal>
-						</goals>
-						<configuration>
-							<executable>${resourcehacker.path}</executable>
-							<arguments>
-								<argument>-open</argument>
-								<argument>${project.build.directory}/native/win32/RuneLite.exe</argument>
-								<argument>-save</argument>
-								<argument>${project.build.directory}/native/win32/RuneLite.exe</argument>
-								<argument>-action</argument>
-								<argument>add</argument>
-								<argument>-res</argument>
-								<argument>${basedir}/runelite.ico</argument>
-								<argument>-mask</argument>
-								<argument>ICONGROUP,MAINICON,</argument>
-							</arguments>
-						</configuration>
-					</execution>
-					<execution>
-						<id>update-manifest</id>
-						<phase>none</phase>
-						<goals>
-							<goal>exec</goal>
-						</goals>
-						<configuration>
-							<executable>${resourcehacker.path}</executable>
-							<arguments>
-								<argument>-open</argument>
-								<argument>${project.build.directory}/native/win64/RuneLite.exe</argument>
-								<argument>-save</argument>
-								<argument>${project.build.directory}/native/win64/RuneLite.exe</argument>
-								<argument>-action</argument>
-								<argument>addoverwrite</argument>
-								<argument>-res</argument>
-								<argument>${basedir}/packr/runelite.manifest</argument>
-								<argument>-mask</argument>
-								<argument>MANIFEST,1,</argument>
-							</arguments>
-						</configuration>
-					</execution>
-					<execution>
-						<id>update-manifest32</id>
-						<phase>none</phase>
-						<goals>
-							<goal>exec</goal>
-						</goals>
-						<configuration>
-							<executable>${resourcehacker.path}</executable>
-							<arguments>
-								<argument>-open</argument>
-								<argument>${project.build.directory}/native/win32/RuneLite.exe</argument>
-								<argument>-save</argument>
-								<argument>${project.build.directory}/native/win32/RuneLite.exe</argument>
-								<argument>-action</argument>
-								<argument>addoverwrite</argument>
-								<argument>-res</argument>
-								<argument>${basedir}/packr/runelite.manifest</argument>
-								<argument>-mask</argument>
-								<argument>MANIFEST,1,</argument>
-							</arguments>
-						</configuration>
-					</execution>
-					<execution>
-						<id>create-windows-installer</id>
-						<phase>none</phase>
-						<goals>
-							<goal>exec</goal>
-						</goals>
-						<configuration>
-							<executable>${iscc.path}</executable>
-							<arguments>
-								<argument>target/filtered-resources/runelite.iss</argument>
-							</arguments>
-						</configuration>
-					</execution>
-					<execution>
-						<id>create-windows-installer32</id>
-						<phase>none</phase>
-						<goals>
-							<goal>exec</goal>
-						</goals>
-						<configuration>
-							<executable>${iscc.path}</executable>
-							<arguments>
-								<argument>target/filtered-resources/runelite32.iss</argument>
-							</arguments>
-						</configuration>
-					</execution>
-					<!-- Darwin distribution -->
-					<execution>
-						<id>package-darwin</id>
-						<phase>none</phase>
-						<goals>
-							<goal>java</goal>
-						</goals>
-						<configuration>
-							<includeProjectDependencies>false</includeProjectDependencies>
-							<includePluginDependencies>true</includePluginDependencies>
-							<mainClass>com.badlogicgames.packr.Packr</mainClass>
-							<arguments>
-								<argument>--platform</argument>
-								<argument>mac</argument>
-								<argument>--icon</argument>
-								<argument>${project.basedir}/packr/runelite.icns</argument>
-								<argument>--jdk</argument>
-								<argument>${packr.jdk}</argument>
-								<argument>--executable</argument>
-								<argument>${project.build.finalName}</argument>
-								<argument>--classpath</argument>
-								<argument>${project.build.directory}/RuneLite.jar</argument>
-								<argument>--mainclass</argument>
-								<argument>${main.class}</argument>
-								<argument>--vmargs</argument>
-								<argument>Drunelite.launcher.nojvm=true</argument>
-								<argument>Xmx512m</argument>
-								<argument>Xss2m</argument>
-								<argument>XX:CompileThreshold=1500</argument>
-								<argument>Xincgc</argument>
-								<argument>XX:+UseConcMarkSweepGC</argument>
-								<argument>XX:+UseParNewGC</argument>
-								<argument>Djna.nosys=true</argument>
-								<argument>--output</argument>
-								<argument>${project.build.directory}/native/darwin/RuneLite.app</argument>
-								<argument>--minimizejre</argument>
-								<argument>packr/oraclejre8.json</argument>
-							</arguments>
-						</configuration>
-					</execution>
-					<execution>
-						<id>create-darwin-dmg</id>
-						<phase>none</phase>
-						<goals>
-							<goal>exec</goal>
-						</goals>
-						<configuration>
-							<successCodes>
-								<successCode>0</successCode>
-								<!-- For some reason, create-darwin-dmg returns 1 all the time even if successful -->
-								<successCode>1</successCode>
-							</successCodes>
-							<executable>${createdmg.path}</executable>
-							<arguments>
-								<argument>--format</argument>
-								<argument>UDBZ</argument>
-								<argument>${project.build.directory}/native/darwin/RuneLite.app</argument>
-							</arguments>
-						</configuration>
-					</execution>
-					<execution>
-						<id>prepare-darwin-image</id>
-						<phase>none</phase>
-						<goals>
-							<goal>exec</goal>
-						</goals>
-						<configuration>
-							<executable>packr/prepare-darwin.sh</executable>
-							<arguments>
-								<argument>${project.build.directory}/native/darwin/RuneLite.App/</argument>
-							</arguments>
-						</configuration>
-					</execution>
-					<execution>
-						<id>package-linux64</id>
-						<phase>none</phase>
-						<goals>
-							<goal>java</goal>
-						</goals>
-						<configuration>
-							<includeProjectDependencies>false</includeProjectDependencies>
-							<includePluginDependencies>true</includePluginDependencies>
-							<mainClass>com.badlogicgames.packr.Packr</mainClass>
-							<arguments>
-								<argument>--platform</argument>
-								<argument>linux64</argument>
-								<argument>--jdk</argument>
-								<argument>${packr.jdk}</argument>
-								<argument>--executable</argument>
-								<argument>${project.build.finalName}</argument>
-								<argument>--classpath</argument>
-								<argument>${project.build.directory}/RuneLite.jar</argument>
-								<argument>--mainclass</argument>
-								<argument>${main.class}</argument>
-								<argument>--vmargs</argument>
-								<argument>Drunelite.launcher.nojvm=true</argument>
-								<argument>Xmx512m</argument>
-								<argument>Xss2m</argument>
-								<argument>XX:CompileThreshold=1500</argument>
-								<argument>Xincgc</argument>
-								<argument>XX:+UseConcMarkSweepGC</argument>
-								<argument>XX:+UseParNewGC</argument>
-								<argument>Djna.nosys=true</argument>
-								<argument>--output</argument>
-								<argument>${project.build.directory}/native/linux64/RuneLite.AppDir/</argument>
-								<argument>--minimizejre</argument>
-								<argument>src/main/resources/oraclejre8.json</argument>
-								<argument>--resources</argument>
-								<argument>target/filtered-resources/runelite.desktop</argument>
-								<argument>appimage/runelite.png</argument>
-							</arguments>
-						</configuration>
-					</execution>
-					<execution>
-						<id>prepare-linux64-appimage</id>
-						<phase>none</phase>
-						<goals>
-							<goal>exec</goal>
-						</goals>
-						<configuration>
-							<executable>appimage/prepare-appimage.sh</executable>
-							<arguments>
-								<argument>${project.build.directory}/native/linux64/RuneLite.AppDir/</argument>
-							</arguments>
-						</configuration>
-					</execution>
-					<execution>
-						<id>create-linux64-appimage</id>
-						<phase>none</phase>
-						<goals>
-							<goal>exec</goal>
-						</goals>
-						<configuration>
-							<executable>${appimagetool.path}</executable>
-							<arguments>
-								<argument>${project.build.directory}/native/linux64/RuneLite.AppDir/</argument>
-								<argument>${project.build.directory}/native/linux64/RuneLite.AppImage</argument>
-							</arguments>
 						</configuration>
 					</execution>
 				</executions>
@@ -573,24 +212,12 @@
 										<exclude>*.bmp</exclude>
 									</excludes>
 								</resource>
-							</resources>
-						</configuration>
-					</execution>
-					<execution>
-						<id>copy-darwin-plist</id>
-						<phase>none</phase>
-						<goals>
-							<goal>copy-resources</goal>
-						</goals>
-						<configuration>
-							<outputDirectory>${project.build.directory}/native/darwin/RuneLite.app/Contents</outputDirectory>
-							<resources>
 								<resource>
-									<directory>${basedir}/packr</directory>
-									<includes>
-										<include>Info.plist</include>
-									</includes>
+									<directory>packr</directory>
 									<filtering>true</filtering>
+									<includes>
+										<include>*.plist</include>
+									</includes>
 								</resource>
 							</resources>
 						</configuration>
@@ -677,11 +304,6 @@
 							<groupId>org.projectlombok</groupId>
 							<artifactId>lombok</artifactId>
 							<hash>SHA-256:9cadc430e156950d7deb6f226d74c5e2aacb6cf21b7ef60638e6af4369e7bb8d</hash>
-						</lock>
-						<lock>
-							<groupId>com.github.libgdx</groupId>
-							<artifactId>packr</artifactId>
-							<hash>SHA-256:8e672a0aa2b2016521c07625c01aec1d3faa6ab5cedd36fb707b68e122c8c266</hash>
 						</lock>
 						<lock>
 							<groupId>io.github.zlika</groupId>

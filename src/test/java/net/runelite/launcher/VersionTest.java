@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, Adam <Adam@sigterm.info>
+ * Copyright (c) 2019 Abex
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -24,47 +24,19 @@
  */
 package net.runelite.launcher;
 
-import java.awt.BorderLayout;
-import java.awt.Dimension;
-import javax.swing.JFrame;
-import javax.swing.JProgressBar;
-import lombok.extern.slf4j.Slf4j;
+import org.junit.Assert;
+import org.junit.Test;
 
-@Slf4j
-public class LauncherFrame extends JFrame
+public class VersionTest
 {
-	private final JProgressBar bar;
-
-	public LauncherFrame()
+	@Test
+	public void testVersionCompare()
 	{
-		this.setTitle("RuneLite");
-		this.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-		this.setSize(300, 70);
-		this.setLayout(new BorderLayout());
-		this.setUndecorated(true);
-
-		bar = new JProgressBar();
-		bar.setMaximum(100);
-		bar.setStringPainted(true);
-		bar.setSize(300, 70);
-		bar.setPreferredSize(new Dimension(300, 70));
-		bar.setVisible(true);
-		add(bar, BorderLayout.CENTER);
-		pack();
-
-		this.setLocationRelativeTo(null);
-		this.setVisible(true);
-	}
-
-	void progress(String filename, int bytes, int total)
-	{
-		if (total == 0)
-		{
-			return;
-		}
-
-		int percent = (int) (((float) bytes / (float) total) * 100f);
-		bar.setString(filename + " (" + percent + "%)");
-		bar.setValue(percent);
+		Assert.assertTrue(Launcher.compareVersion("1.2.3-SNAPSHOT", "1.2.3") > 0);
+		Assert.assertTrue(Launcher.compareVersion("1.2.3", "1.2.3") == 0);
+		Assert.assertTrue(Launcher.compareVersion("1.2.3", "1.2") > 0);
+		Assert.assertTrue(Launcher.compareVersion("2.2.3", "1.2.3") > 0);
+		Assert.assertTrue(Launcher.compareVersion("1.2.3", "1.2.3.1") < 0);
+		Assert.assertTrue(Launcher.compareVersion("1.2.3-SNAPSHOT", "1.2.3.1") < 0);
 	}
 }
