@@ -92,6 +92,7 @@ public class Launcher
 		parser.accepts("clientargs").withRequiredArg();
 		parser.accepts("nojvm");
 		parser.accepts("debug");
+		parser.accepts("staging");
 
 		HardwareAccelerationMode defaultMode;
 		switch (OS.getOs())
@@ -115,6 +116,11 @@ public class Launcher
 			.defaultsTo(defaultMode);
 
 		OptionSet options = parser.parse(args);
+		
+		if (options.has("staging"))
+		{
+			staging = true;
+		}	
 
 		LOGS_DIR.mkdirs();
 
