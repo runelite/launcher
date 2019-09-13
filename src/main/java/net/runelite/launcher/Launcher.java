@@ -117,7 +117,7 @@ public class Launcher
 
 		OptionSet options = parser.parse(args);
 		
-		if (options.has("staging))
+		if (options.has("staging"))
 		{
 			staging = true;
 		}	
