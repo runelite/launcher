@@ -44,6 +44,7 @@ import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.charset.Charset;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.Signature;
@@ -61,7 +62,8 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import javax.swing.SwingUtilities;
+import javax.swing.*;
+
 import joptsimple.ArgumentAcceptingOptionSpec;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
@@ -77,22 +79,71 @@ public class Launcher
 	public static final File LOGS_DIR = new File(RUNELITE_DIR, "logs");
 	private static final File REPO_DIR = new File(RUNELITE_DIR, "repository2");
 	public static final File CRASH_FILES = new File(LOGS_DIR, "jvm_crash_pid_%p.log");
-	private static final String CLIENT_BOOTSTRAP_URL = "https://raw.githubusercontent.com/runelite-extended/maven-repo/master/bootstrap.json";
-	private static final String CLIENT_BOOTSTRAP_STAGING_URL = "https://raw.githubusercontent.com/runelite-extended/maven-repo/master/bootstrap-staging.json";
+	private static final String CLIENT_BOOTSTRAP_STABLE_URL = "https://raw.githubusercontent.com/runelite-extended/hosting/master/bootstrap-stable.json";
+	private static final String CLIENT_BOOTSTRAP_NIGHTLY_URL = "https://raw.githubusercontent.com/runelite-extended/hosting/master/bootstrap-nightly.json";
 	private static final String CLIENT_BOOTSTRAP_SHA256_URL = "https://static.runelite.net/bootstrap.json.sha256";
 	private static final String USER_AGENT = "RuneLite/" + LauncherProperties.getVersion();
 	private static final boolean enforceDependencyHashing = true;
-	private static boolean staging = false;
+	private static boolean nightly = false;
 
 	static final String CLIENT_MAIN_CLASS = "net.runelite.client.RuneLite";
 
 	public static void main(String[] args)
 	{
+		String defaultBootstrap = "default-bootstrap.txt";
+		String DEFAULT_BOOTSTRAP = RUNELITE_DIR + File.separator + defaultBootstrap;
+		File f = new File(DEFAULT_BOOTSTRAP);
+		if (!RUNELITE_DIR.exists()) {
+			RUNELITE_DIR.mkdirs();
+		}
+		if (!f.exists())
+		{
+			Object[] selectionValues = { "Stable (Weekly)", "Nightly"};
+			String initialSelection = "Stable (Weekly)";
+			Object selection = JOptionPane.showInputDialog(null, "Select default update schedule",
+					"OpenOSRS Update Schedule", JOptionPane.QUESTION_MESSAGE, null, selectionValues, initialSelection);
+
+			if (selection.equals("Nightly"))
+			{
+				nightly = true;
+				try {
+					Files.write("Nightly", f, Charset.defaultCharset());
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+			else
+			{
+				try {
+					Files.write("Stable (Weekly)", f, Charset.defaultCharset());
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		else
+		{
+			String content = "";
+			try
+			{
+				content = Files.readFirstLine(f, Charset.defaultCharset());
+				if (content.equals("Nightly"))
+				{
+					System.out.println("Using Nightly");
+					nightly = true;
+				}
+			}
+			catch (Exception e)
+			{
+				e.printStackTrace();
+				f.delete();
+			}
+		}
+
 		OptionParser parser = new OptionParser();
 		parser.accepts("clientargs").withRequiredArg();
 		parser.accepts("nojvm");
 		parser.accepts("debug");
-		parser.accepts("staging");
 
 		HardwareAccelerationMode defaultMode;
 		switch (OS.getOs())
@@ -116,11 +167,6 @@ public class Launcher
 			.defaultsTo(defaultMode);
 
 		OptionSet options = parser.parse(args);
-		
-		if (options.has("staging"))
-		{
-			staging = true;
-		}	
 
 		LOGS_DIR.mkdirs();
 
@@ -319,9 +365,9 @@ public class Launcher
 
 	private static Bootstrap getBootstrap() throws IOException, CertificateException, NoSuchAlgorithmException, InvalidKeyException, SignatureException, VerificationException
 	{
-	    URL u = new URL(CLIENT_BOOTSTRAP_URL);
-	    if (staging)
-            u = new URL(CLIENT_BOOTSTRAP_STAGING_URL);
+	    URL u = new URL(CLIENT_BOOTSTRAP_STABLE_URL);
+	    if (nightly)
+            u = new URL(CLIENT_BOOTSTRAP_NIGHTLY_URL);
 		URL signatureUrl = new URL(CLIENT_BOOTSTRAP_SHA256_URL);
 
 		URLConnection conn = u.openConnection();
