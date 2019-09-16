@@ -82,7 +82,7 @@ public class Launcher
 	private static final String CLIENT_BOOTSTRAP_SHA256_URL = "https://static.runelite.net/bootstrap.json.sha256";
 	private static final String USER_AGENT = "RuneLite/" + LauncherProperties.getVersion();
 	private static final boolean enforceDependencyHashing = true;
-	private static final boolean staging = false;
+	private static boolean staging = false;
 
 	static final String CLIENT_MAIN_CLASS = "net.runelite.client.RuneLite";
 
@@ -144,8 +144,7 @@ public class Launcher
 				final String key = (String) keys.nextElement();
 				final String value = (String) p.get(key);
 				log.debug("  {}: {}", key, value);
-				}
-		}
+			}
 
 			// Get hardware acceleration mode
 			final HardwareAccelerationMode hardwareAccelerationMode = options.valueOf(mode);

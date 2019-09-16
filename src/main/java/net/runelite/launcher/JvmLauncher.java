@@ -24,11 +24,12 @@
  */
 package net.runelite.launcher;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import lombok.extern.slf4j.Slf4j;
+import net.runelite.launcher.beans.Bootstrap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -36,106 +37,88 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import lombok.extern.slf4j.Slf4j;
+
 import static net.runelite.launcher.Launcher.CLIENT_MAIN_CLASS;
-import net.runelite.launcher.beans.Bootstrap;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @Slf4j
-class JvmLauncher
-{
-	private static final Logger logger = LoggerFactory.getLogger(JvmLauncher.class);
+class JvmLauncher {
+    private static final Logger logger = LoggerFactory.getLogger(JvmLauncher.class);
 
-	private static String getJava() throws FileNotFoundException
-	{
-		Path javaHome = Paths.get(System.getProperty("java.home"));
+    private static String getJava() throws FileNotFoundException {
+        Path javaHome = Paths.get(System.getProperty("java.home"));
 
-		if (!Files.exists(javaHome))
-		{
-			throw new FileNotFoundException("JAVA_HOME is not set correctly! directory \"" + javaHome + "\" does not exist.");
-		}
+        if (!Files.exists(javaHome)) {
+            throw new FileNotFoundException("JAVA_HOME is not set correctly! directory \"" + javaHome + "\" does not exist.");
+        }
 
-		Path javaPath = Paths.get(javaHome.toString(), "bin", "java.exe");
+        Path javaPath = Paths.get(javaHome.toString(), "bin", "java.exe");
 
-		if (!Files.exists(javaPath))
-		{
-			javaPath = Paths.get(javaHome.toString(), "bin", "java");
-		}
+        if (!Files.exists(javaPath)) {
+            javaPath = Paths.get(javaHome.toString(), "bin", "java");
+        }
 
-		if (!Files.exists(javaPath))
-		{
-			throw new FileNotFoundException("java executable not found in directory \"" + javaPath.getParent() + "\"");
-		}
+        if (!Files.exists(javaPath)) {
+            throw new FileNotFoundException("java executable not found in directory \"" + javaPath.getParent() + "\"");
+        }
 
-		return javaPath.toAbsolutePath().toString();
-	}
+        return javaPath.toAbsolutePath().toString();
+    }
 
-	static void launch(
-		Bootstrap bootstrap,
-		List<File> results,
-		Collection<String> clientArgs,
-		List<String> extraJvmParams) throws IOException
-	{
-		StringBuilder classPath = new StringBuilder();
-		for (File f : results)
-		{
-			if (classPath.length() > 0)
-			{
-				classPath.append(File.pathSeparatorChar);
-			}
+    static void launch(
+            Bootstrap bootstrap,
+            List<File> results,
+            Collection<String> clientArgs,
+            List<String> extraJvmParams) throws IOException {
+        StringBuilder classPath = new StringBuilder();
+        for (File f : results) {
+            if (classPath.length() > 0) {
+                classPath.append(File.pathSeparatorChar);
+            }
 
-			classPath.append(f.getAbsolutePath());
-		}
-		String javaExePath;
-		try
-		{
-			javaExePath = getJava();
-		}
-		catch (FileNotFoundException ex)
-		{
-			logger.error("Unable to find java executable", ex);
-			return;
-		}
+            classPath.append(f.getAbsolutePath());
+        }
+        String javaExePath;
+        try {
+            javaExePath = getJava();
+        } catch (FileNotFoundException ex) {
+            logger.error("Unable to find java executable", ex);
+            return;
+        }
 
 
-		List<String> arguments = new ArrayList<>();
-		arguments.add(javaExePath);
-		arguments.add("-cp");
-		arguments.add(classPath.toString());
+        List<String> arguments = new ArrayList<>();
+        arguments.add(javaExePath);
+        arguments.add("-cp");
+        arguments.add(classPath.toString());
 
-		String[] jvmArguments;
-		String jvmVersion = System.getProperty("java.version");
-		if (jvmVersion.startsWith("1."))
-		{
-			logger.info("Using Java version 1.x");
-			jvmArguments = bootstrap.getClientJvmArguments();
-		}
-		else
-		{
-			logger.info("Using Java version 9+");
-			jvmArguments = bootstrap.getClientJvm9Arguments();
-		}
-		arguments.addAll(Arrays.asList(jvmArguments));
-		arguments.addAll(extraJvmParams);
+        String[] jvmArguments;
+        String jvmVersion = System.getProperty("java.version");
+        if (jvmVersion.startsWith("1.")) {
+            logger.info("Using Java version 1.x");
+            jvmArguments = bootstrap.getClientJvmArguments();
+        } else {
+            logger.info("Using Java version 9+");
+            jvmArguments = bootstrap.getClientJvm9Arguments();
+        }
+        arguments.addAll(Arrays.asList(jvmArguments));
+        arguments.addAll(extraJvmParams);
 
-		arguments.add(CLIENT_MAIN_CLASS);
-		arguments.addAll(clientArgs);
+        arguments.add(CLIENT_MAIN_CLASS);
+        arguments.addAll(clientArgs);
 
-		logger.info("Running {}", arguments);
+        logger.info("Running {}", arguments);
 
-		ProcessBuilder builder = new ProcessBuilder(arguments.toArray(new String[0]));
-		builder.redirectErrorStream(true);
-		Process process = builder.start();
+        ProcessBuilder builder = new ProcessBuilder(arguments.toArray(new String[0]));
+        builder.redirectErrorStream(true);
+        Process process = builder.start();
 
-		SplashScreen.stop();
+        SplashScreen.stop();
 
-		if (log.isDebugEnabled())
-		{
-			BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-			for (String line; (line = reader.readLine()) != null; )
-			{
-				System.out.println(line);
-			}
-	}
+        if (log.isDebugEnabled()) {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            for (String line; (line = reader.readLine()) != null; ) {
+                System.out.println(line);
+            }
+        }
+    }
 }
