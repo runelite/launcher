@@ -44,7 +44,6 @@ import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
-import java.nio.charset.Charset;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.Signature;
@@ -62,8 +61,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import javax.swing.*;
-
+import javax.swing.SwingUtilities;
 import joptsimple.ArgumentAcceptingOptionSpec;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
@@ -95,49 +93,6 @@ public class Launcher
 		File f = new File(DEFAULT_BOOTSTRAP);
 		if (!RUNELITE_DIR.exists()) {
 			RUNELITE_DIR.mkdirs();
-		}
-		if (!f.exists())
-		{
-			Object[] selectionValues = { "Stable (Weekly)", "Nightly"};
-			String initialSelection = "Stable (Weekly)";
-			Object selection = JOptionPane.showInputDialog(null, "Select default update schedule",
-					"OpenOSRS Update Schedule", JOptionPane.QUESTION_MESSAGE, null, selectionValues, initialSelection);
-
-			if (selection.equals("Nightly"))
-			{
-				nightly = true;
-				try {
-					Files.write("Nightly", f, Charset.defaultCharset());
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
-			else
-			{
-				try {
-					Files.write("Stable (Weekly)", f, Charset.defaultCharset());
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
-		}
-		else
-		{
-			String content = "";
-			try
-			{
-				content = Files.readFirstLine(f, Charset.defaultCharset());
-				if (content.equals("Nightly"))
-				{
-					System.out.println("Using Nightly");
-					nightly = true;
-				}
-			}
-			catch (Exception e)
-			{
-				e.printStackTrace();
-				f.delete();
-			}
 		}
 
 		OptionParser parser = new OptionParser();
@@ -367,7 +322,9 @@ public class Launcher
 	{
 	    URL u = new URL(CLIENT_BOOTSTRAP_STABLE_URL);
 	    if (nightly)
-            u = new URL(CLIENT_BOOTSTRAP_NIGHTLY_URL);
+		{
+			u = new URL(CLIENT_BOOTSTRAP_NIGHTLY_URL);
+		}
 		URL signatureUrl = new URL(CLIENT_BOOTSTRAP_SHA256_URL);
 
 		URLConnection conn = u.openConnection();

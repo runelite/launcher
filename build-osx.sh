@@ -10,6 +10,9 @@ if ! [ -f OpenJDK11U-jre_x64_mac_hotspot_${JDK_VER}_${JDK_BUILD}.tar.gz ] ; then
         https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-${JDK_VER}%2B${JDK_BUILD}/OpenJDK11U-jre_x64_mac_hotspot_${JDK_VER}_${JDK_BUILD}.tar.gz
 fi
 
+rm -f packr.jar
+curl -o packr.jar https://libgdx.badlogicgames.com/ci/packr/packr.jar
+
 echo "1647fded28d25e562811f7bce2092eb9c21d30608843b04250c023b40604ff26  OpenJDK11U-jre_x64_mac_hotspot_${JDK_VER}_${JDK_BUILD}.tar.gz" | shasum -c
 
 # packr requires a "jdk" and pulls the jre from it - so we have to place it inside

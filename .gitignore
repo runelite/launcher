@@ -10,3 +10,10 @@ project.properties
 .classpath
 dependency-reduced-pom.xml
 *.exe
+*.tar.gz
+packr*
+native-osx/
+osx-jdk/
+node_modules/
+.gradle
+build

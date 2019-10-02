@@ -1,0 +1,111 @@
+name: OpenOSRS - CI
+
+on: [pull_request, push]
+
+jobs:
+  pr-lint:
+    name: PR title
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: PR title lint
+        if: github.event_name == 'pull_request'
+        uses: seferov/pr-lint-action@master
+        with:
+          title-regex: '^\w+: \w+'
+
+  build:
+    runs-on: ubuntu-latest
+    name: Build
+
+    steps:
+      - uses: actions/checkout@master
+      - name: Set up JDK 11
+        uses: actions/setup-java@master
+        with:
+          java-version: 11
+      - name: Make gradlew executable
+      run: chmod +x ./gradlew
+      - name: Assembling
+        run: ./gradlew assemble --console=plain
+      - name: Building
+        run: gradlew build --stacktrace -x test --console=plain
+
+  test:
+    runs-on: ubuntu-latest
+    name: Test
+
+    steps:
+      - uses: actions/checkout@master
+      - name: Set up JDK 11
+        uses: actions/setup-java@master
+        with:
+          java-version: 11
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+      - name: Assembling
+        run: ./gradlew assemble --console=plain
+      - name: Testing
+        run: gradlew test --stacktrace --console=plain
+
+  mac:
+    runs-on: macos-latest
+    name: Build (mac)
+
+    steps:
+      - uses: actions/checkout@master
+      - name: Set up JDK 11
+        uses: actions/setup-java@master
+        with:
+          java-version: 11
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+      - name: Assembling
+        run: ./gradlew assemble --console=plain
+      - name: Testing
+        run: gradlew build --stacktrace -x test --console=plain
+      - name: Install create-dmg
+        run: npm install Adam-/create-dmg
+      - name: Install create-dmg
+        run: npm install Adam-/create-dmg
+      - name: Make build script executable
+        run: chmod +x ./build-osx.sh
+      - name: Build
+        run: ./build-osx.sh
+
+
+  approve:
+    name: Approve
+    needs: [build, test]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Approve pull request
+        if: github.event_name == 'pull_request' && github.actor == 'OpenOSRS'
+        uses: hmarr/auto-approve-action@master
+        with:
+          github-token: "${{ secrets.GITHUB_TOKEN }}"
+
+  merge:
+    name: Merge
+    needs: approve
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Merge pull request
+        if: github.event_name == 'pull_request' && github.actor == 'OpenOSRS'
+        uses: managedkaos/merge-pull-request@master
+        with:
+          github-token: "${{ secrets.GITHUB_TOKEN }}"
+
+  cleanup:
+    name: Cleanup
+    needs: merge
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Remove merged branch
+        if: github.event_name == 'pull_request' && github.actor == 'OpenOSRS'
+        uses: jessfraz/branch-cleanup-action@master
+        with:
+          github-token: "${{ secrets.GITHUB_TOKEN }}"
