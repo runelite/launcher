@@ -35,15 +35,19 @@ dependencies {
     implementation group: 'net.sf.jopt-simple', name: 'jopt-simple', version: '5.0.4'
     implementation group: 'com.google.code.gson', name: 'gson', version: '2.8.5'
     implementation group: 'com.google.guava', name: 'guava', version: '28.1-jre'
+    implementation group: 'com.vdurmont', name: 'semver4j', version: '2.0.1'
 
     testImplementation group: 'junit', name: 'junit', version: '4.12'
 }
 
 processResources {
-    from file("src/main/resources/net/runelite/launcher/launcher.properties"), {
-        filter(ReplaceTokens, tokens: [
-                "project.version": project.version
-        ])
+    copy {
+        from file("src/main/resources/launcher.properties"), {
+            filter(ReplaceTokens, tokens: [
+                    "project.version": project.version
+            ])
+        }
+        into("${rootDir}/build/resources/main/net/runelite/launcher/")
     }
 
     copy {
@@ -55,7 +59,6 @@ processResources {
                     "project.group"   : project.group
             ])
         }
-        into("${rootDir}/build/filtered-resources/")
 
         from file("${rootDir}/innosetup/openosrs.iss"), {
             filter(ReplaceTokens, tokens: [
@@ -63,7 +66,6 @@ processResources {
                     "basedir"         : project.projectDir.path
             ])
         }
-        into("${rootDir}/build/filtered-resources/")
 
         from file("${rootDir}/innosetup/openosrs32.iss"), {
             filter(ReplaceTokens, tokens: [

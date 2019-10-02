@@ -34,6 +34,7 @@ import com.google.common.hash.Hashing;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.Files;
 import com.google.gson.Gson;
+import com.vdurmont.semver4j.Semver;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -73,9 +74,9 @@ import org.slf4j.LoggerFactory;
 public class Launcher
 {
 	private static final File RUNELITE_DIR = new File(System.getProperty("user.home"), ".runelite");
-	public static final File LOGS_DIR = new File(RUNELITE_DIR, "logs");
+	private static final File LOGS_DIR = new File(RUNELITE_DIR, "logs");
 	private static final File REPO_DIR = new File(RUNELITE_DIR, "repository2");
-	public static final File CRASH_FILES = new File(LOGS_DIR, "jvm_crash_pid_%p.log");
+	private static final File CRASH_FILES = new File(LOGS_DIR, "jvm_crash_pid_%p.log");
 	private static final String CLIENT_BOOTSTRAP_STAGING_URL = "https://raw.githubusercontent.com/runelite-extended/hosting/master/bootstrap-staging.json";
 	private static final String CLIENT_BOOTSTRAP_STABLE_URL = "https://raw.githubusercontent.com/runelite-extended/hosting/master/bootstrap-stable.json";
 	private static final String CLIENT_BOOTSTRAP_NIGHTLY_URL = "https://raw.githubusercontent.com/runelite-extended/hosting/master/bootstrap-nightly.json";
@@ -100,6 +101,8 @@ public class Launcher
 		parser.accepts("clientargs").withRequiredArg();
 		parser.accepts("nojvm");
 		parser.accepts("debug");
+		parser.accepts("nightly");
+		parser.accepts("staging");
 
 		HardwareAccelerationMode defaultMode;
 		switch (OS.getOs())
@@ -124,12 +127,18 @@ public class Launcher
 
 		OptionSet options = parser.parse(args);
 
+		nightly = options.has("nightly");
+		staging = options.has("staging");
+
 		LOGS_DIR.mkdirs();
 
-			final Logger logger = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
+		final Logger logger = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
 
-			if (options.has("debug"))
+		if (options.has("debug"))
+		{
 			logger.setLevel(Level.DEBUG);
+		}
+
 		try
 		{
 			OpenOSRSSplashScreen.init();
@@ -213,6 +222,13 @@ public class Launcher
 				OpenOSRSSplashScreen.setError("Your Java installation is too old", "OpenOSRS now requires Java " +
 					bootstrap.getRequiredJVMVersion() + " to run. You can get a platform specific version from openosrs.com," +
 					" or install a newer version of Java.");
+				return;
+			}
+
+			if (!checkVersion(bootstrap))
+			{
+				log.error("launcher version too low");
+				OpenOSRSSplashScreen.setError("Launcher to old!", "The launcher you're using is oudated. Please download a newer version on openosrs.com");
 				return;
 			}
 
@@ -300,6 +316,17 @@ public class Launcher
 		{
 			OpenOSRSSplashScreen.close();
 		}
+	}
+
+	private static boolean checkVersion(Bootstrap bootstrap)
+	{
+		if(bootstrap.getMinimumLauncherVersion() == null || LauncherProperties.getVersion() == null)
+		{
+			return true;
+		}
+		Semver minimum = new Semver(bootstrap.getMinimumLauncherVersion()).withClearedSuffixAndBuild();
+		Semver ours = new Semver(LauncherProperties.getVersion()).withClearedSuffixAndBuild();
+		return !ours.isLowerThan(minimum);
 	}
 
 	private static void setJvmParams(final Collection<String> params)
