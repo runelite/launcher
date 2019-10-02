@@ -112,7 +112,7 @@ class JvmLauncher {
         builder.redirectErrorStream(true);
         Process process = builder.start();
 
-        SplashScreen.stop();
+		OpenOSRSSplashScreen.close();
 
         if (log.isDebugEnabled()) {
             BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));

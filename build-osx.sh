@@ -32,13 +32,13 @@ java -jar packr.jar \
     --platform \
     mac \
     --icon \
-    packr/runelite.icns \
+    packr/openosrs.icns \
     --jdk \
     osx-jdk \
     --executable \
-    RuneLite \
+    OpenOSRS \
     --classpath \
-    target/RuneLite.jar \
+    build/libs/OpenOSRS-shaded.jar \
     --mainclass \
     net.runelite.launcher.Launcher \
     --vmargs \
@@ -48,15 +48,15 @@ java -jar packr.jar \
     XX:CompileThreshold=1500 \
     Djna.nosys=true \
     --output \
-    native-osx/RuneLite.app
+    native-osx/OpenOSRS.app
 
-cp target/filtered-resources/Info.plist native-osx/RuneLite.app/Contents
+cp build/filtered-resources/Info.plist native-osx/OpenOSRS.app/Contents
 
-echo Setting world execute permissions on RuneLite
-pushd native-osx/RuneLite.app
-chmod g+x,o+x Contents/MacOS/RuneLite
+echo Setting world execute permissions on OpenOSRS
+pushd native-osx/OpenOSRS.app
+chmod g+x,o+x Contents/MacOS/OpenOSRS
 popd
 
 # create-dmg exits with an error code due to no code signing, but is still okay
 # note we use Adam-/create-dmg as upstream does not support UDBZ
-create-dmg --format UDBZ native-osx/RuneLite.app || true
+create-dmg --format UDBZ native-osx/OpenOSRS.app || true

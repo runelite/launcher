@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, Adam <Adam@sigterm.info>
+ * Copyright (c) 2018, Jordan Atwood <jordan.atwood423@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -24,54 +24,38 @@
  */
 package net.runelite.launcher;
 
-import java.io.File;
-import java.lang.reflect.Method;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLClassLoader;
-import java.util.Collection;
-import java.util.List;
-import javax.swing.UIManager;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import javax.imageio.ImageIO;
 import lombok.extern.slf4j.Slf4j;
-import static net.runelite.launcher.Launcher.CLIENT_MAIN_CLASS;
 
+/**
+ * Various Image/BufferedImage utilities.
+ */
 @Slf4j
-class ReflectionLauncher
+class ImageUtil
 {
-	static void launch(List<File> results, Collection<String> clientArgs) throws MalformedURLException
+	/**
+	 * Reads an image resource from a given path relative to a given class.
+	 * This method is primarily shorthand for the synchronization and error handling required for
+	 * loading image resources from classes.
+	 *
+	 * @param c    The class to be referenced for resource path.
+	 * @param path The path, relative to the given class.
+	 * @return A {@link BufferedImage} of the loaded image resource from the given path.
+	 */
+	static BufferedImage getResourceStreamFromClass(final Class c, final String path)
 	{
-		URL[] jarUrls = new URL[results.size()];
-		int i = 0;
-		for (File file : results)
+		try
 		{
-			log.debug("Adding jar: {}", file);
-			jarUrls[i++] = file.toURI().toURL();
-		}
-
-		ClassLoader parent = ClassLoader.getPlatformClassLoader();
-		URLClassLoader loader = new URLClassLoader(jarUrls, parent);
-
-		UIManager.put("ClassLoader", loader); // hack for Substance
-		Thread thread = new Thread()
-		{
-			public void run()
+			synchronized (ImageIO.class)
 			{
-				try
-				{
-					Class<?> mainClass = loader.loadClass(CLIENT_MAIN_CLASS);
-
-					Method main = mainClass.getMethod("main", String[].class);
-					main.invoke(null, (Object) clientArgs.toArray(new String[0]));
-				}
-				catch (Exception ex)
-				{
-					log.error("Unable to launch client", ex);
-				}
+				return ImageIO.read(c.getResourceAsStream(path));
 			}
-		};
-		thread.setName("RuneLite");
-		thread.start();
-
-		OpenOSRSSplashScreen.close();
+		}
+		catch (IOException e)
+		{
+			throw new RuntimeException(e);
+		}
 	}
 }

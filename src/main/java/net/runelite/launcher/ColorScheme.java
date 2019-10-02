@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, Adam <Adam@sigterm.info>
+ * Copyright (c) 2018, Psikoi <https://github.com/psikoi>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -24,54 +24,25 @@
  */
 package net.runelite.launcher;
 
-import java.io.File;
-import java.lang.reflect.Method;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLClassLoader;
-import java.util.Collection;
-import java.util.List;
-import javax.swing.UIManager;
-import lombok.extern.slf4j.Slf4j;
-import static net.runelite.launcher.Launcher.CLIENT_MAIN_CLASS;
+import java.awt.Color;
 
-@Slf4j
-class ReflectionLauncher
+/**
+ * This class serves to hold commonly used UI colors.
+ */
+class ColorScheme
 {
-	static void launch(List<File> results, Collection<String> clientArgs) throws MalformedURLException
-	{
-		URL[] jarUrls = new URL[results.size()];
-		int i = 0;
-		for (File file : results)
-		{
-			log.debug("Adding jar: {}", file);
-			jarUrls[i++] = file.toURI().toURL();
-		}
+	/* The blue color used for the branding's accents */
+	static final Color BRAND_BLUE = new Color(0, 106, 221);
 
-		ClassLoader parent = ClassLoader.getPlatformClassLoader();
-		URLClassLoader loader = new URLClassLoader(jarUrls, parent);
+	/* The blue color used for the branding's accents, with lowered opacity */
+	static final Color BRAND_BLUE_TRANSPARENT = new Color(0, 106, 221, 120);
 
-		UIManager.put("ClassLoader", loader); // hack for Substance
-		Thread thread = new Thread()
-		{
-			public void run()
-			{
-				try
-				{
-					Class<?> mainClass = loader.loadClass(CLIENT_MAIN_CLASS);
+	static final Color DARKER_GRAY_COLOR = new Color(30, 30, 30);
+	static final Color MEDIUM_GRAY_COLOR = new Color(77, 77, 77);
 
-					Method main = mainClass.getMethod("main", String[].class);
-					main.invoke(null, (Object) clientArgs.toArray(new String[0]));
-				}
-				catch (Exception ex)
-				{
-					log.error("Unable to launch client", ex);
-				}
-			}
-		};
-		thread.setName("RuneLite");
-		thread.start();
+	/* The background color of the scrollbar's track */
+	static final Color SCROLL_TRACK_COLOR = new Color(25, 25, 25);
 
-		OpenOSRSSplashScreen.close();
-	}
+	/* The color for the red progress bar (used in ge offers, farming tracker, etc)*/
+	static final Color PROGRESS_ERROR_COLOR = new Color(230, 30, 30);
 }
