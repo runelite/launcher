@@ -10,6 +10,9 @@ if ! [ -f OpenJDK11U-jre_x64_windows_hotspot_${JDK_VER}_${JDK_BUILD}.zip ] ; the
         https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-${JDK_VER}%2B${JDK_BUILD}/OpenJDK11U-jre_x64_windows_hotspot_${JDK_VER}_${JDK_BUILD}.zip
 fi
 
+rm -f packr.jar
+curl -o packr.jar https://libgdx.badlogicgames.com/ci/packr/packr.jar
+
 echo "be88c679fd24194bee71237f92f7a2a71c88f71a853a56a7c05742b0e158c1be OpenJDK11U-jre_x64_windows_hotspot_${JDK_VER}_${JDK_BUILD}.zip" | sha256sum -c
 
 # packr requires a "jdk" and pulls the jre from it - so we have to place it inside
@@ -26,9 +29,9 @@ java -jar packr.jar \
     --jdk \
     win64-jdk \
     --executable \
-    RuneLite \
+    OpenOSRS \
     --classpath \
-    target/RuneLite.jar \
+    build/libs/OpenOSRS-shaded.jar \
     --mainclass \
     net.runelite.launcher.Launcher \
     --vmargs \
@@ -41,20 +44,21 @@ java -jar packr.jar \
     native-win64
 
 # modify packr exe manifest to enable Windows dpi scaling
+# "C:\Program Files (x86)\Resource Hacker\ResourceHacker.exe" \
 resourcehacker \
-    -open native-win64/RuneLite.exe \
-    -save native-win64/RuneLite.exe \
+    -open native-win64/OpenOSRS.exe \
+    -save native-win64/OpenOSRS.exe \
     -action addoverwrite \
-    -res packr/runelite.manifest \
+    -res packr/openosrs.manifest \
     -mask MANIFEST,1,
 
 # packr on Windows doesn't support icons, so we use resourcehacker to include it
-
+# "C:\Program Files (x86)\Resource Hacker\ResourceHacker.exe" \
 resourcehacker \
-    -open native-win64/RuneLite.exe \
-    -save native-win64/RuneLite.exe \
+    -open native-win64/OpenOSRS.exe \
+    -save native-win64/OpenOSRS.exe \
     -action add \
-    -res runelite.ico \
+    -res openosrs.ico \
     -mask ICONGROUP,MAINICON,
 
 if ! [ -f vcredist_x64.exe ] ; then
@@ -65,4 +69,5 @@ fi
 echo "5eea714e1f22f1875c1cb7b1738b0c0b1f02aec5ecb95f0fdb1c5171c6cd93a3 *vcredist_x64.exe" | sha256sum -c
 
 # We use the filtered iss file
-iscc target/filtered-resources/runelite.iss
+# "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" build/filtered-resources/openosrs.iss
+iscc build/filtered-resources/openosrs.iss

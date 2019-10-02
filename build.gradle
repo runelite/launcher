@@ -47,15 +47,31 @@ processResources {
     }
 
     copy {
-        from file("packr/Info.plist"), {
+        from file("${rootDir}/packr/Info.plist"), {
             filter(ReplaceTokens, tokens: [
-                    "finalName"      : "OpenOSRS",
-                    "artifact"       : "launcher",
-                    "project.version": project.version,
-                    "project.group"  : project.group
+                    "finalName"       : "OpenOSRS",
+                    "artifact"        : "launcher",
+                    "project.version" : project.version,
+                    "project.group"   : project.group
             ])
         }
-        into("${rootDir}/build/filtered-resources")
+        into("${rootDir}/build/filtered-resources/")
+
+        from file("${rootDir}/innosetup/openosrs.iss"), {
+            filter(ReplaceTokens, tokens: [
+                    "project.version" : project.version,
+                    "basedir"         : project.projectDir.path
+            ])
+        }
+        into("${rootDir}/build/filtered-resources/")
+
+        from file("${rootDir}/innosetup/openosrs32.iss"), {
+            filter(ReplaceTokens, tokens: [
+                    "project.version" : project.version,
+                    "basedir"         : project.projectDir.path
+            ])
+        }
+        into("${rootDir}/build/filtered-resources/")
     }
 }
 

@@ -28,3 +28,4 @@ vcredist_x86.exe
 appimagetool-x86_64.AppImage
 *.dmg
 .DS_Store
+*.zip
