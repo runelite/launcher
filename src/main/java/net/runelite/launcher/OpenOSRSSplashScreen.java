@@ -155,8 +155,7 @@ public class OpenOSRSSplashScreen extends JFrame
 		stage(startProgress + ((endProgress - startProgress) * done / total), progressText + " " + progress);
 	}
 
-	public static void stage(double startProgress, double endProgress, String progressText,
-							 int done, int total, boolean mib)
+	public static void stage(double startProgress, double endProgress, String progressText, int done, int total, boolean mib)
 	{
 		String progress;
 		if (mib)

@@ -93,7 +93,8 @@ public class Launcher
 		String defaultBootstrap = "default-bootstrap.txt";
 		String DEFAULT_BOOTSTRAP = RUNELITE_DIR + File.separator + defaultBootstrap;
 		File f = new File(DEFAULT_BOOTSTRAP);
-		if (!RUNELITE_DIR.exists()) {
+		if (!RUNELITE_DIR.exists())
+		{
 			RUNELITE_DIR.mkdirs();
 		}
 
@@ -145,7 +146,7 @@ public class Launcher
 			OpenOSRSSplashScreen.stage(0, "Setting up environment");
 
 			log.info("OpenOSRS Launcher version {}", LauncherProperties.getVersion());
-		    // Print out system info
+			// Print out system info
 			log.debug("Java Environment:");
 			final Properties p = System.getProperties();
 			final Enumeration keys = p.keys();
@@ -320,7 +321,7 @@ public class Launcher
 
 	private static boolean checkVersion(Bootstrap bootstrap)
 	{
-		if(bootstrap.getMinimumLauncherVersion() == null || LauncherProperties.getVersion() == null)
+		if (bootstrap.getMinimumLauncherVersion() == null || LauncherProperties.getVersion() == null)
 		{
 			return true;
 		}
@@ -340,7 +341,7 @@ public class Launcher
 
 	private static Bootstrap getBootstrap() throws IOException, CertificateException, NoSuchAlgorithmException, InvalidKeyException, SignatureException, VerificationException
 	{
-	    URL u = new URL(CLIENT_BOOTSTRAP_STABLE_URL);
+		URL u = new URL(CLIENT_BOOTSTRAP_STABLE_URL);
 		if (nightly)
 		{
 			u = new URL(CLIENT_BOOTSTRAP_NIGHTLY_URL);

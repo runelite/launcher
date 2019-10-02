@@ -8,6 +8,7 @@ plugins {
 }
 
 apply plugin: 'java-library'
+apply plugin: 'checkstyle'
 
 group = 'net.runelite'
 version = '2.0.3'
@@ -75,6 +76,16 @@ processResources {
         }
         into("${rootDir}/build/filtered-resources/")
     }
+}
+
+checkstyle {
+    toolVersion = '6.4.1'
+    sourceSets = [sourceSets.main]
+    configFile = file("${rootDir}/checkstyle/checkstyle.xml")
+    configProperties = [ "suppressionFile" : file("${rootDir}/checkstyle/suppressions.xml")]
+    showViolations = true
+    ignoreFailures = false
+    maxWarnings = 0
 }
 
 def isNonStable = { String version ->
