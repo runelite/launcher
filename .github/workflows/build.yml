@@ -29,7 +29,7 @@ jobs:
       - name: Assembling
         run: ./gradlew assemble --console=plain
       - name: Building
-        run: ./gradlew build --stacktrace -x test --console=plain
+        run: ./gradlew build --stacktrace -x test -x checkstyleMain --console=plain
 
   test:
     runs-on: ubuntu-latest
@@ -46,7 +46,7 @@ jobs:
       - name: Assembling
         run: ./gradlew assemble --console=plain
       - name: Testing
-        run: ./gradlew test --stacktrace --console=plain
+        run: ./gradlew test --stacktrace -x checkstyleMain --console=plain
 
   checkstyle:
     name: Checkstyle
