@@ -60,19 +60,8 @@ class InfoPanel extends JPanel
 	private static final String TROUBLESHOOTING_URL = "https://github.com/runelite/runelite/wiki/Troubleshooting-problems-with-the-client";
 	private static final String DISCORD_INVITE_LINK = "https://discordapp.com/invite/HN5gf3m";
 
-	private final Properties properties = new Properties();
-
 	InfoPanel()
 	{
-		try (InputStream in = getClass().getResourceAsStream("/launcher.properties"))
-		{
-			properties.load(in);
-		}
-		catch (IOException ex)
-		{
-			log.warn("unable to load propertries", ex);
-		}
-
 		this.setLayout(new GridBagLayout());
 		this.setPreferredSize(PANEL_SIZE);
 		this.setBackground(new Color(38, 38, 38));
@@ -100,7 +89,7 @@ class InfoPanel extends JPanel
 		c.weighty = 0;
 
 		// Version
-		this.add(createPanelTextButton("RuneLite Version: " + properties.getProperty("launcher.version")), c);
+		this.add(createPanelTextButton("Launcher Version: " + LauncherProperties.getVersion()), c);
 		c.gridy++;
 
 		final JLabel logsFolder = createPanelButton("Open logs folder", null, () -> LinkBrowser.openLocalFile(LOGS_DIR));
