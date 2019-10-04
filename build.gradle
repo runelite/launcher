@@ -74,6 +74,13 @@ processResources {
                     "basedir"         : project.projectDir.path
             ])
         }
+
+        from file("${rootDir}/appimage/openosrs.desktop"), {
+            filter(ReplaceTokens, tokens: [
+                    "finalName"       : "OpenOSRS",
+                    "description"     : "OpenOSRS launcher"
+            ])
+        }
         into("${rootDir}/build/filtered-resources/")
     }
 }
