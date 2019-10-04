@@ -66,7 +66,7 @@ public class OpenOSRSSplashScreen extends JFrame
 		this.setVisible(true);
 	}
 
-	public static void setError(String title, String content)
+	static void setError(String title, String content)
 	{
 		if (INSTANCE != null)
 		{
@@ -134,7 +134,7 @@ public class OpenOSRSSplashScreen extends JFrame
 		}
 	}
 
-	public static void close()
+	static void close()
 	{
 		SwingUtilities.invokeLater(() ->
 		{
@@ -155,7 +155,7 @@ public class OpenOSRSSplashScreen extends JFrame
 		stage(startProgress + ((endProgress - startProgress) * done / total), progressText + " " + progress);
 	}
 
-	public static void stage(double startProgress, double endProgress, String progressText, int done, int total, boolean mib)
+	static void stage(double startProgress, double endProgress, String progressText, int done, int total, boolean mib)
 	{
 		String progress;
 		if (mib)
@@ -170,7 +170,7 @@ public class OpenOSRSSplashScreen extends JFrame
 		stage(startProgress + ((endProgress - startProgress) * done / total), progressText + " " + progress);
 	}
 
-	public static void stage(double overallProgress, String progressText)
+	static void stage(double overallProgress, String progressText)
 	{
 		if (INSTANCE != null)
 		{

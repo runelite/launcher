@@ -30,7 +30,7 @@ import java.util.Properties;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class LauncherProperties
+class LauncherProperties
 {
 	private static final String LAUNCHER_VERSION = "launcher.version";
 
@@ -50,12 +50,12 @@ public class LauncherProperties
 		}
 	}
 
-	public static String getVersionKey()
+	static String getVersionKey()
 	{
 		return LAUNCHER_VERSION;
 	}
 
-	public static String getVersion()
+	static String getVersion()
 	{
 		return properties.getProperty(LAUNCHER_VERSION);
 	}

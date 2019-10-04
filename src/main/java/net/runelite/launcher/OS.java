@@ -62,7 +62,7 @@ public class OS
 		log.debug("Detect OS: {}", DETECTED_OS);
 	}
 
-	public static OSType getOs()
+	static OSType getOs()
 	{
 		return DETECTED_OS;
 	}

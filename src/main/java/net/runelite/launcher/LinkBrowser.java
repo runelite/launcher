@@ -40,7 +40,7 @@ import lombok.extern.slf4j.Slf4j;
  * Utility class used for browser navigation
  */
 @Slf4j
-public class LinkBrowser
+class LinkBrowser
 {
 	private static boolean shouldAttemptXdg = OS.getOs() == OS.OSType.Linux;
 
@@ -50,7 +50,7 @@ public class LinkBrowser
 	 * @param url url to open
 	 * @return true if operation was successful
 	 */
-	public static boolean browse(final String url)
+	static boolean browse(final String url)
 	{
 		if (Strings.isNullOrEmpty(url))
 		{
