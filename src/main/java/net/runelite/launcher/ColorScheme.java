@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 Abex
+ * Copyright (c) 2018, Psikoi <https://github.com/psikoi>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -24,19 +24,25 @@
  */
 package net.runelite.launcher;
 
-import org.junit.Assert;
-import org.junit.Test;
+import java.awt.Color;
 
-public class VersionTest
+/**
+ * This class serves to hold commonly used UI colors.
+ */
+class ColorScheme
 {
-	@Test
-	public void testVersionCompare()
-	{
-		Assert.assertTrue(Launcher.compareVersion("1.2.3-SNAPSHOT", "1.2.3") > 0);
-		Assert.assertTrue(Launcher.compareVersion("1.2.3", "1.2.3") == 0);
-		Assert.assertTrue(Launcher.compareVersion("1.2.3", "1.2") > 0);
-		Assert.assertTrue(Launcher.compareVersion("2.2.3", "1.2.3") > 0);
-		Assert.assertTrue(Launcher.compareVersion("1.2.3", "1.2.3.1") < 0);
-		Assert.assertTrue(Launcher.compareVersion("1.2.3-SNAPSHOT", "1.2.3.1") < 0);
-	}
+	/* The blue color used for the branding's accents */
+	static final Color BRAND_BLUE = new Color(25, 194, 255);
+
+	/* The blue color used for the branding's accents, with lowered opacity */
+	static final Color BRAND_BLUE_TRANSPARENT = new Color(25, 194, 255, 120);
+
+	static final Color DARKER_GRAY_COLOR = new Color(30, 30, 30);
+	static final Color MEDIUM_GRAY_COLOR = new Color(77, 77, 77);
+
+	/* The background color of the scrollbar's track */
+	static final Color SCROLL_TRACK_COLOR = new Color(25, 25, 25);
+
+	/* The color for the red progress bar (used in ge offers, farming tracker, etc)*/
+	static final Color PROGRESS_ERROR_COLOR = new Color(230, 30, 30);
 }

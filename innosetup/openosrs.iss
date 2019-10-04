@@ -1,10 +1,10 @@
 [Setup]
-AppName=RuneLite Launcher
-AppPublisher=RuneLite
-UninstallDisplayName=RuneLite
-AppVersion=${project.version}
-AppSupportURL=https://runelite.net/
-DefaultDirName={localappdata}\RuneLite
+AppName=OpenOSRS Launcher
+AppPublisher=OpenOSRS
+UninstallDisplayName=OpenOSRS
+AppVersion=@project.version@
+AppSupportURL=https://openosrs.com/
+DefaultDirName={localappdata}\OpenOSRS
 ; vcredist queues files to be replaced at next reboot, however it doesn't seem to matter
 RestartIfNeededByRun=no
 
@@ -13,34 +13,34 @@ ExtraDiskSpaceRequired=30000000
 ArchitecturesAllowed=x64
 PrivilegesRequired=lowest
 
-WizardSmallImageFile=${basedir}/innosetup/runelite_small.bmp
-SetupIconFile=${basedir}/runelite.ico
-UninstallDisplayIcon={app}\RuneLite.exe
+WizardSmallImageFile=@basedir@/innosetup/openosrs_small.bmp
+SetupIconFile=@basedir@/openosrs.ico
+UninstallDisplayIcon={app}\OpenOSRS.exe
 
 Compression=lzma2
 SolidCompression=yes
 
-OutputDir=${basedir}
-OutputBaseFilename=RuneLiteSetup
+OutputDir=@basedir@
+OutputBaseFilename=OpenOSRSSetup
 
 [Tasks]
 Name: DesktopIcon; Description: "Create a &desktop icon";
 
 [Files]
-Source: "${basedir}\native-win64\RuneLite.exe"; DestDir: "{app}"
-Source: "${basedir}\native-win64\RuneLite.jar"; DestDir: "{app}"
-Source: "${basedir}\native-win64\config.json"; DestDir: "{app}"
-Source: "${basedir}\native-win64\jre\*"; DestDir: "{app}\jre"; Flags: recursesubdirs
-Source: "${basedir}\vcredist_x64.exe"; DestDir: {tmp}; Flags: deleteafterinstall
+Source: "@basedir@\native-win64\OpenOSRS.exe"; DestDir: "{app}"
+Source: "@basedir@\native-win64\OpenOSRS-shaded.jar"; DestDir: "{app}"
+Source: "@basedir@\native-win64\config.json"; DestDir: "{app}"
+Source: "@basedir@\native-win64\jre\*"; DestDir: "{app}\jre"; Flags: recursesubdirs
+Source: "@basedir@\vcredist_x64.exe"; DestDir: {tmp}; Flags: deleteafterinstall
 
 [Icons]
 ; start menu
-Name: "{userprograms}\RuneLite"; Filename: "{app}\RuneLite.exe"
-Name: "{userdesktop}\RuneLite"; Filename: "{app}\RuneLite.exe"; Tasks: DesktopIcon
+Name: "{userprograms}\OpenOSRS"; Filename: "{app}\OpenOSRS.exe"
+Name: "{userdesktop}\OpenOSRS"; Filename: "{app}\OpenOSRS.exe"; Tasks: DesktopIcon
 
 [Run]
 Filename: "{tmp}\vcredist_x64.exe"; Check: VCRedistNeedsInstall; Parameters: "/install /quiet /norestart"; StatusMsg: "Installing VC++ 2015 (x64) Redistributables..."
-Filename: "{app}\RuneLite.exe"; Description: "&Open RuneLite"; Flags: postinstall skipifsilent nowait
+Filename: "{app}\OpenOSRS.exe"; Description: "&Open OpenOSRS"; Flags: postinstall skipifsilent nowait
 
 [InstallDelete]
 ; Delete the old jvm so it doesn't try to load old stuff with the new vm and crash

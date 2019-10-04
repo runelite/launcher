@@ -1,15 +1,15 @@
 /*
- * Copyright (c) 2018, Tomas Slusny <slusnucky@gmail.com>
+ * Copyright (c) 2018, Jordan Atwood <jordan.atwood423@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
  * 1. Redistributions of source code must retain the above copyright notice, this
- *	list of conditions and the following disclaimer.
+ *    list of conditions and the following disclaimer.
  * 2. Redistributions in binary form must reproduce the above copyright notice,
- *	this list of conditions and the following disclaimer in the documentation
- *	and/or other materials provided with the distribution.
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -24,39 +24,38 @@
  */
 package net.runelite.launcher;
 
+import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.io.InputStream;
-import java.util.Properties;
+import javax.imageio.ImageIO;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Various Image/BufferedImage utilities.
+ */
 @Slf4j
-class LauncherProperties
+class ImageUtil
 {
-	private static final String LAUNCHER_VERSION = "launcher.version";
-
-	private static final Properties properties = new Properties();
-
-	static
+	/**
+	 * Reads an image resource from a given path relative to a given class.
+	 * This method is primarily shorthand for the synchronization and error handling required for
+	 * loading image resources from classes.
+	 *
+	 * @param c    The class to be referenced for resource path.
+	 * @param path The path, relative to the given class.
+	 * @return A {@link BufferedImage} of the loaded image resource from the given path.
+	 */
+	static BufferedImage getResourceStreamFromClass(final Class c, final String path)
 	{
-		final InputStream in = LauncherProperties.class.getResourceAsStream("launcher.properties");
-
 		try
 		{
-			properties.load(in);
+			synchronized (ImageIO.class)
+			{
+				return ImageIO.read(c.getResourceAsStream(path));
+			}
 		}
-		catch (IOException ex)
+		catch (IOException e)
 		{
-			log.warn("Unable to load properties", ex);
+			throw new RuntimeException(e);
 		}
-	}
-
-	static String getVersionKey()
-	{
-		return LAUNCHER_VERSION;
-	}
-
-	static String getVersion()
-	{
-		return properties.getProperty(LAUNCHER_VERSION);
 	}
 }

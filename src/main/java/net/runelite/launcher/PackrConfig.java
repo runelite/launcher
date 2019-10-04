@@ -41,10 +41,10 @@ import lombok.extern.slf4j.Slf4j;
 import net.runelite.launcher.beans.Bootstrap;
 
 @Slf4j
-public class PackrConfig
+class PackrConfig
 {
 	// Update the packr vmargs
-	public static void updateLauncherArgs(Bootstrap bootstrap, Collection<String> extraJvmArgs)
+	static void updateLauncherArgs(Bootstrap bootstrap, Collection<String> extraJvmArgs)
 	{
 		File configFile = new File("config.json").getAbsoluteFile();
 

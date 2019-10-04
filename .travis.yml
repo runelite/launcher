@@ -1,8 +1,0 @@
-language: java
-sudo: false
-jdk:
-- openjdk11
-install: true
-script: mvn install -B
-notifications:
-  irc: "irc.rizon.net#runelite"

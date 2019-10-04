@@ -34,6 +34,7 @@ import com.google.common.hash.Hashing;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.Files;
 import com.google.gson.Gson;
+import com.vdurmont.semver4j.Semver;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -44,7 +45,6 @@ import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
-import java.nio.charset.Charset;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.Signature;
@@ -62,8 +62,6 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import javax.swing.*;
-
 import joptsimple.ArgumentAcceptingOptionSpec;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
@@ -76,15 +74,17 @@ import org.slf4j.LoggerFactory;
 public class Launcher
 {
 	private static final File RUNELITE_DIR = new File(System.getProperty("user.home"), ".runelite");
-	public static final File LOGS_DIR = new File(RUNELITE_DIR, "logs");
+	private static final File LOGS_DIR = new File(RUNELITE_DIR, "logs");
 	private static final File REPO_DIR = new File(RUNELITE_DIR, "repository2");
-	public static final File CRASH_FILES = new File(LOGS_DIR, "jvm_crash_pid_%p.log");
+	private static final File CRASH_FILES = new File(LOGS_DIR, "jvm_crash_pid_%p.log");
+	private static final String CLIENT_BOOTSTRAP_STAGING_URL = "https://raw.githubusercontent.com/runelite-extended/hosting/master/bootstrap-staging.json";
 	private static final String CLIENT_BOOTSTRAP_STABLE_URL = "https://raw.githubusercontent.com/runelite-extended/hosting/master/bootstrap-stable.json";
 	private static final String CLIENT_BOOTSTRAP_NIGHTLY_URL = "https://raw.githubusercontent.com/runelite-extended/hosting/master/bootstrap-nightly.json";
 	private static final String CLIENT_BOOTSTRAP_SHA256_URL = "https://static.runelite.net/bootstrap.json.sha256";
-	private static final String USER_AGENT = "RuneLite/" + LauncherProperties.getVersion();
+	private static final String USER_AGENT = "OpenOSRS/" + LauncherProperties.getVersion();
 	private static final boolean enforceDependencyHashing = true;
 	private static boolean nightly = false;
+	private static boolean staging = false;
 
 	static final String CLIENT_MAIN_CLASS = "net.runelite.client.RuneLite";
 
@@ -93,57 +93,17 @@ public class Launcher
 		String defaultBootstrap = "default-bootstrap.txt";
 		String DEFAULT_BOOTSTRAP = RUNELITE_DIR + File.separator + defaultBootstrap;
 		File f = new File(DEFAULT_BOOTSTRAP);
-		if (!RUNELITE_DIR.exists()) {
+		if (!RUNELITE_DIR.exists())
+		{
 			RUNELITE_DIR.mkdirs();
-		}
-		if (!f.exists())
-		{
-			Object[] selectionValues = { "Stable (Weekly)", "Nightly"};
-			String initialSelection = "Stable (Weekly)";
-			Object selection = JOptionPane.showInputDialog(null, "Select default update schedule",
-					"OpenOSRS Update Schedule", JOptionPane.QUESTION_MESSAGE, null, selectionValues, initialSelection);
-
-			if (selection.equals("Nightly"))
-			{
-				nightly = true;
-				try {
-					Files.write("Nightly", f, Charset.defaultCharset());
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
-			else
-			{
-				try {
-					Files.write("Stable (Weekly)", f, Charset.defaultCharset());
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
-		}
-		else
-		{
-			String content = "";
-			try
-			{
-				content = Files.readFirstLine(f, Charset.defaultCharset());
-				if (content.equals("Nightly"))
-				{
-					System.out.println("Using Nightly");
-					nightly = true;
-				}
-			}
-			catch (Exception e)
-			{
-				e.printStackTrace();
-				f.delete();
-			}
 		}
 
 		OptionParser parser = new OptionParser();
 		parser.accepts("clientargs").withRequiredArg();
 		parser.accepts("nojvm");
 		parser.accepts("debug");
+		parser.accepts("nightly");
+		parser.accepts("staging");
 
 		HardwareAccelerationMode defaultMode;
 		switch (OS.getOs())
@@ -168,19 +128,25 @@ public class Launcher
 
 		OptionSet options = parser.parse(args);
 
+		nightly = options.has("nightly");
+		staging = options.has("staging");
+
 		LOGS_DIR.mkdirs();
 
-			final Logger logger = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
+		final Logger logger = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
 
-			if (options.has("debug"))
+		if (options.has("debug"))
+		{
 			logger.setLevel(Level.DEBUG);
+		}
+
 		try
 		{
-			SplashScreen.init();
-			SplashScreen.stage(0, "Preparing", "Setting up environment");
+			OpenOSRSSplashScreen.init();
+			OpenOSRSSplashScreen.stage(0, "Setting up environment");
 
-			log.info("RuneLite Launcher version {}", LauncherProperties.getVersion());
-		    // Print out system info
+			log.info("OpenOSRS Launcher version {}", LauncherProperties.getVersion());
+			// Print out system info
 			log.debug("Java Environment:");
 			final Properties p = System.getProperties();
 			final Enumeration keys = p.keys();
@@ -213,7 +179,7 @@ public class Launcher
 			log.debug("Setting JVM crash log location to {}", CRASH_FILES);
 			extraJvmParams.add("-XX:ErrorFile=" + CRASH_FILES.getAbsolutePath());
 
-			SplashScreen.stage(.05, null, "Downloading bootstrap");
+			OpenOSRSSplashScreen.stage(.05, "Downloading bootstrap");
 			Bootstrap bootstrap;
 			try
 			{
@@ -222,11 +188,11 @@ public class Launcher
 			catch (IOException | VerificationException | CertificateException | SignatureException | InvalidKeyException | NoSuchAlgorithmException ex)
 			{
 				log.error("error fetching bootstrap", ex);
-				SwingUtilities.invokeLater(() -> FatalErrorDialog.showNetErrorWindow("downloading the bootstrap", ex));
+				OpenOSRSSplashScreen.setError("Error while downloading the bootstrap!", "Please check your internet connection and your DNS settings.");
 				return;
 			}
 
-			SplashScreen.stage(.10, null, "Tidying the cache");
+			OpenOSRSSplashScreen.stage(.10, "Tidying the cache");
 
 			boolean launcherTooOld = bootstrap.getRequiredLauncherVersion() != null &&
 				compareVersion(bootstrap.getRequiredLauncherVersion(), LauncherProperties.getVersion()) > 0;
@@ -245,25 +211,25 @@ public class Launcher
 				log.warn("Unable to parse bootstrap version", e);
 			}
 
-			boolean nojvm = "true".equals(System.getProperty("runelite.launcher.nojvm"));
+			boolean nojvm = "true".equals(System.getProperty("runelite.launcher.nojvm")) || "true".equals(System.getProperty("openosrs.launcher.nojvm"));
 
 			if (launcherTooOld || (nojvm && jvmTooOld))
 			{
-				SwingUtilities.invokeLater(() ->
-					new FatalErrorDialog("Your launcher is to old to start RuneLite. Please download and install a more " +
-						"recent one from RuneLite.net.")
-						.addButton("RuneLite.net", () -> LinkBrowser.browse(LauncherProperties.getDownloadLink()))
-						.open());
+				OpenOSRSSplashScreen.setError("Error while downloading the client!", "Please check your internet connection and your DNS settings.");
 				return;
 			}
 			if (jvmTooOld)
 			{
-				SwingUtilities.invokeLater(() ->
-					new FatalErrorDialog("Your Java installation is too old. RuneLite now requires Java " +
-						bootstrap.getRequiredJVMVersion() + " to run. You can get a platform specific version from RuneLite.net," +
-						" or install a newer version of Java.")
-						.addButton("RuneLite.net", () -> LinkBrowser.browse(LauncherProperties.getDownloadLink()))
-						.open());
+				OpenOSRSSplashScreen.setError("Your Java installation is too old", "OpenOSRS now requires Java " +
+					bootstrap.getRequiredJVMVersion() + " to run. You can get a platform specific version from openosrs.com," +
+					" or install a newer version of Java.");
+				return;
+			}
+
+			if (!checkVersion(bootstrap))
+			{
+				log.error("launcher version too low");
+				OpenOSRSSplashScreen.setError("Launcher to old!", "The launcher you're using is oudated. Please download a newer version on openosrs.com");
 				return;
 			}
 
@@ -282,7 +248,7 @@ public class Launcher
 			catch (IOException ex)
 			{
 				log.error("unable to download artifacts", ex);
-				SwingUtilities.invokeLater(() -> FatalErrorDialog.showNetErrorWindow("downloading the client", ex));
+				OpenOSRSSplashScreen.setError("Error while downloading the client!", "Please check your internet connection and your DNS settings.");
 				return;
 			}
 
@@ -290,7 +256,7 @@ public class Launcher
 				.map(dep -> new File(REPO_DIR, dep.getName()))
 				.collect(Collectors.toList());
 
-			SplashScreen.stage(.80, null, "Verifying");
+			OpenOSRSSplashScreen.stage(.80, "Verifying");
 			try
 			{
 				verifyJarHashes(bootstrap.getArtifacts());
@@ -298,7 +264,7 @@ public class Launcher
 			catch (VerificationException ex)
 			{
 				log.error("Unable to verify artifacts", ex);
-				SwingUtilities.invokeLater(() -> FatalErrorDialog.showNetErrorWindow("verifying downloaded files", ex));
+				OpenOSRSSplashScreen.setError("Error while verifying downloaded files!", "Please check your internet connection and your DNS settings.");
 				return;
 			}
 
@@ -309,7 +275,7 @@ public class Launcher
 				clientArgs.add("--debug");
 			}
 
-			SplashScreen.stage(.90, "Starting the client", "");
+			OpenOSRSSplashScreen.stage(.90, "Starting the client");
 
 			// packr doesn't let us specify command line arguments
 			if (nojvm || options.has("nojvm"))
@@ -338,9 +304,8 @@ public class Launcher
 		catch (Exception e)
 		{
 			log.error("Failure during startup", e);
-			SwingUtilities.invokeLater(() ->
-				new FatalErrorDialog("RuneLite has encountered an unexpected error during startup.")
-					.open());
+			OpenOSRSSplashScreen.setError("OpenOSRS has encountered an unexpected error during startup!", "Please check your internet connection and your DNS settings.");
+
 		}
 		catch (Error e)
 		{
@@ -350,8 +315,19 @@ public class Launcher
 		}
 		finally
 		{
-			SplashScreen.stop();
+			OpenOSRSSplashScreen.close();
 		}
+	}
+
+	private static boolean checkVersion(Bootstrap bootstrap)
+	{
+		if (bootstrap.getMinimumLauncherVersion() == null || LauncherProperties.getVersion() == null)
+		{
+			return true;
+		}
+		Semver minimum = new Semver(bootstrap.getMinimumLauncherVersion()).withClearedSuffixAndBuild();
+		Semver ours = new Semver(LauncherProperties.getVersion()).withClearedSuffixAndBuild();
+		return !ours.isLowerThan(minimum);
 	}
 
 	private static void setJvmParams(final Collection<String> params)
@@ -365,9 +341,16 @@ public class Launcher
 
 	private static Bootstrap getBootstrap() throws IOException, CertificateException, NoSuchAlgorithmException, InvalidKeyException, SignatureException, VerificationException
 	{
-	    URL u = new URL(CLIENT_BOOTSTRAP_STABLE_URL);
-	    if (nightly)
-            u = new URL(CLIENT_BOOTSTRAP_NIGHTLY_URL);
+		URL u = new URL(CLIENT_BOOTSTRAP_STABLE_URL);
+		if (nightly)
+		{
+			u = new URL(CLIENT_BOOTSTRAP_NIGHTLY_URL);
+		}
+		if (staging)
+		{
+			u = new URL(CLIENT_BOOTSTRAP_STAGING_URL);
+		}
+
 		URL signatureUrl = new URL(CLIENT_BOOTSTRAP_SHA256_URL);
 
 		URLConnection conn = u.openConnection();
@@ -394,7 +377,7 @@ public class Launcher
 
 	private static Collection<String> getClientArgs(OptionSet options)
 	{
-		String clientArgs = System.getenv("RUNELITE_ARGS");
+		String clientArgs = System.getenv("OPENOSRS_ARGS");
 		if (options.has("clientargs"))
 		{
 			clientArgs = (String) options.valueOf("clientargs");
@@ -436,7 +419,7 @@ public class Launcher
 
 		final double START_PROGRESS = .15;
 		int downloaded = 0;
-		SplashScreen.stage(START_PROGRESS, "Downloading", "");
+		OpenOSRSSplashScreen.stage(START_PROGRESS, "Downloading");
 
 		for (Artifact artifact : toDownload)
 		{
@@ -456,7 +439,7 @@ public class Launcher
 				{
 					fout.write(buffer, 0, i);
 					downloaded += i;
-					SplashScreen.stage(START_PROGRESS, .80, null, artifact.getName(), downloaded, totalDownloadBytes, true);
+					OpenOSRSSplashScreen.stage(START_PROGRESS, .80, artifact.getName(), downloaded, totalDownloadBytes, true);
 				}
 			}
 		}

@@ -39,4 +39,6 @@ public class Bootstrap
 
 	private String requiredLauncherVersion;
 	private String requiredJVMVersion;
+
+	private String minimumLauncherVersion;
 }

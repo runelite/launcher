@@ -10,6 +10,9 @@ if ! [ -f OpenJDK11U-jre_x64_linux_hotspot_${JDK_VER}_${JDK_BUILD}.tar.gz ] ; th
         https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-${JDK_VER}%2B${JDK_BUILD}/OpenJDK11U-jre_x64_linux_hotspot_${JDK_VER}_${JDK_BUILD}.tar.gz
 fi
 
+rm -f packr.jar
+curl -o packr.jar https://libgdx.badlogicgames.com/ci/packr/packr.jar
+
 echo "70d2cc675155476f1d8516a7ae6729d44681e4fad5a6fc8dfa65cab36a67b7e0 OpenJDK11U-jre_x64_linux_hotspot_${JDK_VER}_${JDK_BUILD}.tar.gz" | sha256sum -c
 
 # packr requires a "jdk" and pulls the jre from it - so we have to place it inside
@@ -26,9 +29,9 @@ java -jar packr.jar \
     --jdk \
     linux-jdk \
     --executable \
-    RuneLite \
+    OpenOSRS \
     --classpath \
-    target/RuneLite.jar \
+    build/libs/OpenOSRS-shaded.jar \
     --mainclass \
     net.runelite.launcher.Launcher \
     --vmargs \
@@ -38,21 +41,24 @@ java -jar packr.jar \
     XX:CompileThreshold=1500 \
     Djna.nosys=true \
     --output \
-    native-linux/RuneLite.AppDir/ \
+    native-linux/OpenOSRS.AppDir/ \
     --resources \
-    target/filtered-resources/runelite.desktop \
-    appimage/runelite.png
+    build/filtered-resources/openosrs.desktop \
+    appimage/openosrs.png
 
-pushd native-linux/RuneLite.AppDir
+pushd native-linux/OpenOSRS.AppDir
 mkdir -p jre/lib/amd64/server/
 ln -s ../../server/libjvm.so jre/lib/amd64/server/ # packr looks for libjvm at this hardcoded path
 popd
 
 # Symlink AppRun -> RuneLite
-pushd native-linux/RuneLite.AppDir/
-ln -s RuneLite AppRun
+pushd native-linux/OpenOSRS.AppDir/
+ln -s OpenOSRS AppRun
 popd
 
+curl -Lo appimagetool-x86_64.AppImage https://github.com/AppImage/AppImageKit/releases/download/12/appimagetool-x86_64.AppImage
+chmod 755 appimagetool-x86_64.AppImage
+
 ./appimagetool-x86_64.AppImage \
-	native-linux/RuneLite.AppDir/ \
-	native-linux/RuneLite.AppImage
+	native-linux/OpenOSRS.AppDir/ \
+	native-linux/OpenOSRS.AppImage

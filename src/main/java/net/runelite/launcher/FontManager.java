@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018, Adam <Adam@sigterm.info>
+ * Copyright (c) 2017, Tyler <https://github.com/tylerthardy>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -24,46 +24,58 @@
  */
 package net.runelite.launcher;
 
-import lombok.extern.slf4j.Slf4j;
+import java.awt.Font;
+import java.awt.FontFormatException;
+import java.awt.GraphicsEnvironment;
+import java.io.IOException;
+import javax.swing.text.StyleContext;
 
-@Slf4j
-public class OS
+class FontManager
 {
-	public enum OSType
-	{
-		Windows, MacOS, Linux, Other
-	}
-
-	private static final OSType DETECTED_OS;
+	private static final Font runescapeFont;
+	private static final Font runescapeSmallFont;
 
 	static
 	{
-		final String OS = System
-			.getProperty("os.name", "generic")
-			.toLowerCase();
+		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
 
-		if ((OS.contains("mac")) || (OS.contains("darwin")))
+		try
 		{
-			DETECTED_OS = OSType.MacOS;
-		}
-		else if (OS.contains("win"))
-		{
-			DETECTED_OS = OSType.Windows;
-		}
-		else if (OS.contains("nux"))
-		{
-			DETECTED_OS = OSType.Linux;
-		}
-		else
-		{
-			DETECTED_OS = OSType.Other;
-		}
+			Font font = Font.createFont(Font.TRUETYPE_FONT,
+				FontManager.class.getResourceAsStream("runescape.ttf"))
+				.deriveFont(Font.PLAIN, 16);
+			ge.registerFont(font);
 
-		log.debug("Detect OS: {}", DETECTED_OS);
+			runescapeFont = StyleContext.getDefaultStyleContext()
+				.getFont(font.getName(), Font.PLAIN, 16);
+			ge.registerFont(runescapeFont);
+
+			Font smallFont = Font.createFont(Font.TRUETYPE_FONT,
+				FontManager.class.getResourceAsStream("runescape_small.ttf"))
+				.deriveFont(Font.PLAIN, 16);
+			ge.registerFont(smallFont);
+
+			runescapeSmallFont = StyleContext.getDefaultStyleContext()
+				.getFont(smallFont.getName(), Font.PLAIN, 16);
+			ge.registerFont(runescapeSmallFont);
+		}
+		catch (FontFormatException ex)
+		{
+			throw new RuntimeException("Font loaded, but format incorrect.", ex);
+		}
+		catch (IOException ex)
+		{
+			throw new RuntimeException("Font file not found.", ex);
+		}
 	}
 
-	static OSType getOs()
+	static Font getRunescapeFont()
 	{
-		return DETECTED_OS;
+		return runescapeFont;
+	}
+
+	static Font getRunescapeSmallFont()
+	{
+		return runescapeSmallFont;
 	}
 }
