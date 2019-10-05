@@ -26,7 +26,6 @@ package net.runelite.launcher;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.hash.HashFunction;
@@ -35,6 +34,7 @@ import com.google.common.io.ByteStreams;
 import com.google.common.io.Files;
 import com.google.gson.Gson;
 import com.vdurmont.semver4j.Semver;
+import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -45,13 +45,6 @@ import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.security.Signature;
-import java.security.SignatureException;
-import java.security.cert.Certificate;
-import java.security.cert.CertificateException;
-import java.security.cert.CertificateFactory;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -62,6 +55,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import javax.swing.JButton;
 import joptsimple.ArgumentAcceptingOptionSpec;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
@@ -77,12 +71,13 @@ public class Launcher
 	private static final File LOGS_DIR = new File(RUNELITE_DIR, "logs");
 	private static final File REPO_DIR = new File(RUNELITE_DIR, "repository2");
 	private static final File CRASH_FILES = new File(LOGS_DIR, "jvm_crash_pid_%p.log");
+	static final String LAUNCHER_BUILD = "https://raw.githubusercontent.com/runelite-extended/launcher/master/build.gradle";
 	private static final String CLIENT_BOOTSTRAP_STAGING_URL = "https://raw.githubusercontent.com/runelite-extended/hosting/master/bootstrap-staging.json";
 	private static final String CLIENT_BOOTSTRAP_STABLE_URL = "https://raw.githubusercontent.com/runelite-extended/hosting/master/bootstrap-stable.json";
 	private static final String CLIENT_BOOTSTRAP_NIGHTLY_URL = "https://raw.githubusercontent.com/runelite-extended/hosting/master/bootstrap-nightly.json";
-	private static final String CLIENT_BOOTSTRAP_SHA256_URL = "https://static.runelite.net/bootstrap.json.sha256";
-	private static final String USER_AGENT = "OpenOSRS/" + LauncherProperties.getVersion();
+	static final String USER_AGENT = "OpenOSRS/" + LauncherProperties.getVersion();
 	private static final boolean enforceDependencyHashing = true;
+	private final static String NIGHTLY_DISABLED_URL = "https://raw.githubusercontent.com/runelite-extended/hosting/master/nighlty.disable";
 	private static boolean nightly = false;
 	private static boolean staging = false;
 
@@ -90,14 +85,6 @@ public class Launcher
 
 	public static void main(String[] args)
 	{
-		String defaultBootstrap = "default-bootstrap.txt";
-		String DEFAULT_BOOTSTRAP = RUNELITE_DIR + File.separator + defaultBootstrap;
-		File f = new File(DEFAULT_BOOTSTRAP);
-		if (!RUNELITE_DIR.exists())
-		{
-			RUNELITE_DIR.mkdirs();
-		}
-
 		OptionParser parser = new OptionParser();
 		parser.accepts("clientargs").withRequiredArg();
 		parser.accepts("nojvm");
@@ -140,9 +127,45 @@ public class Launcher
 			logger.setLevel(Level.DEBUG);
 		}
 
+		if (!nightly && !staging)
+		{
+			if (!nightlyDisabled())
+			{
+				OpenOSRSSplashScreen.init(true, null);
+				OpenOSRSSplashScreen.barMessage(null);
+				OpenOSRSSplashScreen.message(null);
+				List<JButton> buttons = OpenOSRSSplashScreen.addButtons();
+
+				if (buttons != null)
+				{
+					buttons.get(0).addActionListener(e -> {
+						OpenOSRSSplashScreen.close();
+						Runnable task = () -> launch(mode, options);
+						Thread thread = new Thread(task);
+						thread.start();
+					});
+
+					buttons.get(1).addActionListener(e -> {
+						nightly = true;
+						OpenOSRSSplashScreen.close();
+						Runnable task = () -> launch(mode, options);
+						Thread thread = new Thread(task);
+						thread.start();
+					});
+				}
+			}
+			else
+			{
+				launch(mode, options);
+			}
+		}
+	}
+
+	private static void launch(ArgumentAcceptingOptionSpec<HardwareAccelerationMode> mode, OptionSet options)
+	{
 		try
 		{
-			OpenOSRSSplashScreen.init();
+			OpenOSRSSplashScreen.init(nightlyDisabled(), nightly ? "Nightly" : "Stable");
 			OpenOSRSSplashScreen.stage(0, "Setting up environment");
 
 			log.info("OpenOSRS Launcher version {}", LauncherProperties.getVersion());
@@ -185,7 +208,7 @@ public class Launcher
 			{
 				bootstrap = getBootstrap();
 			}
-			catch (IOException | VerificationException | CertificateException | SignatureException | InvalidKeyException | NoSuchAlgorithmException ex)
+			catch (IOException ex)
 			{
 				log.error("error fetching bootstrap", ex);
 				OpenOSRSSplashScreen.setError("Error while downloading the bootstrap!", "Please check your internet connection and your DNS settings.");
@@ -276,6 +299,7 @@ public class Launcher
 			}
 
 			OpenOSRSSplashScreen.stage(.90, "Starting the client");
+			OpenOSRSSplashScreen.close();
 
 			// packr doesn't let us specify command line arguments
 			if (nojvm || options.has("nojvm"))
@@ -294,6 +318,7 @@ public class Launcher
 				try
 				{
 					JvmLauncher.launch(bootstrap, results, clientArgs, extraJvmParams);
+					OpenOSRSSplashScreen.close();
 				}
 				catch (IOException ex)
 				{
@@ -311,11 +336,9 @@ public class Launcher
 		{
 			// packr seems to eat exceptions thrown out of main, so at least try to log it
 			log.error("Failure during startup", e);
+			OpenOSRSSplashScreen.setError("OpenOSRS has encountered an unexpected error during startup!", "Please check your internet connection and your DNS settings.");
+
 			throw e;
-		}
-		finally
-		{
-			OpenOSRSSplashScreen.close();
 		}
 	}
 
@@ -339,7 +362,40 @@ public class Launcher
 		}
 	}
 
-	private static Bootstrap getBootstrap() throws IOException, CertificateException, NoSuchAlgorithmException, InvalidKeyException, SignatureException, VerificationException
+	private static boolean nightlyDisabled()
+	{
+		boolean disabled = true;
+
+		try
+		{
+			URL u = new URL(NIGHTLY_DISABLED_URL);
+
+			URLConnection conn = u.openConnection();
+
+			conn.setRequestProperty("User-Agent", USER_AGENT);
+
+			try (InputStream i = conn.getInputStream())
+			{
+				byte[] bytes = ByteStreams.toByteArray(i);
+
+				BufferedReader in = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(bytes)));
+
+				String line;
+				if ((line = in.readLine()) != null)
+				{
+					disabled = Boolean.parseBoolean(line);
+				}
+				in.close();
+			}
+		}
+		catch (IOException ignored)
+		{
+		}
+
+		return disabled;
+	}
+
+	private static Bootstrap getBootstrap() throws IOException
 	{
 		URL u = new URL(CLIENT_BOOTSTRAP_STABLE_URL);
 		if (nightly)
@@ -351,24 +407,13 @@ public class Launcher
 			u = new URL(CLIENT_BOOTSTRAP_STAGING_URL);
 		}
 
-		URL signatureUrl = new URL(CLIENT_BOOTSTRAP_SHA256_URL);
-
 		URLConnection conn = u.openConnection();
-		URLConnection signatureConn = signatureUrl.openConnection();
 
 		conn.setRequestProperty("User-Agent", USER_AGENT);
-		signatureConn.setRequestProperty("User-Agent", USER_AGENT);
 
-		try (InputStream i = conn.getInputStream();
-			InputStream signatureIn = signatureConn.getInputStream())
+		try (InputStream i = conn.getInputStream())
 		{
 			byte[] bytes = ByteStreams.toByteArray(i);
-			byte[] signature = ByteStreams.toByteArray(signatureIn);
-
-			Certificate certificate = getCertificate();
-			Signature s = Signature.getInstance("SHA256withRSA");
-			s.initVerify(certificate);
-			s.update(bytes);
 
 			Gson g = new Gson();
 			return g.fromJson(new InputStreamReader(new ByteArrayInputStream(bytes)), Bootstrap.class);
@@ -507,15 +552,7 @@ public class Launcher
 		return Files.asByteSource(file).hash(sha256).toString();
 	}
 
-	private static Certificate getCertificate() throws CertificateException
-	{
-		CertificateFactory certFactory = CertificateFactory.getInstance("X.509");
-		Certificate certificate = certFactory.generateCertificate(Launcher.class.getResourceAsStream("runelite.crt"));
-		return certificate;
-	}
-
-	@VisibleForTesting
-	static int compareVersion(String a, String b)
+	private static int compareVersion(String a, String b)
 	{
 		Pattern tok = Pattern.compile("[^0-9a-zA-Z]");
 		return Arrays.compare(tok.split(a), tok.split(b), (x, y) ->
@@ -525,7 +562,7 @@ public class Launcher
 			{
 				ix = Integer.parseInt(x);
 			}
-			catch (NumberFormatException e)
+			catch (NumberFormatException ignored)
 			{
 			}
 
@@ -534,7 +571,7 @@ public class Launcher
 			{
 				iy = Integer.parseInt(y);
 			}
-			catch (NumberFormatException e)
+			catch (NumberFormatException ignored)
 			{
 			}
 
@@ -552,16 +589,8 @@ public class Launcher
 				return 1;
 			}
 
-			if (ix > iy)
-			{
-				return 1;
-			}
-			if (ix < iy)
-			{
-				return -1;
-			}
+			return ix.compareTo(iy);
 
-			return 0;
 		});
 	}
 }
