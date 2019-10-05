@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=@finalName@
+Comment=@description@
+Exec=@finalName@
+Icon=openosrs
+Terminal=false
+Type=Application
+Categories=Game;

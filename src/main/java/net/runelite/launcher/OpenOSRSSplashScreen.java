@@ -162,8 +162,8 @@ public class OpenOSRSSplashScreen extends JFrame
 		String progress;
 		if (mib)
 		{
-			final double MiB = 1024 * 1042;
-			progress = String.format("%.1f / %.1f MiB", done / MiB, total / MiB);
+			final double Mb = 1000 * 1000;
+			progress = String.format("%.1f / %.1f MB", done / Mb, total / Mb);
 		}
 		else
 		{

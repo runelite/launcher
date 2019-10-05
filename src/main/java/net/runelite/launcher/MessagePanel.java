@@ -31,7 +31,7 @@ import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -218,10 +218,6 @@ class MessagePanel extends JPanel
 		titleLabel.revalidate();
 		titleLabel.repaint();
 
-		return new ArrayList<>()
-		{{
-			add(stableBtn);
-			add(nightlyBtn);
-		}};
+		return Arrays.asList(stableBtn, nightlyBtn);
 	}
 }
