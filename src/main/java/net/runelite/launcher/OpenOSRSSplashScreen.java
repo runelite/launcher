@@ -27,6 +27,8 @@ package net.runelite.launcher;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.lang.reflect.InvocationTargetException;
+import java.util.List;
+import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
@@ -43,9 +45,9 @@ public class OpenOSRSSplashScreen extends JFrame
 	@Getter
 	private final MessagePanel messagePanel = new MessagePanel();
 
-	private OpenOSRSSplashScreen()
+	private OpenOSRSSplashScreen(boolean disabled, String mode)
 	{
-		this.setTitle("RuneLitePlus");
+		this.setTitle("OpenOSRS");
 		this.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		this.setSize(FRAME_SIZE);
 		this.setLayout(new BorderLayout());
@@ -56,7 +58,7 @@ public class OpenOSRSSplashScreen extends JFrame
 		panel.setLayout(new BorderLayout());
 		panel.setPreferredSize(OpenOSRSSplashScreen.FRAME_SIZE);
 
-		panel.add(new InfoPanel(), BorderLayout.EAST);
+		panel.add(new InfoPanel(disabled, mode), BorderLayout.EAST);
 		panel.add(messagePanel, BorderLayout.WEST);
 
 		this.setContentPane(panel);
@@ -66,7 +68,7 @@ public class OpenOSRSSplashScreen extends JFrame
 		this.setVisible(true);
 	}
 
-	public static void setError(String title, String content)
+	static void setError(String title, String content)
 	{
 		if (INSTANCE != null)
 		{
@@ -107,7 +109,7 @@ public class OpenOSRSSplashScreen extends JFrame
 		this.getContentPane().repaint();
 	}
 
-	public static void init()
+	static void init(boolean disabled, String mode)
 	{
 		try
 		{
@@ -120,7 +122,7 @@ public class OpenOSRSSplashScreen extends JFrame
 
 				try
 				{
-					INSTANCE = new OpenOSRSSplashScreen();
+					INSTANCE = new OpenOSRSSplashScreen(disabled, mode);
 				}
 				catch (Exception e)
 				{
@@ -134,7 +136,7 @@ public class OpenOSRSSplashScreen extends JFrame
 		}
 	}
 
-	public static void close()
+	static void close()
 	{
 		SwingUtilities.invokeLater(() ->
 		{
@@ -155,7 +157,7 @@ public class OpenOSRSSplashScreen extends JFrame
 		stage(startProgress + ((endProgress - startProgress) * done / total), progressText + " " + progress);
 	}
 
-	public static void stage(double startProgress, double endProgress, String progressText, int done, int total, boolean mib)
+	static void stage(double startProgress, double endProgress, String progressText, int done, int total, boolean mib)
 	{
 		String progress;
 		if (mib)
@@ -170,11 +172,37 @@ public class OpenOSRSSplashScreen extends JFrame
 		stage(startProgress + ((endProgress - startProgress) * done / total), progressText + " " + progress);
 	}
 
-	public static void stage(double overallProgress, String progressText)
+	static void stage(double overallProgress, String progressText)
 	{
 		if (INSTANCE != null)
 		{
 			INSTANCE.setMessage(progressText, overallProgress);
 		}
+	}
+
+	static void barMessage(String barMessage)
+	{
+		if (INSTANCE != null)
+		{
+			INSTANCE.setMessage(barMessage, 0);
+		}
+	}
+
+	static void message(String message)
+	{
+		if (INSTANCE != null)
+		{
+			INSTANCE.messagePanel.setMessageContent(message);
+		}
+	}
+
+	static List<JButton> addButtons()
+	{
+		if (INSTANCE != null)
+		{
+			return INSTANCE.messagePanel.addButtons();
+		}
+
+		return null;
 	}
 }

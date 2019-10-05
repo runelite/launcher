@@ -24,6 +24,7 @@
  */
 package net.runelite.launcher;
 
+import com.google.common.io.ByteStreams;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Dimension;
@@ -33,7 +34,16 @@ import java.awt.Image;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.URL;
+import java.net.URLConnection;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -41,6 +51,8 @@ import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.MatteBorder;
 import lombok.extern.slf4j.Slf4j;
+import static net.runelite.launcher.Launcher.LAUNCHER_BUILD;
+import static net.runelite.launcher.Launcher.USER_AGENT;
 
 @Slf4j
 class InfoPanel extends JPanel
@@ -57,7 +69,7 @@ class InfoPanel extends JPanel
 	private static final String TROUBLESHOOTING_URL = "https://github.com/runelite/runelite/wiki/Troubleshooting-problems-with-the-client";
 	private static final String DISCORD_INVITE_LINK = "https://discordapp.com/invite/HN5gf3m";
 
-	InfoPanel()
+	InfoPanel(boolean disabled, String mode)
 	{
 		this.setLayout(new GridBagLayout());
 		this.setPreferredSize(PANEL_SIZE);
@@ -85,9 +97,28 @@ class InfoPanel extends JPanel
 		c.anchor = GridBagConstraints.SOUTH;
 		c.weighty = 0;
 
+		String latestLauncher = getLatestLauncher();
+
+		// Latest version
+		if (!latestLauncher.equals("-1") && !latestLauncher.equals(LauncherProperties.getVersion()))
+		{
+			this.add(createPanelTextButton("Update available!"), c);
+			c.gridy++;
+
+			this.add(createPanelTextButton("Latest Version: " + latestLauncher), c);
+			c.gridy++;
+		}
+
 		// Version
 		this.add(createPanelTextButton("Launcher Version: " + LauncherProperties.getVersion()), c);
 		c.gridy++;
+
+		if (!disabled)
+		{
+			// bootstrap
+			this.add(createPanelTextButton("Mode: " + mode), c);
+			c.gridy++;
+		}
 
 		final JLabel logsFolder = createPanelButton("Open logs folder", null, () -> LinkBrowser.openLocalFile(LOGS_DIR));
 		this.add(logsFolder, c);
@@ -104,6 +135,43 @@ class InfoPanel extends JPanel
 		final JLabel exit = createPanelButton("Exit", "Closes the application immediately", () -> System.exit(0));
 		this.add(exit, c);
 		c.gridy++;
+	}
+
+
+
+
+	private static String getLatestLauncher()
+	{
+		try
+		{
+			URL u = new URL(LAUNCHER_BUILD);
+
+			URLConnection conn = u.openConnection();
+
+			conn.setRequestProperty("User-Agent", USER_AGENT);
+
+			try (InputStream i = conn.getInputStream())
+			{
+				byte[] bytes = ByteStreams.toByteArray(i);
+				Pattern pattern = Pattern.compile("version = '(\\d{1}).(\\d{1}).(\\d{1})'");
+
+				BufferedReader buf = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(bytes)));
+				String str;
+				while ((str = buf.readLine()) != null)
+				{
+					Matcher m = pattern.matcher(str);
+					if (m.find())
+					{
+						return String.format("%s.%s.%s", m.group(1), m.group(2), m.group(3));
+					}
+				}
+			}
+		}
+		catch (IOException ignored)
+		{
+		}
+
+		return "-1";
 	}
 
 	private static JLabel createPanelTextButton(final String title)

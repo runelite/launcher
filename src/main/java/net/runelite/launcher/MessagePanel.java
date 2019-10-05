@@ -25,10 +25,16 @@
 package net.runelite.launcher;
 
 import java.awt.Color;
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.GridLayout;
+import java.util.ArrayList;
+import java.util.List;
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
@@ -49,11 +55,15 @@ class MessagePanel extends JPanel
 
 	private final JLabel titleLabel = new JLabel("Welcome to OpenOSRS");
 	private final JLabel messageArea;
+	private final JLabel bootstrapChannel;
 	private final JLabel barLabel = new JLabel("Doing something important");
 	private final JProgressBar bar = new JProgressBar(0, 100);
 
 	@Getter(AccessLevel.NONE)
 	private final JScrollPane scrollPane;
+	private final JPanel buttonPanel;
+	private final JButton stableBtn;
+	private final JButton nightlyBtn;
 
 	MessagePanel()
 	{
@@ -77,31 +87,42 @@ class MessagePanel extends JPanel
 		c.gridy++;
 
 		// alternate message action
-		messageArea = new JLabel("<html><div style='text-align:center;'>Open-source client for Old School RuneScape with more functionality and less restrictions.</div></html>")
-		{
-			@Override
-			public Dimension getPreferredSize()
-			{
-				final Dimension results = super.getPreferredSize();
-				results.width = PANEL_SIZE.width - MESSAGE_AREA_PADDING;
-				return results;
-			}
-		};
-		messageArea.setFont(new Font(FontManager.getRunescapeFont().getName(), FontManager.getRunescapeSmallFont().getStyle(), 16));
-		messageArea.setForeground(Color.WHITE);
-		messageArea.setBorder(new EmptyBorder(0, MESSAGE_AREA_PADDING, 0, MESSAGE_AREA_PADDING));
+		messageArea = messageArea("Open-source client for Old School RuneScape with more functionality and less restrictions.");
 
 		scrollPane = new JScrollPane(messageArea, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 		scrollPane.setBorder(new EmptyBorder(0, 0, 0, 0));
 		scrollPane.getVerticalScrollBar().setUI(new CustomScrollBarUI());
-		final JViewport viewport = scrollPane.getViewport();
-		viewport.setForeground(Color.WHITE);
-		viewport.setBackground(ColorScheme.DARKER_GRAY_COLOR);
-		viewport.setOpaque(true);
+		final JViewport scrollPaneViewport = scrollPane.getViewport();
+		scrollPaneViewport.setForeground(Color.WHITE);
+		scrollPaneViewport.setBackground(ColorScheme.DARKER_GRAY_COLOR);
+		scrollPaneViewport.setOpaque(true);
 
 		c.weighty = 1;
 		c.fill = 1;
 		this.add(scrollPane, c);
+		c.gridy++;
+
+		bootstrapChannel = messageArea("Do you want to make use of the stable or the nightly update channel?");
+
+		this.add(bootstrapChannel, c);
+		c.gridy++;
+
+		buttonPanel = new JPanel();
+		buttonPanel.setLayout(new GridLayout(1, 2, 10, 10));
+		buttonPanel.setBorder(new EmptyBorder(50, 10, 50, 10));
+		buttonPanel.setBackground(ColorScheme.DARKER_GRAY_COLOR);
+		buttonPanel.setOpaque(true);
+
+		stableBtn = addButton("Stable");
+		buttonPanel.add(stableBtn);
+
+		nightlyBtn = addButton("Nightly");
+		buttonPanel.add(nightlyBtn);
+
+		bootstrapChannel.setVisible(false);
+		buttonPanel.setVisible(false);
+
+		this.add(buttonPanel, c);
 		c.gridy++;
 
 		c.weighty = 0;
@@ -138,9 +159,28 @@ class MessagePanel extends JPanel
 		c.gridy++;
 	}
 
+	private JLabel messageArea(String message)
+	{
+		JLabel messageArea = new JLabel("<html><div style='text-align:center;'>" + message + "</div></html>")
+		{
+			@Override
+			public Dimension getPreferredSize()
+			{
+				final Dimension results = super.getPreferredSize();
+				results.width = PANEL_SIZE.width - MESSAGE_AREA_PADDING;
+				return results;
+			}
+		};
+		messageArea.setFont(new Font(FontManager.getRunescapeFont().getName(), FontManager.getRunescapeSmallFont().getStyle(), 16));
+		messageArea.setForeground(Color.WHITE);
+		messageArea.setBorder(new EmptyBorder(0, MESSAGE_AREA_PADDING, 0, MESSAGE_AREA_PADDING));
+
+		return messageArea;
+	}
+
 	void setMessageContent(String content)
 	{
-		if (!content.startsWith("<html"))
+		if (content != null && !content.startsWith("<html"))
 		{
 			content = "<html><div style='text-align:center;'>" + content + "</div></html>";
 		}
@@ -155,5 +195,33 @@ class MessagePanel extends JPanel
 		titleLabel.setText(text);
 		titleLabel.revalidate();
 		titleLabel.repaint();
+	}
+
+	private JButton addButton(String action)
+	{
+		JButton btn = new JButton(action);
+		btn.setPreferredSize(new Dimension(40, 40));
+		btn.setFont(new Font(FontManager.getRunescapeFont().getName(), FontManager.getRunescapeSmallFont().getStyle(), 16));
+		btn.setForeground(Color.WHITE);
+		btn.setFocusPainted(false);
+		btn.setBorder(BorderFactory.createLineBorder(ColorScheme.DARK_GRAY_COLOR));
+		btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+
+		return btn;
+	}
+
+	List<JButton> addButtons()
+	{
+		bootstrapChannel.setVisible(true);
+		buttonPanel.setVisible(true);
+
+		titleLabel.revalidate();
+		titleLabel.repaint();
+
+		return new ArrayList<>()
+		{{
+			add(stableBtn);
+			add(nightlyBtn);
+		}};
 	}
 }
