@@ -71,13 +71,13 @@ public class Launcher
 	private static final File LOGS_DIR = new File(RUNELITE_DIR, "logs");
 	private static final File REPO_DIR = new File(RUNELITE_DIR, "repository2");
 	private static final File CRASH_FILES = new File(LOGS_DIR, "jvm_crash_pid_%p.log");
-	static final String LAUNCHER_BUILD = "https://raw.githubusercontent.com/runelite-extended/launcher/master/build.gradle";
-	private static final String CLIENT_BOOTSTRAP_STAGING_URL = "https://raw.githubusercontent.com/runelite-extended/hosting/master/bootstrap-staging.json";
-	private static final String CLIENT_BOOTSTRAP_STABLE_URL = "https://raw.githubusercontent.com/runelite-extended/hosting/master/bootstrap-stable.json";
-	private static final String CLIENT_BOOTSTRAP_NIGHTLY_URL = "https://raw.githubusercontent.com/runelite-extended/hosting/master/bootstrap-nightly.json";
+	static final String LAUNCHER_BUILD = "https://raw.githubusercontent.com/open-osrs/launcher/master/build.gradle";
+	private static final String CLIENT_BOOTSTRAP_STAGING_URL = "https://raw.githubusercontent.com/open-osrs/hosting/master/bootstrap-staging.json";
+	private static final String CLIENT_BOOTSTRAP_STABLE_URL = "https://raw.githubusercontent.com/open-osrs/hosting/master/bootstrap-stable.json";
+	private static final String CLIENT_BOOTSTRAP_NIGHTLY_URL = "https://raw.githubusercontent.com/open-osrs/hosting/master/bootstrap-nightly.json";
 	static final String USER_AGENT = "OpenOSRS/" + LauncherProperties.getVersion();
 	private static final boolean enforceDependencyHashing = true;
-	private final static String NIGHTLY_DISABLED_URL = "https://raw.githubusercontent.com/runelite-extended/hosting/master/nighlty.disable";
+	private final static String NIGHTLY_DISABLED_URL = "https://raw.githubusercontent.com/open-osrs/hosting/master/nighlty.disable";
 	private static boolean nightly = false;
 	private static boolean staging = false;
 
