@@ -79,7 +79,7 @@ public class Launcher
 	private static final boolean enforceDependencyHashing = true;
 	private final static String NIGHTLY_DISABLED_URL = "https://raw.githubusercontent.com/runelite-extended/hosting/master/nighlty.disable";
 	private static boolean nightly = false;
-	private static boolean staging = false;
+	private static boolean staging = true;
 
 	static final String CLIENT_MAIN_CLASS = "net.runelite.client.RuneLite";
 
@@ -158,6 +158,10 @@ public class Launcher
 			{
 				launch(mode, options);
 			}
+		}
+		else
+		{
+			launch(mode, options);
 		}
 	}
 
