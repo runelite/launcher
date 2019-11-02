@@ -41,4 +41,4 @@ jobs:
           PULL_REQUEST_TITLE: 'launcher: Update gradle dependencies'
           PULL_REQUEST_BODY: This is an auto-generated PR with updated gradle dependencies versions
           COMMIT_MESSAGE: 'launcher: Update gradle dependencies'
-          PULL_REQUEST_LABELS: automated pull request, gradle
+          PULL_REQUEST_LABELS: automated-pull-request, gradle
