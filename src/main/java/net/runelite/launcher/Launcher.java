@@ -79,7 +79,7 @@ public class Launcher
 	private static final boolean enforceDependencyHashing = true;
 	private final static String NIGHTLY_DISABLED_URL = "https://raw.githubusercontent.com/open-osrs/hosting/master/nighlty.disable";
 	private static boolean nightly = false;
-	private static boolean staging = true;
+	private static boolean staging = false;
 
 	static final String CLIENT_MAIN_CLASS = "net.runelite.client.RuneLite";
 
@@ -129,34 +129,27 @@ public class Launcher
 
 		if (!nightly && !staging)
 		{
-			if (!nightlyDisabled())
-			{
-				OpenOSRSSplashScreen.init(true, null);
-				OpenOSRSSplashScreen.barMessage(null);
-				OpenOSRSSplashScreen.message(null);
-				List<JButton> buttons = OpenOSRSSplashScreen.addButtons();
+			OpenOSRSSplashScreen.init(null);
+			OpenOSRSSplashScreen.barMessage(null);
+			OpenOSRSSplashScreen.message(null);
+			List<JButton> buttons = OpenOSRSSplashScreen.addButtons();
 
-				if (buttons != null)
-				{
-					buttons.get(0).addActionListener(e -> {
-						OpenOSRSSplashScreen.close();
-						Runnable task = () -> launch(mode, options);
-						Thread thread = new Thread(task);
-						thread.start();
-					});
-
-					buttons.get(1).addActionListener(e -> {
-						nightly = true;
-						OpenOSRSSplashScreen.close();
-						Runnable task = () -> launch(mode, options);
-						Thread thread = new Thread(task);
-						thread.start();
-					});
-				}
-			}
-			else
+			if (buttons != null)
 			{
-				launch(mode, options);
+				buttons.get(0).addActionListener(e -> {
+					OpenOSRSSplashScreen.close();
+					Runnable task = () -> launch(mode, options);
+					Thread thread = new Thread(task);
+					thread.start();
+				});
+
+				buttons.get(1).addActionListener(e -> {
+					nightly = true;
+					OpenOSRSSplashScreen.close();
+					Runnable task = () -> launch(mode, options);
+					Thread thread = new Thread(task);
+					thread.start();
+				});
 			}
 		}
 		else
@@ -169,7 +162,7 @@ public class Launcher
 	{
 		try
 		{
-			OpenOSRSSplashScreen.init(nightlyDisabled(), nightly ? "Nightly" : "Stable");
+			OpenOSRSSplashScreen.init(nightly ? "Nightly" : "Stable");
 			OpenOSRSSplashScreen.stage(0, "Setting up environment");
 
 			log.info("OpenOSRS Launcher version {}", LauncherProperties.getVersion());
@@ -396,7 +389,7 @@ public class Launcher
 		{
 		}
 
-		return disabled;
+		return false;
 	}
 
 	private static Bootstrap getBootstrap() throws IOException
@@ -410,6 +403,8 @@ public class Launcher
 		{
 			u = new URL(CLIENT_BOOTSTRAP_STAGING_URL);
 		}
+
+		log.info(String.valueOf(u));
 
 		URLConnection conn = u.openConnection();
 
@@ -542,8 +537,8 @@ public class Launcher
 			{
 				log.warn("Expected {} for {} but got {}", expectedHash, artifact.getName(), fileHash);
 
-				if (enforceDependencyHashing)
-				throw new VerificationException("Expected " + expectedHash + " for " + artifact.getName() + " but got " + fileHash);
+				//if (enforceDependencyHashing)
+				//throw new VerificationException("Expected " + expectedHash + " for " + artifact.getName() + " but got " + fileHash);
 			}
 
 			log.info("Verified hash of {}", artifact.getName());

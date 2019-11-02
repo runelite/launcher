@@ -203,6 +203,8 @@ class MessagePanel extends JPanel
 		btn.setPreferredSize(new Dimension(40, 40));
 		btn.setFont(new Font(FontManager.getRunescapeFont().getName(), FontManager.getRunescapeSmallFont().getStyle(), 16));
 		btn.setForeground(Color.WHITE);
+		btn.setOpaque(false);
+		btn.setContentAreaFilled(false);
 		btn.setFocusPainted(false);
 		btn.setBorder(BorderFactory.createLineBorder(ColorScheme.DARK_GRAY_COLOR));
 		btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));

@@ -45,7 +45,7 @@ public class OpenOSRSSplashScreen extends JFrame
 	@Getter
 	private final MessagePanel messagePanel = new MessagePanel();
 
-	private OpenOSRSSplashScreen(boolean disabled, String mode)
+	private OpenOSRSSplashScreen(String mode)
 	{
 		this.setTitle("OpenOSRS");
 		this.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -58,7 +58,7 @@ public class OpenOSRSSplashScreen extends JFrame
 		panel.setLayout(new BorderLayout());
 		panel.setPreferredSize(OpenOSRSSplashScreen.FRAME_SIZE);
 
-		panel.add(new InfoPanel(disabled, mode), BorderLayout.EAST);
+		panel.add(new InfoPanel(mode), BorderLayout.EAST);
 		panel.add(messagePanel, BorderLayout.WEST);
 
 		this.setContentPane(panel);
@@ -109,7 +109,7 @@ public class OpenOSRSSplashScreen extends JFrame
 		this.getContentPane().repaint();
 	}
 
-	static void init(boolean disabled, String mode)
+	static void init(String mode)
 	{
 		try
 		{
@@ -122,7 +122,7 @@ public class OpenOSRSSplashScreen extends JFrame
 
 				try
 				{
-					INSTANCE = new OpenOSRSSplashScreen(disabled, mode);
+					INSTANCE = new OpenOSRSSplashScreen(mode);
 				}
 				catch (Exception e)
 				{

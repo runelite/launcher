@@ -69,7 +69,7 @@ class InfoPanel extends JPanel
 	private static final String TROUBLESHOOTING_URL = "https://github.com/runelite/runelite/wiki/Troubleshooting-problems-with-the-client";
 	private static final String DISCORD_INVITE_LINK = "https://discordapp.com/invite/HN5gf3m";
 
-	InfoPanel(boolean disabled, String mode)
+	InfoPanel(String mode)
 	{
 		this.setLayout(new GridBagLayout());
 		this.setPreferredSize(PANEL_SIZE);
@@ -113,12 +113,9 @@ class InfoPanel extends JPanel
 		this.add(createPanelTextButton("Launcher Version: " + LauncherProperties.getVersion()), c);
 		c.gridy++;
 
-		if (!disabled)
-		{
-			// bootstrap
-			this.add(createPanelTextButton("Mode: " + mode), c);
-			c.gridy++;
-		}
+		// bootstrap
+		this.add(createPanelTextButton("Mode: " + mode), c);
+		c.gridy++;
 
 		final JLabel logsFolder = createPanelButton("Open logs folder", null, () -> LinkBrowser.openLocalFile(LOGS_DIR));
 		this.add(logsFolder, c);
