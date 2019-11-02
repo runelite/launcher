@@ -114,8 +114,11 @@ class InfoPanel extends JPanel
 		c.gridy++;
 
 		// bootstrap
-		this.add(createPanelTextButton("Mode: " + mode), c);
-		c.gridy++;
+		if (mode != null)
+		{
+			this.add(createPanelTextButton("Mode: " + mode), c);
+			c.gridy++;
+		}
 
 		final JLabel logsFolder = createPanelButton("Open logs folder", null, () -> LinkBrowser.openLocalFile(LOGS_DIR));
 		this.add(logsFolder, c);
