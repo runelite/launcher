@@ -44,8 +44,7 @@ java -jar packr.jar \
     native-win64
 
 # modify packr exe manifest to enable Windows dpi scaling
-# "C:\Program Files (x86)\Resource Hacker\ResourceHacker.exe" \
-resourcehacker \
+"C:\Program Files (x86)\Resource Hacker\ResourceHacker.exe" \
     -open native-win64/OpenOSRS.exe \
     -save native-win64/OpenOSRS.exe \
     -action addoverwrite \
@@ -53,8 +52,7 @@ resourcehacker \
     -mask MANIFEST,1,
 
 # packr on Windows doesn't support icons, so we use resourcehacker to include it
-# "C:\Program Files (x86)\Resource Hacker\ResourceHacker.exe" \
-resourcehacker \
+"C:\Program Files (x86)\Resource Hacker\ResourceHacker.exe" \
     -open native-win64/OpenOSRS.exe \
     -save native-win64/OpenOSRS.exe \
     -action add \
@@ -69,5 +67,4 @@ fi
 echo "5eea714e1f22f1875c1cb7b1738b0c0b1f02aec5ecb95f0fdb1c5171c6cd93a3 *vcredist_x64.exe" | sha256sum -c
 
 # We use the filtered iss file
-# "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" build/filtered-resources/openosrs.iss
-iscc build/filtered-resources/openosrs.iss
+"C:\Program Files (x86)\Inno Setup 6\ISCC.exe" build/filtered-resources/openosrs.iss
