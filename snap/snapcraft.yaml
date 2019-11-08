@@ -1,0 +1,79 @@
+name: runelite
+base: core18
+title: RuneLite
+version: git
+summary: A popular free, open-source and super fast client for Old School RuneScape
+description: |
+  A popular free, open-source and super fast client for Old School RuneScape
+
+type: app
+grade: stable
+confinement: strict
+icon: snap/gui/runelite.png
+license: BSD-2-Clause
+
+parts:
+  runelite:
+    plugin: dump
+    source-type: local
+    source: target/
+    stage-packages:
+      - default-jre
+      - libglu1-mesa
+      - libpulse0
+      - libasound2
+      - libasound2-plugins
+    build-packages:
+      - ca-certificates
+      - ca-certificates-java
+    override-pull: |
+      snapcraftctl pull
+      find . -not -name 'RuneLite.jar' -delete
+      if [ ! -f RuneLite.jar ]
+      then
+        echo "Run maven prior to running snapcraft!"
+        exit 1
+      fi
+  alsa-pulseaudio:
+    plugin: dump
+    source: .
+    override-pull: |
+      mkdir etc -p
+      cat > etc/asound.conf <<EOF
+      pcm.!default {
+          type pulse
+          fallback "sysdefault"
+          hint {
+              show on
+              description "Default ALSA Output (currently PulseAudio Sound Server)"
+          }
+      }
+      ctl.!default {
+          type pulse
+          fallback "sysdefault"
+      }
+      EOF
+
+layout:
+  /usr/lib/$SNAPCRAFT_ARCH_TRIPLET/alsa-lib:
+    bind: $SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/alsa-lib
+  /usr/lib/$SNAPCRAFT_ARCH_TRIPLET/webkit2gtk-4.0:
+    bind: $SNAP/gnome-platform/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/webkit2gtk-4.0
+  /usr/share/xml/iso-codes:
+    bind: $SNAP/gnome-platform/usr/share/xml/iso-codes
+
+apps:
+  runelite:
+    command: usr/lib/jvm/java-11-openjdk-amd64/bin/java -jar $SNAP/RuneLite.jar
+    plugs:
+      - desktop
+      - desktop-legacy
+      - network
+      - audio-playback
+      - x11
+      - opengl
+
+    extensions: [ gnome-3-28 ]
+    environment:
+      _JAVA_OPTIONS: -Duser.home="$SNAP_USER_COMMON"
+      ALSA_CONFIG_PATH: "$SNAP/etc/asound.conf"
