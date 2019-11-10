@@ -26,21 +26,26 @@ package net.runelite.launcher;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
+import com.google.archivepatcher.applier.FileByFileV1DeltaApplier;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
+import com.google.common.hash.HashCode;
 import com.google.common.hash.HashFunction;
+import com.google.common.hash.Hasher;
 import com.google.common.hash.Hashing;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.Files;
 import com.google.gson.Gson;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -55,12 +60,17 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
+import java.util.function.IntConsumer;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.zip.GZIPInputStream;
 import javax.swing.SwingUtilities;
 import joptsimple.ArgumentAcceptingOptionSpec;
 import joptsimple.OptionParser;
@@ -68,6 +78,7 @@ import joptsimple.OptionSet;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.launcher.beans.Artifact;
 import net.runelite.launcher.beans.Bootstrap;
+import net.runelite.launcher.beans.Diff;
 import org.slf4j.LoggerFactory;
 
 @Slf4j
@@ -89,6 +100,7 @@ public class Launcher
 		parser.accepts("clientargs").withRequiredArg();
 		parser.accepts("nojvm");
 		parser.accepts("debug");
+		parser.accepts("nodiff");
 
 		HardwareAccelerationMode defaultMode;
 		switch (OS.getOs())
@@ -112,6 +124,8 @@ public class Launcher
 			.defaultsTo(defaultMode);
 
 		OptionSet options = parser.parse(args);
+
+		final boolean nodiff = options.has("nodiff");
 
 		// Setup debug
 		final boolean isDebug = options.has("debug");
@@ -230,7 +244,7 @@ public class Launcher
 
 			try
 			{
-				download(bootstrap);
+				download(bootstrap, nodiff);
 			}
 			catch (IOException ex)
 			{
@@ -360,10 +374,11 @@ public class Launcher
 			: new ArrayList<>();
 	}
 
-	private static void download(Bootstrap bootstrap) throws IOException
+	private static void download(Bootstrap bootstrap, boolean nodiff) throws IOException
 	{
 		Artifact[] artifacts = bootstrap.getArtifacts();
 		List<Artifact> toDownload = new ArrayList<>(artifacts.length);
+		Map<Artifact, Diff> diffs = new HashMap<>();
 		int totalDownloadBytes = 0;
 
 		for (Artifact artifact : artifacts)
@@ -386,8 +401,36 @@ public class Launcher
 				continue;
 			}
 
+			int downloadSize = artifact.getSize();
+
+			// See if there is a diff available
+			if (!nodiff && artifact.getDiffs() != null)
+			{
+				for (Diff diff : artifact.getDiffs())
+				{
+					File old = new File(REPO_DIR, diff.getFrom());
+
+					String oldhash;
+					try
+					{
+						oldhash = hash(old);
+					}
+					catch (FileNotFoundException ex)
+					{
+						oldhash = null;
+					}
+
+					// Check if old file is valid
+					if (diff.getFromHash().equals(oldhash))
+					{
+						diffs.put(artifact, diff);
+						downloadSize = diff.getSize();
+					}
+				}
+			}
+
 			toDownload.add(artifact);
-			totalDownloadBytes += artifact.getSize();
+			totalDownloadBytes += downloadSize;
 		}
 
 		final double START_PROGRESS = .15;
@@ -397,23 +440,56 @@ public class Launcher
 		for (Artifact artifact : toDownload)
 		{
 			File dest = new File(REPO_DIR, artifact.getName());
+			final int total = downloaded;
+
+			// Check if there is a diff we can download instead
+			Diff diff = diffs.get(artifact);
+			if (diff != null)
+			{
+				log.debug("Downloading diff {}", diff.getName());
+
+				try
+				{
+					final int totalBytes = totalDownloadBytes;
+					final byte[] patch = download(diff.getPath(), diff.getHash(), (completed) ->
+						SplashScreen.stage(START_PROGRESS, .80, null, diff.getName(), total + completed, totalBytes, true));
+					downloaded += diff.getSize();
+					File old = new File(REPO_DIR, diff.getFrom());
+					try (InputStream patchStream = new GZIPInputStream(new ByteArrayInputStream(patch));
+						FileOutputStream fout = new FileOutputStream(dest))
+					{
+						new FileByFileV1DeltaApplier().applyDelta(old, patchStream, fout);
+					}
+
+					continue;
+				}
+				catch (IOException | VerificationException e)
+				{
+					log.warn("unable to download patch {}", diff.getName(), e);
+					// Fall through and try downloading the full artifact
+
+					// Adjust the download size for the difference
+					totalDownloadBytes -= diff.getSize();
+					totalDownloadBytes += artifact.getSize();
+				}
+			}
 
 			log.debug("Downloading {}", artifact.getName());
 
-			URL url = new URL(artifact.getPath());
-			URLConnection conn = url.openConnection();
-			conn.setRequestProperty("User-Agent", USER_AGENT);
-			try (InputStream in = conn.getInputStream();
-				FileOutputStream fout = new FileOutputStream(dest))
+			try
 			{
-				int i;
-				byte[] buffer = new byte[1024 * 1024];
-				while ((i = in.read(buffer)) != -1)
+				final int totalBytes = totalDownloadBytes;
+				final byte[] jar = download(artifact.getPath(), artifact.getHash(), (completed) ->
+					SplashScreen.stage(START_PROGRESS, .80, null, artifact.getName(), total + completed, totalBytes, true));
+				downloaded += artifact.getSize();
+				try (FileOutputStream fout = new FileOutputStream(dest))
 				{
-					fout.write(buffer, 0, i);
-					downloaded += i;
-					SplashScreen.stage(START_PROGRESS, .80, null, artifact.getName(), downloaded, totalDownloadBytes, true);
+					fout.write(jar);
 				}
+			}
+			catch (VerificationException e)
+			{
+				log.warn("unable to verify jar {}", artifact.getName(), e);
 			}
 		}
 	}
@@ -427,9 +503,19 @@ public class Launcher
 			return;
 		}
 
-		Set<String> artifactNames = Arrays.stream(artifacts)
-			.map(Artifact::getName)
-			.collect(Collectors.toSet());
+		Set<String> artifactNames = new HashSet<>();
+		for (Artifact artifact : artifacts)
+		{
+			artifactNames.add(artifact.getName());
+			if (artifact.getDiffs() != null)
+			{
+				// Keep around the old files which diffs are from
+				for (Diff diff : artifact.getDiffs())
+				{
+					artifactNames.add(diff.getFrom());
+				}
+			}
+		}
 
 		for (File file : existingFiles)
 		{
@@ -534,5 +620,46 @@ public class Launcher
 
 			return 0;
 		});
+	}
+
+	private static byte[] download(String path, String hash, IntConsumer progress) throws IOException, VerificationException
+	{
+		HashFunction hashFunction = Hashing.sha256();
+		Hasher hasher = hashFunction.newHasher();
+		ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+
+		URL url = new URL(path);
+		HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+		conn.setRequestProperty("User-Agent", USER_AGENT);
+		conn.getResponseCode();
+
+		InputStream err = conn.getErrorStream();
+		if (err != null)
+		{
+			err.close();
+			throw new IOException("Unable to download " + path + " - " + conn.getResponseMessage());
+		}
+
+		int downloaded = 0;
+		try (InputStream in = conn.getInputStream())
+		{
+			int i;
+			byte[] buffer = new byte[1024 * 1024];
+			while ((i = in.read(buffer)) != -1)
+			{
+				byteArrayOutputStream.write(buffer, 0, i);
+				hasher.putBytes(buffer, 0, i);
+				downloaded += i;
+				progress.accept(downloaded);
+			}
+		}
+
+		HashCode hashCode = hasher.hash();
+		if (!hash.equals(hashCode.toString()))
+		{
+			throw new VerificationException("Unable to verify resource " + path + " - expected " + hash + " got " + hashCode.toString());
+		}
+
+		return byteArrayOutputStream.toByteArray();
 	}
 }

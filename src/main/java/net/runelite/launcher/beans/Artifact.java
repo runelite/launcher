@@ -33,4 +33,5 @@ public class Artifact
 	private String path;
 	private String hash;
 	private int size;
+	private Diff[] diffs;
 }
