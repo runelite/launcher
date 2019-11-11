@@ -27,6 +27,7 @@ package net.runelite.launcher;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import com.google.archivepatcher.applier.FileByFileV1DeltaApplier;
+import com.google.archivepatcher.shared.DefaultDeflateCompatibilityWindow;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
@@ -380,6 +381,13 @@ public class Launcher
 		List<Artifact> toDownload = new ArrayList<>(artifacts.length);
 		Map<Artifact, Diff> diffs = new HashMap<>();
 		int totalDownloadBytes = 0;
+		final boolean isCompatible = new DefaultDeflateCompatibilityWindow().isCompatible();
+
+		if (!isCompatible && !nodiff)
+		{
+			log.debug("System zlib is not compatible with archive-patcher; not using diffs");
+			nodiff = true;
+		}
 
 		for (Artifact artifact : artifacts)
 		{
