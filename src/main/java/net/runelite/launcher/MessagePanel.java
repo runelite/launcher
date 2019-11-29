@@ -113,10 +113,10 @@ class MessagePanel extends JPanel
 		buttonPanel.setBackground(ColorScheme.DARKER_GRAY_COLOR);
 		buttonPanel.setOpaque(true);
 
-		stableBtn = addButton("Stable");
+		stableBtn = addButton("Stable", "The Stable option isn't the most up-to-date build, it will use the most stable OpenOSRS build.");
 		buttonPanel.add(stableBtn);
 
-		nightlyBtn = addButton("Nightly");
+		nightlyBtn = addButton("Nightly", "The Nightly option is the most up-to-date build, it will use the latest OpenOSRS build which is built each night.");
 		buttonPanel.add(nightlyBtn);
 
 		bootstrapChannel.setVisible(false);
@@ -197,9 +197,10 @@ class MessagePanel extends JPanel
 		titleLabel.repaint();
 	}
 
-	private JButton addButton(String action)
+	private JButton addButton(String action, String tooltip)
 	{
 		JButton btn = new JButton(action);
+		btn.setToolTipText(tooltip);
 		btn.setPreferredSize(new Dimension(40, 40));
 		btn.setFont(new Font(FontManager.getRunescapeFont().getName(), FontManager.getRunescapeSmallFont().getStyle(), 16));
 		btn.setForeground(Color.WHITE);
