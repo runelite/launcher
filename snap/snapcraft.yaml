@@ -13,19 +13,23 @@ icon: snap/gui/runelite.png
 license: BSD-2-Clause
 
 parts:
+  adoptopenjdk:
+    plugin: dump
+    source: https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.4%2B11/OpenJDK11U-jre_x64_linux_hotspot_11.0.4_11.tar.gz
+    stage-packages:
+      - libxi6
+      - libxrender1
+      - libxtst6
+
   runelite:
     plugin: dump
     source-type: local
     source: target/
     stage-packages:
-      - default-jre
       - libglu1-mesa
       - libpulse0
       - libasound2
       - libasound2-plugins
-    build-packages:
-      - ca-certificates
-      - ca-certificates-java
     override-pull: |
       snapcraftctl pull
       find . -not -name 'RuneLite.jar' -delete
@@ -34,6 +38,7 @@ parts:
         echo "Run maven prior to running snapcraft!"
         exit 1
       fi
+
   alsa-pulseaudio:
     plugin: dump
     source: .
@@ -64,7 +69,7 @@ layout:
 
 apps:
   runelite:
-    command: usr/lib/jvm/java-11-openjdk-amd64/bin/java -jar $SNAP/RuneLite.jar
+    command: bin/java -jar $SNAP/RuneLite.jar
     plugs:
       - desktop
       - desktop-legacy
