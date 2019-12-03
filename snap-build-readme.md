@@ -59,7 +59,7 @@ Once the snap file is built, it can be installed with
 The dangerous flag is needed to allow installation without a signature. Only Adam can generate valid signatures as part of the process of submitting to the store.
 However, the Snap should otherwise function identically.
 
-If there are any errors with `snapcraft`, liberal use of `snapcraft clean` may become your best friend. You can selectively clean only one part of the snap, E.G, `snapcraft clean Adoptopenjdk`, or the entire snap at once with `snapcraft clean`
+If there are any errors with `snapcraft`, liberal use of `snapcraft clean` may become your best friend. You can selectively clean only one part of the snap, E.G, `snapcraft clean adoptopenjdk`, or the entire snap at once with `snapcraft clean`
 
 ##Tl;Dr##
 1) Clone the repo
