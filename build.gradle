@@ -38,7 +38,7 @@ dependencies {
     implementation group: 'com.google.guava', name: 'guava', version: '28.2-jre'
     implementation group: 'com.vdurmont', name: 'semver4j', version: '3.1.0'
 
-    testImplementation group: 'junit', name: 'junit', version: '4.12'
+    testImplementation group: 'junit', name: 'junit', version: '4.13'
 }
 
 processResources {
