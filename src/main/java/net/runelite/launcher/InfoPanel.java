@@ -68,6 +68,7 @@ class InfoPanel extends JPanel
 
 	private static final String TROUBLESHOOTING_URL = "https://github.com/runelite/runelite/wiki/Troubleshooting-problems-with-the-client";
 	private static final String DISCORD_INVITE_LINK = "https://discordapp.com/invite/HN5gf3m";
+	private static final String LAUNCHER_DOWNLOAD_LINK = "https://github.com/open-osrs/launcher/releases";
 
 	InfoPanel(String mode)
 	{
@@ -102,7 +103,7 @@ class InfoPanel extends JPanel
 		// Latest version
 		if (!latestLauncher.equals("-1") && !latestLauncher.equals(LauncherProperties.getVersion()))
 		{
-			this.add(createPanelTextButton("Update available!"), c);
+			this.add(createPanelTextButton("Update available!", () -> LinkBrowser.browse(LAUNCHER_DOWNLOAD_LINK)), c);
 			c.gridy++;
 
 			this.add(createPanelTextButton("Latest Version: " + latestLauncher), c);
@@ -184,6 +185,43 @@ class InfoPanel extends JPanel
 		textButton.setPreferredSize(VERSION_SIZE);
 		textButton.setMinimumSize(VERSION_SIZE);
 		textButton.setBorder(new MatteBorder(1, 0, 0, 0, DARK_GREY));
+
+		return textButton;
+	}
+
+	private static JLabel createPanelTextButton(final String title, final Runnable runnable)
+	{
+		final JLabel textButton = new JLabel(title);
+		textButton.setFont(FontManager.getRunescapeSmallFont());
+		textButton.setHorizontalAlignment(JLabel.CENTER);
+		textButton.setForeground(ColorScheme.PROGRESS_ERROR_COLOR);
+		textButton.setBackground(null);
+		textButton.setPreferredSize(VERSION_SIZE);
+		textButton.setMinimumSize(VERSION_SIZE);
+		textButton.setBorder(new MatteBorder(1, 0, 0, 0, DARK_GREY));
+		textButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+		textButton.addMouseListener(new MouseAdapter()
+		{
+			@Override
+			public void mouseClicked(MouseEvent e)
+			{
+				runnable.run();
+			}
+
+			@Override
+			public void mouseEntered(MouseEvent e)
+			{
+				textButton.setBackground(new Color(60, 60, 60));
+				textButton.repaint();
+			}
+
+			@Override
+			public void mouseExited(MouseEvent e)
+			{
+				textButton.setBackground(null);
+				textButton.repaint();
+			}
+		});
 
 		return textButton;
 	}
