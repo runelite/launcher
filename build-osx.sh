@@ -6,6 +6,10 @@ JDK_VER="11.0.4"
 JDK_BUILD="11"
 PACKR_VERSION="runelite-1.0"
 
+SIGNING_IDENTITY="Developer ID Application"
+ALTOOL_USER="user@icloud.com"
+ALTOOL_PASS="@keychain:altool-password"
+
 if ! [ -f OpenJDK11U-jre_x64_mac_hotspot_${JDK_VER}_${JDK_BUILD}.tar.gz ] ; then
     curl -Lo OpenJDK11U-jre_x64_mac_hotspot_${JDK_VER}_${JDK_BUILD}.tar.gz \
         https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-${JDK_VER}%2B${JDK_BUILD}/OpenJDK11U-jre_x64_mac_hotspot_${JDK_VER}_${JDK_BUILD}.tar.gz
@@ -62,6 +66,12 @@ pushd native-osx/RuneLite.app
 chmod g+x,o+x Contents/MacOS/RuneLite
 popd
 
+codesign -f -s "${SIGNING_IDENTITY}" --entitlements osx/signing.entitlements --options runtime native-osx/RuneLite.app || true
+
 # create-dmg exits with an error code due to no code signing, but is still okay
 # note we use Adam-/create-dmg as upstream does not support UDBZ
-create-dmg --format UDBZ native-osx/RuneLite.app || true
+create-dmg --format UDBZ native-osx/RuneLite.app native-osx/ || true
+
+mv native-osx/RuneLite\ *.dmg native-osx/RuneLite.dmg
+
+xcrun altool --notarize-app --username "${ALTOOL_USER}" --password "${ALTOOL_PASS}" --primary-bundle-id runelite --file native-osx/RuneLite.dmg || true
