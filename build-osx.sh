@@ -4,6 +4,7 @@ set -e
 
 JDK_VER="11.0.4"
 JDK_BUILD="11"
+PACKR_VERSION="runelite-1.0"
 
 if ! [ -f OpenJDK11U-jre_x64_mac_hotspot_${JDK_VER}_${JDK_BUILD}.tar.gz ] ; then
     curl -Lo OpenJDK11U-jre_x64_mac_hotspot_${JDK_VER}_${JDK_BUILD}.tar.gz \
@@ -25,7 +26,14 @@ if ! [ -d osx-jdk ] ; then
     popd
 fi
 
-java -jar packr.jar \
+if ! [ -f packr_${PACKR_VERSION}.jar ] ; then
+    curl -Lo packr_${PACKR_VERSION}.jar \
+        https://github.com/runelite/packr/releases/download/${PACKR_VERSION}/packr.jar
+fi
+
+echo "18b7cbaab4c3f9ea556f621ca42fbd0dc745a4d11e2a08f496e2c3196580cd53  packr_${PACKR_VERSION}.jar" | shasum -c
+
+java -jar packr_${PACKR_VERSION}.jar \
     --platform \
     mac \
     --icon \
