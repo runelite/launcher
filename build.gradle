@@ -17,7 +17,7 @@ description = 'OpenOSRS Launcher'
 repositories {
     mavenLocal()
     maven {
-        url = 'http://repo1.maven.org/maven2'
+        url = 'https://repo1.maven.org/maven2'
     }
 
     maven {

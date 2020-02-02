@@ -80,6 +80,7 @@ public class Launcher
 	private final static String NIGHTLY_DISABLED_URL = "https://raw.githubusercontent.com/open-osrs/hosting/master/nighlty.disable";
 	private static boolean nightly = false;
 	private static boolean staging = false;
+	private static boolean stable = false;
 
 	static final String CLIENT_MAIN_CLASS = "net.runelite.client.RuneLite";
 
@@ -91,6 +92,7 @@ public class Launcher
 		parser.accepts("debug");
 		parser.accepts("nightly");
 		parser.accepts("staging");
+		parser.accepts("stable");
 
 		HardwareAccelerationMode defaultMode;
 		switch (OS.getOs())
@@ -117,6 +119,7 @@ public class Launcher
 
 		nightly = options.has("nightly");
 		staging = options.has("staging");
+		stable = options.has("stable");
 
 		LOGS_DIR.mkdirs();
 
@@ -127,7 +130,7 @@ public class Launcher
 			logger.setLevel(Level.DEBUG);
 		}
 
-		if (!nightly && !staging)
+		if (!nightly && !staging && !stable)
 		{
 			OpenOSRSSplashScreen.init(null);
 			OpenOSRSSplashScreen.barMessage(null);
@@ -137,6 +140,7 @@ public class Launcher
 			if (buttons != null)
 			{
 				buttons.get(0).addActionListener(e -> {
+					stable = true;
 					OpenOSRSSplashScreen.close();
 					Runnable task = () -> launch(mode, options);
 					Thread thread = new Thread(task);
@@ -162,7 +166,7 @@ public class Launcher
 	{
 		try
 		{
-			OpenOSRSSplashScreen.init(nightly ? "Nightly" : "Stable");
+			OpenOSRSSplashScreen.init(nightly ? "Nightly" : stable ? "Stable" : "Staging");
 			OpenOSRSSplashScreen.stage(0, "Setting up environment");
 
 			log.info("OpenOSRS Launcher version {}", LauncherProperties.getVersion());
@@ -394,14 +398,22 @@ public class Launcher
 
 	private static Bootstrap getBootstrap() throws IOException
 	{
-		URL u = new URL(CLIENT_BOOTSTRAP_STABLE_URL);
-		if (nightly)
+		URL u;
+		if (stable)
+		{
+			u = new URL(CLIENT_BOOTSTRAP_STABLE_URL);
+		}
+		else if (nightly)
 		{
 			u = new URL(CLIENT_BOOTSTRAP_NIGHTLY_URL);
 		}
-		if (staging)
+		else if (staging)
 		{
 			u = new URL(CLIENT_BOOTSTRAP_STAGING_URL);
+		}
+		else
+		{
+			throw new RuntimeException("How did we get here?");
 		}
 
 		log.info(String.valueOf(u));
