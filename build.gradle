@@ -21,7 +21,7 @@ repositories {
     }
 
     maven {
-        url = 'https://raw.githubusercontent.com/runelite-extended/maven-repo/master'
+        url = 'https://raw.githubusercontent.com/open-osrs/maven-repo/master'
     }
 }
 
