@@ -29,6 +29,7 @@ import java.awt.Desktop;
 import java.awt.Toolkit;
 import java.awt.datatransfer.StringSelection;
 import java.io.IOException;
+import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
 import javax.swing.JOptionPane;
@@ -36,12 +37,13 @@ import javax.swing.SwingUtilities;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Utility class used for browser navigation
+ * Utility class used for web and file browser navigation
  */
 @Slf4j
 public class LinkBrowser
 {
 	private static boolean shouldAttemptXdg = OS.getOs() == OS.OSType.Linux;
+	private static boolean isSnapClient = ! Strings.isNullOrEmpty(System.getenv("SNAP"));
 
 	/**
 	 * Tries to navigate to specified URL in browser. In case operation fails, displays message box with message
@@ -69,6 +71,48 @@ public class LinkBrowser
 		}
 
 		showMessageBox("Unable to open link. Press 'OK' and the link will be copied to your clipboard.", url);
+		return false;
+	}
+
+	/**
+	 * Tries to open a directory in the OS native file manager.
+	 * @param directory directory to open
+	 * @return true if operation was correctly sent to the OS, not necessarily true for whether the OS actually opened the directory (E.G, Snap)
+	 */
+	public static boolean open(final String directory)
+	{
+		if (Strings.isNullOrEmpty(directory))
+		{
+			return false;
+		}
+
+		//Snap specific workaround to prevent thread blocking on attempts to open folders.
+		if (isSnapClient)
+		{
+			try
+			{
+				Runtime.getRuntime().exec(new String[]{"xdg-open", directory});
+				log.debug("Attempted to open directory with snap workaround to {}", directory);
+			}
+			catch (IOException e)
+			{
+				log.warn("Snap specific error handling xdg-open {}", directory, e);
+			}
+			return true;
+		}
+
+		if (attemptDesktopOpen(directory))
+		{
+			log.debug("Opened directory through Desktop#open to {}", directory);
+			return true;
+		}
+
+		if (shouldAttemptXdg && attemptXdgOpen(directory))
+		{
+			log.debug("Opened directory through xdg-open to {}", directory);
+			return true;
+		}
+
 		return false;
 	}
 
@@ -127,6 +171,32 @@ public class LinkBrowser
 		}
 	}
 
+	private static boolean attemptDesktopOpen(String directory)
+	{
+		if (!Desktop.isDesktopSupported())
+		{
+			return false;
+		}
+
+		final Desktop desktop = Desktop.getDesktop();
+
+		if (!desktop.isSupported(Desktop.Action.OPEN))
+		{
+			return false;
+		}
+
+		try
+		{
+			desktop.open(new File(directory));
+			return true;
+		}
+		catch (IOException ex)
+		{
+			log.warn("Failed to open Desktop#open {}", directory, ex);
+			return false;
+		}
+	}
+
 	/**
 	 * Open swing message box with specified message and copy data to clipboard
 	 * @param message message to show
@@ -144,5 +214,5 @@ public class LinkBrowser
 				Toolkit.getDefaultToolkit().getSystemClipboard().setContents(stringSelection, null);
 			}
 		});
-	}
+	}		
 }

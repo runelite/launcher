@@ -28,7 +28,6 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
-import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.WindowAdapter;
@@ -141,26 +140,10 @@ public class FatalErrorDialog extends JDialog
 
 		addButton("Open logs folder", () ->
 		{
-			try
+
+			if (! LinkBrowser.open(Launcher.LOGS_DIR.toString()))
 			{
-			if ("Linux".equals(System.getProperty("os.name")))
-			{
-				final Process exec = Runtime.getRuntime().exec(new String[]{"xdg-open", Launcher.LOGS_DIR.toString()});
-				exec.waitFor();
-				if ( exec.exitValue() == 0 )
-				{
-					return;
-				}
-			}
-				Desktop.getDesktop().open(Launcher.LOGS_DIR);
-			}
-			catch (IOException e)
-			{
-				log.warn("Unable to open logs", e);
-			}
-			catch (InterruptedException e)
-			{
-				log.warn("Interrupted during xdg-open", e);
+				log.warn("Unable to open logs");
 			}
 		});
 		addButton("Get help on Discord", () -> LinkBrowser.browse(LauncherProperties.getDiscordInvite()));
