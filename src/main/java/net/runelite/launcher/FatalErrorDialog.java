@@ -143,11 +143,24 @@ public class FatalErrorDialog extends JDialog
 		{
 			try
 			{
+			if ("Linux".equals(System.getProperty("os.name")))
+			{
+				final Process exec = Runtime.getRuntime().exec(new String[]{"xdg-open", Launcher.LOGS_DIR.toString()});
+				exec.waitFor();
+				if ( exec.exitValue() == 0 )
+				{
+					return;
+				}
+			}
 				Desktop.getDesktop().open(Launcher.LOGS_DIR);
 			}
 			catch (IOException e)
 			{
 				log.warn("Unable to open logs", e);
+			}
+			catch (InterruptedException e)
+			{
+				log.warn("Interrupted during xdg-open", e);
 			}
 		});
 		addButton("Get help on Discord", () -> LinkBrowser.browse(LauncherProperties.getDiscordInvite()));
