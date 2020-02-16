@@ -47,10 +47,15 @@ public class LinkBrowser
 	/**
 	 * Tries to navigate to specified URL in browser. In case operation fails, displays message box with message
 	 * and copies link to clipboard to navigate to.
-	 * @param url url to open
-	 * @return true if operation was successful
 	 */
-	public static boolean browse(final String url)
+	public static void browse(final String url)
+	{
+		Runnable task = () -> { attemptBrowse(url); };
+		new Thread(task).start();
+		return;
+	}
+
+	private static boolean attemptBrowse(final String url)
 	{
 		if (Strings.isNullOrEmpty(url))
 		{
@@ -75,13 +80,21 @@ public class LinkBrowser
 
 	/**
 	 * Tries to open a directory in the OS native file manager.
-         * THIS METHOD MAY BLOCK FOR A SUBSTANTIAL AMOUNT OF TIME.
-         * The Linux Snap client in particular may block for up to five minutes using this call.
-         * If the return values are not important to you, consider calling this method in its own thread.
+	 * @param directory directory to open
+	 */
+	public static void open(final String directory)
+	{
+		Runnable task = () -> { attemptOpen(directory); };
+		new Thread(task).start();
+		return;
+	}
+
+	/**
+	 * Tries to open a directory in the OS native file manager.
 	 * @param directory directory to open
 	 * @return true if operation was successful
 	 */
-	public static boolean open(final String directory)
+	private static boolean attemptOpen(final String directory)
 	{
 		if (Strings.isNullOrEmpty(directory))
 		{
