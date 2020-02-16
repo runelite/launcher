@@ -71,6 +71,7 @@ public class LinkBrowser
 			}
 			log.warn("LinkBrowser.browse() could not open {}", url);
 		}).start();
+		showMessageBox("Unable to open link. Press 'OK' and the link will be copied to your clipboard.", url);
 	}
 
 	/**
