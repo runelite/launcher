@@ -70,9 +70,7 @@ public class LinkBrowser
 				return;
 			}
 			log.warn("LinkBrowser.browse() could not open {}", url);
-			return;
 		}).start();
-		return;
 	}
 
 	/**
@@ -81,7 +79,7 @@ public class LinkBrowser
 	 */
 	public static void open(final String directory)
 	{
-		new Thread(() -> 
+		new Thread(() ->
 		{
 			if (Strings.isNullOrEmpty(directory))
 			{
@@ -101,9 +99,7 @@ public class LinkBrowser
 				return;
 			}
 			log.warn("LinkBrowser.open() could not open {}", directory);
-			return;
 		}).start();
-		return;
 	}
 
 	private static boolean attemptXdgOpen(String resource)
@@ -204,5 +200,5 @@ public class LinkBrowser
 				Toolkit.getDefaultToolkit().getSystemClipboard().setContents(stringSelection, null);
 			}
 		});
-	}		
+	}
 }
