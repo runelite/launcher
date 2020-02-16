@@ -50,32 +50,29 @@ public class LinkBrowser
 	 */
 	public static void browse(final String url)
 	{
-		Runnable task = () -> { attemptBrowse(url); };
-		new Thread(task).start();
+		new Thread(() -> 
+		{
+			if (Strings.isNullOrEmpty(url))
+			{
+				log.warn("LinkBrowser.browse() called with invalid input");
+				return;
+			}
+
+			if (attemptDesktopBrowse(url))
+			{
+				log.debug("Opened directory through Desktop#browse to {}", url);
+				return;
+			}
+
+			if (shouldAttemptXdg && attemptXdgOpen(url))
+			{
+				log.debug("Opened directory through xdg-open to {}", url);
+				return;
+			}
+			log.warn("LinkBrowser.browse() could not open {}", url);
+			return;
+		}).start();
 		return;
-	}
-
-	private static boolean attemptBrowse(final String url)
-	{
-		if (Strings.isNullOrEmpty(url))
-		{
-			return false;
-		}
-
-		if (attemptDesktopBrowse(url))
-		{
-			log.debug("Opened browser through Desktop#browse to {}", url);
-			return true;
-		}
-
-		if (shouldAttemptXdg && attemptXdgOpen(url))
-		{
-			log.debug("Opened browser through xdg-open to {}", url);
-			return true;
-		}
-
-		showMessageBox("Unable to open link. Press 'OK' and the link will be copied to your clipboard.", url);
-		return false;
 	}
 
 	/**
@@ -84,43 +81,36 @@ public class LinkBrowser
 	 */
 	public static void open(final String directory)
 	{
-		Runnable task = () -> { attemptOpen(directory); };
-		new Thread(task).start();
+		new Thread(() -> 
+		{
+			if (Strings.isNullOrEmpty(directory))
+			{
+				log.warn("LinkBrowser.open() called with invalid input");
+				return;
+			}
+
+			if (attemptDesktopOpen(directory))
+			{
+				log.debug("Opened directory through Desktop#open to {}", directory);
+				return;
+			}
+
+			if (shouldAttemptXdg && attemptXdgOpen(directory))
+			{
+				log.debug("Opened directory through xdg-open to {}", directory);
+				return;
+			}
+			log.warn("LinkBrowser.open() could not open {}", directory);
+			return;
+		}).start();
 		return;
 	}
 
-	/**
-	 * Tries to open a directory in the OS native file manager.
-	 * @param directory directory to open
-	 * @return true if operation was successful
-	 */
-	private static boolean attemptOpen(final String directory)
-	{
-		if (Strings.isNullOrEmpty(directory))
-		{
-			return false;
-		}
-
-		if (attemptDesktopOpen(directory))
-		{
-			log.debug("Opened directory through Desktop#open to {}", directory);
-			return true;
-		}
-
-		if (shouldAttemptXdg && attemptXdgOpen(directory))
-		{
-			log.debug("Opened directory through xdg-open to {}", directory);
-			return true;
-		}
-
-		return false;
-	}
-
-	private static boolean attemptXdgOpen(String url)
+	private static boolean attemptXdgOpen(String resource)
 	{
 		try
 		{
-			final Process exec = Runtime.getRuntime().exec(new String[]{"xdg-open", url});
+			final Process exec = Runtime.getRuntime().exec(new String[]{"xdg-open", resource});
 			exec.waitFor();
 
 			final int ret = exec.exitValue();
@@ -129,7 +119,7 @@ public class LinkBrowser
 				return true;
 			}
 
-			log.warn("xdg-open {} returned with error code {}", url, ret);
+			log.warn("xdg-open {} returned with error code {}", resource, ret);
 			return false;
 		}
 		catch (IOException ex)
@@ -140,7 +130,7 @@ public class LinkBrowser
 		}
 		catch (InterruptedException ex)
 		{
-			log.warn("Interrupted while waiting for xdg-open {} to execute", url);
+			log.warn("Interrupted while waiting for xdg-open {} to execute", resource);
 			return false;
 		}
 	}
