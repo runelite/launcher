@@ -140,11 +140,13 @@ public class FatalErrorDialog extends JDialog
 
 		addButton("Open logs folder", () ->
 		{
-
-			if (! LinkBrowser.open(Launcher.LOGS_DIR.toString()))
+			new Thread()
 			{
-				log.warn("Unable to open logs");
-			}
+				public void run()
+				{
+					LinkBrowser.open(Launcher.LOGS_DIR.toString());
+				}
+			}.start();
 		});
 		addButton("Get help on Discord", () -> LinkBrowser.browse(LauncherProperties.getDiscordInvite()));
 		addButton("Troubleshooting steps", () -> LinkBrowser.browse(LauncherProperties.getTroubleshootingLink()));
