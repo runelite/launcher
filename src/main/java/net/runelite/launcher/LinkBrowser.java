@@ -79,7 +79,7 @@ public class LinkBrowser
          * The Linux Snap client in particular may block for up to five minutes using this call.
          * If the return values are not important to you, consider calling this method in its own thread.
 	 * @param directory directory to open
-	 * @return true if operation was correctly sent to the OS.
+	 * @return true if operation was successful
 	 */
 	public static boolean open(final String directory)
 	{
