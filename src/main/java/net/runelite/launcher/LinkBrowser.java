@@ -43,7 +43,6 @@ import lombok.extern.slf4j.Slf4j;
 public class LinkBrowser
 {
 	private static boolean shouldAttemptXdg = OS.getOs() == OS.OSType.Linux;
-	private static boolean isSnapClient = ! Strings.isNullOrEmpty(System.getenv("SNAP"));
 
 	/**
 	 * Tries to navigate to specified URL in browser. In case operation fails, displays message box with message
@@ -76,29 +75,17 @@ public class LinkBrowser
 
 	/**
 	 * Tries to open a directory in the OS native file manager.
+         * THIS METHOD MAY BLOCK FOR A SUBSTANTIAL AMOUNT OF TIME.
+         * The Linux Snap client in particular may block for up to five minutes using this call.
+         * If the return values are not important to you, consider calling this method in its own thread.
 	 * @param directory directory to open
-	 * @return true if operation was correctly sent to the OS, not necessarily true for whether the OS actually opened the directory (E.G, Snap)
+	 * @return true if operation was correctly sent to the OS.
 	 */
 	public static boolean open(final String directory)
 	{
 		if (Strings.isNullOrEmpty(directory))
 		{
 			return false;
-		}
-
-		//Snap specific workaround to prevent thread blocking on attempts to open folders.
-		if (isSnapClient)
-		{
-			try
-			{
-				Runtime.getRuntime().exec(new String[]{"xdg-open", directory});
-				log.debug("Attempted to open directory with snap workaround to {}", directory);
-			}
-			catch (IOException e)
-			{
-				log.warn("Snap specific error handling xdg-open {}", directory, e);
-			}
-			return true;
 		}
 
 		if (attemptDesktopOpen(directory))
