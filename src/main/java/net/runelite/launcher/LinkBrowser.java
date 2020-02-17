@@ -100,6 +100,7 @@ public class LinkBrowser
 				return;
 			}
 			log.warn("LinkBrowser.open() could not open {}", directory);
+			showMessageBox("Unable to open folder. Press 'OK' and the folder directory will be copied to your clipboard.", url);
 		}).start();
 	}
 
