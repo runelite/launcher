@@ -69,6 +69,7 @@ public class LinkBrowser
 				log.debug("Opened directory through xdg-open to {}", url);
 				return;
 			}
+
 			log.warn("LinkBrowser.browse() could not open {}", url);
 			showMessageBox("Unable to open link. Press 'OK' and the link will be copied to your clipboard.", url);
 		}).start();
@@ -99,6 +100,7 @@ public class LinkBrowser
 				log.debug("Opened directory through xdg-open to {}", directory);
 				return;
 			}
+
 			log.warn("LinkBrowser.open() could not open {}", directory);
 			showMessageBox("Unable to open folder. Press 'OK' and the folder directory will be copied to your clipboard.", directory);
 		}).start();
