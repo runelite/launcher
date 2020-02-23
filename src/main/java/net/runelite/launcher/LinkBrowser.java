@@ -60,13 +60,13 @@ public class LinkBrowser
 
 			if (attemptDesktopBrowse(url))
 			{
-				log.debug("Opened directory through Desktop#browse to {}", url);
+				log.debug("Opened url through Desktop#browse to {}", url);
 				return;
 			}
 
 			if (shouldAttemptXdg && attemptXdgOpen(url))
 			{
-				log.debug("Opened directory through xdg-open to {}", url);
+				log.debug("Opened url through xdg-open to {}", url);
 				return;
 			}
 
@@ -156,7 +156,7 @@ public class LinkBrowser
 		}
 		catch (IOException | URISyntaxException ex)
 		{
-			log.warn("Failed to open Desktop#browser {}", url, ex);
+			log.warn("Failed to open Desktop#browse {}", url, ex);
 			return false;
 		}
 	}
