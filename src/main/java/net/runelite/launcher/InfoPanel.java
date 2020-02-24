@@ -138,9 +138,6 @@ class InfoPanel extends JPanel
 		c.gridy++;
 	}
 
-
-
-
 	private static String getLatestLauncher()
 	{
 		try
