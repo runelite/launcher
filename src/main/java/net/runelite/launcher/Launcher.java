@@ -253,7 +253,7 @@ public class Launcher
 			if (!checkVersion(bootstrap))
 			{
 				log.error("launcher version too low");
-				OpenOSRSSplashScreen.setError("Launcher to old!", "The launcher you're using is oudated. Please download a newer version on openosrs.com");
+				OpenOSRSSplashScreen.setError("Launcher too old!", "The launcher you're using is oudated. Please download a newer version on openosrs.com");
 				return;
 			}
 
