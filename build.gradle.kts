@@ -7,13 +7,13 @@ buildscript {
         gradlePluginPortal()
     }
     dependencies {
-        classpath("com.github.ben-manes:gradle-versions-plugin:0.27.0")
+        classpath("com.github.ben-manes:gradle-versions-plugin:0.28.0")
     }
 }
 
 plugins {
     id("com.github.johnrengelman.shadow") version "5.2.0"
-    id("com.github.ben-manes.versions") version "0.27.0"
+    id("com.github.ben-manes.versions") version "0.28.0"
     id("se.patrikerdes.use-latest-versions") version "0.2.13"
 
     java
