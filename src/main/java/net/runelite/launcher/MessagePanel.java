@@ -87,7 +87,7 @@ class MessagePanel extends JPanel
 		c.gridy++;
 
 		// alternate message action
-		messageArea = messageArea("Open-source client for Old School RuneScape with more functionality and less restrictions.");
+		messageArea = messageArea("Open-source client for Old School RuneScape with more functionality and fewer restrictions.");
 
 		scrollPane = new JScrollPane(messageArea, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 		scrollPane.setBorder(new EmptyBorder(0, 0, 0, 0));
