@@ -34,9 +34,9 @@ import com.google.common.io.ByteStreams;
 import com.google.common.io.Files;
 import com.google.gson.Gson;
 import com.vdurmont.semver4j.Semver;
-import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -51,6 +51,7 @@ import java.util.Collection;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -71,13 +72,12 @@ public class Launcher
 	private static final File LOGS_DIR = new File(RUNELITE_DIR, "logs");
 	private static final File REPO_DIR = new File(RUNELITE_DIR, "repository2");
 	private static final File CRASH_FILES = new File(LOGS_DIR, "jvm_crash_pid_%p.log");
-	static final String LAUNCHER_BUILD = "https://raw.githubusercontent.com/open-osrs/launcher/master/build.gradle";
+	static final String LAUNCHER_BUILD = "https://raw.githubusercontent.com/open-osrs/launcher/master/build.gradle.kts";
 	private static final String CLIENT_BOOTSTRAP_STAGING_URL = "https://raw.githubusercontent.com/open-osrs/hosting/master/bootstrap-staging.json";
 	private static final String CLIENT_BOOTSTRAP_STABLE_URL = "https://raw.githubusercontent.com/open-osrs/hosting/master/bootstrap-stable.json";
 	private static final String CLIENT_BOOTSTRAP_NIGHTLY_URL = "https://raw.githubusercontent.com/open-osrs/hosting/master/bootstrap-nightly.json";
 	static final String USER_AGENT = "OpenOSRS/" + LauncherProperties.getVersion();
 	private static final boolean enforceDependencyHashing = true;
-	private final static String NIGHTLY_DISABLED_URL = "https://raw.githubusercontent.com/open-osrs/hosting/master/nighlty.disable";
 	private static boolean nightly = false;
 	private static boolean staging = false;
 	private static boolean stable = false;
@@ -86,6 +86,20 @@ public class Launcher
 
 	public static void main(String[] args)
 	{
+		Properties prop = new Properties();
+
+		try
+		{
+			prop.load(new FileInputStream(new File(RUNELITE_DIR, "runeliteplus.properties")));
+		}
+		catch (IOException ignored)
+		{
+		}
+
+		boolean askmode = Optional.ofNullable(prop.getProperty("openosrs.askMode")).map(Boolean::valueOf).orElse(true);
+		String bootstrapMode = prop.getProperty("openosrs.bootstrapMode");
+		boolean disableHw = Boolean.parseBoolean(prop.getProperty("openosrs.disableHw"));
+
 		OptionParser parser = new OptionParser();
 		parser.accepts("clientargs").withRequiredArg();
 		parser.accepts("nojvm");
@@ -95,18 +109,26 @@ public class Launcher
 		parser.accepts("stable");
 
 		HardwareAccelerationMode defaultMode;
-		switch (OS.getOs())
+
+		if (disableHw)
 		{
-			case Windows:
-				defaultMode = HardwareAccelerationMode.DIRECTDRAW;
-				break;
-			case MacOS:
-				defaultMode = HardwareAccelerationMode.OPENGL;
-				break;
-			case Linux:
-			default:
-				defaultMode = HardwareAccelerationMode.OFF;
-				break;
+			defaultMode = HardwareAccelerationMode.OFF;
+		}
+		else
+		{
+			switch (OS.getOs())
+			{
+				case Windows:
+					defaultMode = HardwareAccelerationMode.DIRECTDRAW;
+					break;
+				case MacOS:
+					defaultMode = HardwareAccelerationMode.OPENGL;
+					break;
+				case Linux:
+				default:
+					defaultMode = HardwareAccelerationMode.OFF;
+					break;
+			}
 		}
 
 		// Create typed argument for the hardware acceleration mode
@@ -120,6 +142,20 @@ public class Launcher
 		nightly = options.has("nightly");
 		staging = options.has("staging");
 		stable = options.has("stable");
+
+		if (!askmode)
+		{
+			if (bootstrapMode.equals("STABLE"))
+			{
+				stable = true;
+			}
+			else if (bootstrapMode.equals("NIGHTLY"))
+			{
+				nightly = true;
+			}
+		}
+
+		// staging = true;
 
 		LOGS_DIR.mkdirs();
 
@@ -142,7 +178,7 @@ public class Launcher
 				buttons.get(0).addActionListener(e -> {
 					stable = true;
 					OpenOSRSSplashScreen.close();
-					Runnable task = () -> launch(mode, options);
+					Runnable task = () -> launch(mode, options, prop);
 					Thread thread = new Thread(task);
 					thread.start();
 				});
@@ -150,7 +186,7 @@ public class Launcher
 				buttons.get(1).addActionListener(e -> {
 					nightly = true;
 					OpenOSRSSplashScreen.close();
-					Runnable task = () -> launch(mode, options);
+					Runnable task = () -> launch(mode, options, prop);
 					Thread thread = new Thread(task);
 					thread.start();
 				});
@@ -158,11 +194,11 @@ public class Launcher
 		}
 		else
 		{
-			launch(mode, options);
+			launch(mode, options, prop);
 		}
 	}
 
-	private static void launch(ArgumentAcceptingOptionSpec<HardwareAccelerationMode> mode, OptionSet options)
+	private static void launch(ArgumentAcceptingOptionSpec<HardwareAccelerationMode> mode, OptionSet options, Properties prop)
 	{
 		try
 		{
@@ -235,7 +271,7 @@ public class Launcher
 				log.warn("Unable to parse bootstrap version", e);
 			}
 
-			boolean nojvm = "true".equals(System.getProperty("runelite.launcher.nojvm")) || "true".equals(System.getProperty("openosrs.launcher.nojvm"));
+			boolean nojvm = Boolean.parseBoolean(prop.getProperty("openosrs.noJvm")) || "true".equals(System.getProperty("runelite.launcher.nojvm")) || "true".equals(System.getProperty("openosrs.launcher.nojvm"));
 
 			if (launcherTooOld || (nojvm && jvmTooOld))
 			{
@@ -253,7 +289,7 @@ public class Launcher
 			if (!checkVersion(bootstrap))
 			{
 				log.error("launcher version too low");
-				OpenOSRSSplashScreen.setError("Launcher to old!", "The launcher you're using is oudated. Please download a newer version on openosrs.com");
+				OpenOSRSSplashScreen.setError("Launcher too old!", "The launcher you're using is oudated. Please download a newer version on openosrs.com");
 				return;
 			}
 
@@ -297,6 +333,11 @@ public class Launcher
 			if (log.isDebugEnabled())
 			{
 				clientArgs.add("--debug");
+			}
+
+			if (Boolean.parseBoolean(prop.getProperty("openosrs.useProxy")))
+			{
+				clientArgs.add("--proxy " + prop.getProperty("openosrs.proxyDetails"));
 			}
 
 			OpenOSRSSplashScreen.stage(.90, "Starting the client");
@@ -361,39 +402,6 @@ public class Launcher
 			final String[] split = param.replace("-D", "").split("=");
 			System.setProperty(split[0], split[1]);
 		}
-	}
-
-	private static boolean nightlyDisabled()
-	{
-		boolean disabled = true;
-
-		try
-		{
-			URL u = new URL(NIGHTLY_DISABLED_URL);
-
-			URLConnection conn = u.openConnection();
-
-			conn.setRequestProperty("User-Agent", USER_AGENT);
-
-			try (InputStream i = conn.getInputStream())
-			{
-				byte[] bytes = ByteStreams.toByteArray(i);
-
-				BufferedReader in = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(bytes)));
-
-				String line;
-				if ((line = in.readLine()) != null)
-				{
-					disabled = Boolean.parseBoolean(line);
-				}
-				in.close();
-			}
-		}
-		catch (IOException ignored)
-		{
-		}
-
-		return false;
 	}
 
 	private static Bootstrap getBootstrap() throws IOException
