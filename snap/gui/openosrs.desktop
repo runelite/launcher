@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=OpenOSRS
+Comment=Open-source OldSchool RuneScape client with more functionality and less restrictions
+Exec=openosrs
+Icon=${SNAP}/meta/gui/openosrs.png
+Type=Application
+Categories=Game;
+StartupNotify=false
+Keywords=rs;osrs;old;school;runescape
