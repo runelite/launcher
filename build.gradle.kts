@@ -125,7 +125,7 @@ tasks {
     }
 
     shadowJar {
-        archiveClassifier.set("shaded")
+        archiveName = "OpenOSRS-shaded.jar"
         exclude("net/runelite/injector/**")
     }
 
