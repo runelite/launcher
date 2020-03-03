@@ -103,6 +103,7 @@ public class Launcher
 		OptionParser parser = new OptionParser();
 		parser.accepts("clientargs").withRequiredArg();
 		parser.accepts("nojvm");
+		parser.accepts("forcejvm");
 		parser.accepts("debug");
 		parser.accepts("nightly");
 		parser.accepts("staging");
@@ -139,10 +140,6 @@ public class Launcher
 
 		OptionSet options = parser.parse(args);
 
-		nightly = options.has("nightly");
-		staging = options.has("staging");
-		stable = options.has("stable");
-
 		if (!askmode)
 		{
 			if (bootstrapMode.equals("STABLE"))
@@ -155,7 +152,9 @@ public class Launcher
 			}
 		}
 
-		// staging = true;
+		nightly |= options.has("nightly");
+		staging = options.has("staging");
+		stable |= options.has("stable");
 
 		LOGS_DIR.mkdirs();
 
@@ -344,7 +343,7 @@ public class Launcher
 			OpenOSRSSplashScreen.close();
 
 			// packr doesn't let us specify command line arguments
-			if (nojvm || options.has("nojvm"))
+			if (!options.has("forcejvm") && nojvm || options.has("nojvm"))
 			{
 				try
 				{
