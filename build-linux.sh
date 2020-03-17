@@ -6,6 +6,13 @@ JDK_VER="11.0.4"
 JDK_BUILD="11"
 PACKR_VERSION="runelite-1.0"
 
+# Check if there's a client jar file - If there's no file the AppImage will not work but will still be built.
+if ! [ -e build/libs/OpenOSRS-shaded.jar ]
+then
+  echo "build/libs/OpenOSRS-shaded.jar not found, exiting"
+  exit 1
+fi
+
 if ! [ -f OpenJDK11U-jre_x64_linux_hotspot_${JDK_VER}_${JDK_BUILD}.tar.gz ] ; then
     curl -Lo OpenJDK11U-jre_x64_linux_hotspot_${JDK_VER}_${JDK_BUILD}.tar.gz \
         https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-${JDK_VER}%2B${JDK_BUILD}/OpenJDK11U-jre_x64_linux_hotspot_${JDK_VER}_${JDK_BUILD}.tar.gz
