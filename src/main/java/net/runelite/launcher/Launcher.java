@@ -247,7 +247,7 @@ public class Launcher
 			catch (IOException ex)
 			{
 				log.error("error fetching bootstrap", ex);
-				OpenOSRSSplashScreen.setError("Error while downloading the bootstrap!", "Please check your internet connection and your DNS settings.");
+				OpenOSRSSplashScreen.setError("Error while downloading the bootstrap!", "You have encountered an issue, please check your log files for a more detailed error message.");
 				return;
 			}
 
@@ -274,7 +274,7 @@ public class Launcher
 
 			if (launcherTooOld || (nojvm && jvmTooOld))
 			{
-				OpenOSRSSplashScreen.setError("Error while downloading the client!", "Please check your internet connection and your DNS settings.");
+				OpenOSRSSplashScreen.setError("Error while downloading the client!", "You have encountered an issue, please check your log files for a more detailed error message.");
 				return;
 			}
 			if (jvmTooOld)
@@ -288,7 +288,7 @@ public class Launcher
 			if (!checkVersion(bootstrap))
 			{
 				log.error("launcher version too low");
-				OpenOSRSSplashScreen.setError("Launcher too old!", "The launcher you're using is oudated. Please download a newer version on openosrs.com");
+				OpenOSRSSplashScreen.setError("Your launcher is outdated!", "The launcher you're using is oudated. Please either download a newer version from openosrs.com or by clicking the update button on the right hand side.");
 				return;
 			}
 
@@ -307,7 +307,7 @@ public class Launcher
 			catch (IOException ex)
 			{
 				log.error("unable to download artifacts", ex);
-				OpenOSRSSplashScreen.setError("Error while downloading the client!", "Please check your internet connection and your DNS settings.");
+				OpenOSRSSplashScreen.setError("Error while downloading the client!", "You have encountered an issue, please check your log files for a more detailed error message.");
 				return;
 			}
 
@@ -323,7 +323,7 @@ public class Launcher
 			catch (VerificationException ex)
 			{
 				log.error("Unable to verify artifacts", ex);
-				OpenOSRSSplashScreen.setError("Error while verifying downloaded files!", "Please check your internet connection and your DNS settings.");
+				OpenOSRSSplashScreen.setError("Error while verifying downloaded files!", "You have encountered an issue, please check your log files for a more detailed error message.");
 				return;
 			}
 
@@ -370,14 +370,14 @@ public class Launcher
 		catch (Exception e)
 		{
 			log.error("Failure during startup", e);
-			OpenOSRSSplashScreen.setError("OpenOSRS has encountered an unexpected error during startup!", "Please check your internet connection and your DNS settings.");
+			OpenOSRSSplashScreen.setError("OpenOSRS has encountered an unexpected error during startup!", "You have encountered an issue, please check your log files for a more detailed error message.");
 
 		}
 		catch (Error e)
 		{
 			// packr seems to eat exceptions thrown out of main, so at least try to log it
 			log.error("Failure during startup", e);
-			OpenOSRSSplashScreen.setError("OpenOSRS has encountered an unexpected error during startup!", "Please check your internet connection and your DNS settings.");
+			OpenOSRSSplashScreen.setError("OpenOSRS has encountered an unexpected error during startup!", "You have encountered an issue, please check your log files for a more detailed error message.");
 
 			throw e;
 		}
