@@ -24,9 +24,11 @@ if ! [ -d osx-jdk ] ; then
     mkdir osx-jdk
     mv jdk-11.0.4+11-jre osx-jdk/jre
 
-    # Move JRE out of Contents/Home/
     pushd osx-jdk/jre
-    cp -r Contents/Home/* .
+    # Move JRE out of Contents/Home/
+    mv Contents/Home/* .
+    # Remove unused leftover folders
+    rm -rf Contents
     popd
 fi
 
