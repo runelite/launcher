@@ -52,11 +52,13 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.security.Signature;
 import java.security.SignatureException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -72,6 +74,10 @@ import java.util.function.IntConsumer;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 import javax.swing.SwingUtilities;
 import joptsimple.ArgumentAcceptingOptionSpec;
 import joptsimple.OptionParser;
@@ -102,6 +108,7 @@ public class Launcher
 		parser.accepts("nojvm");
 		parser.accepts("debug");
 		parser.accepts("nodiff");
+		parser.accepts("insecure-skip-tls-verification");
 
 		HardwareAccelerationMode defaultMode;
 		switch (OS.getOs())
@@ -127,6 +134,7 @@ public class Launcher
 		OptionSet options = parser.parse(args);
 
 		final boolean nodiff = options.has("nodiff");
+		final boolean insecureSkipTlsVerification = options.has("insecure-skip-tls-verification");
 
 		// Setup debug
 		final boolean isDebug = options.has("debug");
@@ -148,6 +156,7 @@ public class Launcher
 			// Print out system info
 			if (log.isDebugEnabled())
 			{
+				log.debug("Command line arguments: {}", String.join(" ", args));
 				log.debug("Java Environment:");
 				final Properties p = System.getProperties();
 				final Enumeration keys = p.keys();
@@ -174,12 +183,44 @@ public class Launcher
 			// Stream launcher version
 			extraJvmParams.add("-D" + LauncherProperties.getVersionKey() + "=" + LauncherProperties.getVersion());
 
+			if (insecureSkipTlsVerification)
+			{
+				extraJvmParams.add("-Drunelite.insecure-skip-tls-verification=true");
+			}
+
 			// Set all JVM params
 			setJvmParams(extraJvmParams);
 
 			// Set hs_err_pid location (do this after setJvmParams because it can't be set at runtime)
 			log.debug("Setting JVM crash log location to {}", CRASH_FILES);
 			extraJvmParams.add("-XX:ErrorFile=" + CRASH_FILES.getAbsolutePath());
+
+			if (insecureSkipTlsVerification)
+			{
+				TrustManager trustManager = new X509TrustManager()
+				{
+					@Override
+					public void checkClientTrusted(X509Certificate[] chain, String authType)
+					{
+					}
+
+					@Override
+					public void checkServerTrusted(X509Certificate[] chain, String authType)
+					{
+					}
+
+					@Override
+					public X509Certificate[] getAcceptedIssuers()
+					{
+						return null;
+					}
+				};
+
+				SSLContext sc = SSLContext.getInstance("SSL");
+				sc.init(null, new TrustManager[]{trustManager}, new SecureRandom());
+				HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+				HttpsURLConnection.setDefaultHostnameVerifier((hostname, session) -> true);
+			}
 
 			SplashScreen.stage(.05, null, "Downloading bootstrap");
 			Bootstrap bootstrap;
