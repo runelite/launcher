@@ -95,11 +95,7 @@ public class Launcher
 	public static final File LOGS_DIR = new File(RUNELITE_DIR, "logs");
 	private static final File REPO_DIR = new File(RUNELITE_DIR, "repository2");
 	public static final File CRASH_FILES = new File(LOGS_DIR, "jvm_crash_pid_%p.log");
-	private static final String CLIENT_BOOTSTRAP_URL = "https://static.runelite.net/bootstrap.json";
-	private static final String CLIENT_BOOTSTRAP_SHA256_URL = "https://static.runelite.net/bootstrap.json.sha256";
 	private static final String USER_AGENT = "RuneLite/" + LauncherProperties.getVersion();
-
-	static final String CLIENT_MAIN_CLASS = "net.runelite.client.RuneLite";
 
 	public static void main(String[] args)
 	{
@@ -374,8 +370,8 @@ public class Launcher
 
 	private static Bootstrap getBootstrap() throws IOException, CertificateException, NoSuchAlgorithmException, InvalidKeyException, SignatureException, VerificationException
 	{
-		URL u = new URL(CLIENT_BOOTSTRAP_URL);
-		URL signatureUrl = new URL(CLIENT_BOOTSTRAP_SHA256_URL);
+		URL u = new URL(LauncherProperties.getBootstrap());
+		URL signatureUrl = new URL(LauncherProperties.getBootstrapSig());
 
 		URLConnection conn = u.openConnection();
 		URLConnection signatureConn = signatureUrl.openConnection();

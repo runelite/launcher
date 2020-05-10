@@ -33,7 +33,6 @@ import java.util.Collection;
 import java.util.List;
 import javax.swing.UIManager;
 import lombok.extern.slf4j.Slf4j;
-import static net.runelite.launcher.Launcher.CLIENT_MAIN_CLASS;
 
 @Slf4j
 class ReflectionLauncher
@@ -58,7 +57,7 @@ class ReflectionLauncher
 			{
 				try
 				{
-					Class<?> mainClass = loader.loadClass(CLIENT_MAIN_CLASS);
+					Class<?> mainClass = loader.loadClass(LauncherProperties.getMain());
 
 					Method main = mainClass.getMethod("main", String[].class);
 					main.invoke(null, (Object) clientArgs.toArray(new String[0]));

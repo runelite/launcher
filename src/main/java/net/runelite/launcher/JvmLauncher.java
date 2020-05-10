@@ -37,7 +37,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
-import static net.runelite.launcher.Launcher.CLIENT_MAIN_CLASS;
 import net.runelite.launcher.beans.Bootstrap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -119,7 +118,7 @@ class JvmLauncher
 		arguments.addAll(Arrays.asList(jvmArguments));
 		arguments.addAll(extraJvmParams);
 
-		arguments.add(CLIENT_MAIN_CLASS);
+		arguments.add(LauncherProperties.getMain());
 		arguments.addAll(clientArgs);
 
 		logger.info("Running {}", arguments);
