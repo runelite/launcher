@@ -49,30 +49,30 @@
 	<distributionManagement>
 		<repository>
 			<id>runelite</id>
-			<url>dav:http://repo.runelite.net</url>
+			<url>dav:https://repo.runelite.net</url>
 		</repository>
 	</distributionManagement>
 
 	<repositories>
 		<repository>
 			<id>central</id>
-			<url>https://repo1.maven.org/maven2</url>
+			<url>https://repo.maven.apache.org/maven2</url>
 		</repository>
 		<repository>
 			<id>runelite</id>
 			<name>RuneLite</name>
-			<url>http://repo.runelite.net</url>
+			<url>https://repo.runelite.net</url>
 		</repository>
 	</repositories>
 
 	<pluginRepositories>
 		<pluginRepository>
 			<id>central</id>
-			<url>https://repo1.maven.org/maven2</url>
+			<url>https://repo.maven.apache.org/maven2</url>
 		</pluginRepository>
 		<pluginRepository>
 			<id>runelite</id>
-			<url>http://repo.runelite.net</url>
+			<url>https://repo.runelite.net</url>
 		</pluginRepository>
 	</pluginRepositories>
 
