@@ -2,23 +2,24 @@
 
 set -e
 
-JDK_VER="11.0.4"
-JDK_BUILD="11"
+JDK_VER="11.0.7"
+JDK_BUILD="10"
 PACKR_VERSION="runelite-1.0"
+APPIMAGE_VERSION="12"
 
 if ! [ -f OpenJDK11U-jre_x64_linux_hotspot_${JDK_VER}_${JDK_BUILD}.tar.gz ] ; then
     curl -Lo OpenJDK11U-jre_x64_linux_hotspot_${JDK_VER}_${JDK_BUILD}.tar.gz \
         https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-${JDK_VER}%2B${JDK_BUILD}/OpenJDK11U-jre_x64_linux_hotspot_${JDK_VER}_${JDK_BUILD}.tar.gz
 fi
 
-echo "70d2cc675155476f1d8516a7ae6729d44681e4fad5a6fc8dfa65cab36a67b7e0 OpenJDK11U-jre_x64_linux_hotspot_${JDK_VER}_${JDK_BUILD}.tar.gz" | sha256sum -c
+echo "74b493dd8a884dcbee29682ead51b182d9d3e52b40c3d4cbb3167c2fd0063503 OpenJDK11U-jre_x64_linux_hotspot_${JDK_VER}_${JDK_BUILD}.tar.gz" | sha256sum -c
 
 # packr requires a "jdk" and pulls the jre from it - so we have to place it inside
 # the jdk folder at jre/
 if ! [ -d linux-jdk ] ; then
     tar zxf OpenJDK11U-jre_x64_linux_hotspot_${JDK_VER}_${JDK_BUILD}.tar.gz
     mkdir linux-jdk
-    mv jdk-11.0.4+11-jre linux-jdk/jre
+    mv jdk-$JDK_VER+$JDK_BUILD-jre linux-jdk/jre
 fi
 
 if ! [ -f packr_${PACKR_VERSION}.jar ] ; then
@@ -60,6 +61,14 @@ popd
 pushd native-linux/RuneLite.AppDir/
 ln -s RuneLite AppRun
 popd
+
+if ! [ -f appimagetool-x86_64.AppImage ] ; then
+    curl -Lo appimagetool-x86_64.AppImage \
+        https://github.com/AppImage/AppImageKit/releases/download/$APPIMAGE_VERSION/appimagetool-x86_64.AppImage
+    chmod +x appimagetool-x86_64.AppImage
+fi
+
+echo "d918b4df547b388ef253f3c9e7f6529ca81a885395c31f619d9aaf7030499a13  appimagetool-x86_64.AppImage" | sha256sum -c
 
 ./appimagetool-x86_64.AppImage \
 	native-linux/RuneLite.AppDir/ \
