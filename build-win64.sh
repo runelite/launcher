@@ -2,23 +2,24 @@
 
 set -e
 
-JDK_VER="11.0.4"
-JDK_BUILD="11"
+JDK_VER="11.0.7"
+JDK_BUILD="10.2"
+JDK_BUILD_SHORT="10"
 PACKR_VERSION="runelite-1.0"
 
 if ! [ -f OpenJDK11U-jre_x64_windows_hotspot_${JDK_VER}_${JDK_BUILD}.zip ] ; then
     curl -Lo OpenJDK11U-jre_x64_windows_hotspot_${JDK_VER}_${JDK_BUILD}.zip \
-        https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-${JDK_VER}%2B${JDK_BUILD}/OpenJDK11U-jre_x64_windows_hotspot_${JDK_VER}_${JDK_BUILD}.zip
+        https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-${JDK_VER}%2B${JDK_BUILD}/OpenJDK11U-jre_x64_windows_hotspot_${JDK_VER}_${JDK_BUILD_SHORT}.zip
 fi
 
-echo "be88c679fd24194bee71237f92f7a2a71c88f71a853a56a7c05742b0e158c1be OpenJDK11U-jre_x64_windows_hotspot_${JDK_VER}_${JDK_BUILD}.zip" | sha256sum -c
+echo "22d873b52f7915afc132c568e61afa00fcec155184361f1dc0a6766ff1ecbcc7 OpenJDK11U-jre_x64_windows_hotspot_${JDK_VER}_${JDK_BUILD}.zip" | sha256sum -c
 
 # packr requires a "jdk" and pulls the jre from it - so we have to place it inside
 # the jdk folder at jre/
 if ! [ -d win64-jdk ] ; then
     unzip OpenJDK11U-jre_x64_windows_hotspot_${JDK_VER}_${JDK_BUILD}.zip
     mkdir win64-jdk
-    mv jdk-11.0.4+11-jre win64-jdk/jre
+    mv jdk-$JDK_VER+$JDK_BUILD_SHORT-jre win64-jdk/jre
 fi
 
 if ! [ -f packr_${PACKR_VERSION}.jar ] ; then
