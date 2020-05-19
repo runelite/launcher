@@ -103,18 +103,7 @@ class JvmLauncher
 		arguments.add("-cp");
 		arguments.add(classPath.toString());
 
-		String[] jvmArguments;
-		String jvmVersion = System.getProperty("java.version");
-		if (jvmVersion.startsWith("1."))
-		{
-			logger.info("Using Java version 1.x");
-			jvmArguments = bootstrap.getClientJvmArguments();
-		}
-		else
-		{
-			logger.info("Using Java version 9+");
-			jvmArguments = bootstrap.getClientJvm9Arguments();
-		}
+		String[] jvmArguments = bootstrap.getClientJvm9Arguments();
 		arguments.addAll(Arrays.asList(jvmArguments));
 		arguments.addAll(extraJvmParams);
 
