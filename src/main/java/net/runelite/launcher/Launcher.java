@@ -62,6 +62,7 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -272,8 +273,9 @@ public class Launcher
 				return;
 			}
 
-			// update packr vmargs
-			PackrConfig.updateLauncherArgs(bootstrap, extraJvmParams);
+			// update packr vmargs. The only extra vmargs we need to write to disk are the ones which cannot be set
+			// at runtime, which currently is just the vm errorfile.
+			PackrConfig.updateLauncherArgs(bootstrap, Collections.singleton("-XX:ErrorFile=" + CRASH_FILES.getAbsolutePath()));
 
 			REPO_DIR.mkdirs();
 
