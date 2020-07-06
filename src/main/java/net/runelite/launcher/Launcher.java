@@ -108,6 +108,11 @@ public class Launcher
 		parser.accepts("nodiff");
 		parser.accepts("insecure-skip-tls-verification");
 
+		if (OS.getOs() == OS.OSType.MacOS)
+		{
+			parser.accepts("psn").withRequiredArg();
+		}
+
 		HardwareAccelerationMode defaultMode;
 		switch (OS.getOs())
 		{
