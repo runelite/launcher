@@ -81,6 +81,7 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 import javax.swing.SwingUtilities;
 import joptsimple.ArgumentAcceptingOptionSpec;
+import joptsimple.OptionException;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 import lombok.extern.slf4j.Slf4j;
@@ -128,7 +129,16 @@ public class Launcher
 			.ofType(HardwareAccelerationMode.class)
 			.defaultsTo(defaultMode);
 
-		OptionSet options = parser.parse(args);
+		OptionSet options;
+		try
+		{
+			options = parser.parse(args);
+		}
+		catch (OptionException ex)
+		{
+			log.error("unable to parse arguments", ex);
+			throw ex;
+		}
 
 		final boolean nodiff = options.has("nodiff");
 		final boolean insecureSkipTlsVerification = options.has("insecure-skip-tls-verification");
