@@ -2,7 +2,7 @@
 
 set -e
 
-JDK_VER="11.0.7"
+JDK_VER="11.0.8"
 JDK_BUILD="10"
 PACKR_VERSION="runelite-1.0"
 APPIMAGE_VERSION="12"
@@ -12,7 +12,7 @@ if ! [ -f OpenJDK11U-jre_x64_linux_hotspot_${JDK_VER}_${JDK_BUILD}.tar.gz ] ; th
         https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-${JDK_VER}%2B${JDK_BUILD}/OpenJDK11U-jre_x64_linux_hotspot_${JDK_VER}_${JDK_BUILD}.tar.gz
 fi
 
-echo "74b493dd8a884dcbee29682ead51b182d9d3e52b40c3d4cbb3167c2fd0063503 OpenJDK11U-jre_x64_linux_hotspot_${JDK_VER}_${JDK_BUILD}.tar.gz" | sha256sum -c
+echo "98615b1b369509965a612232622d39b5cefe117d6189179cbad4dcef2ee2f4e1 OpenJDK11U-jre_x64_linux_hotspot_${JDK_VER}_${JDK_BUILD}.tar.gz" | sha256sum -c
 
 # packr requires a "jdk" and pulls the jre from it - so we have to place it inside
 # the jdk folder at jre/

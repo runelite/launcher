@@ -2,7 +2,7 @@
 
 set -e
 
-JDK_VER="11.0.7"
+JDK_VER="11.0.8"
 JDK_BUILD="10"
 PACKR_VERSION="runelite-1.0"
 
@@ -15,7 +15,7 @@ if ! [ -f OpenJDK11U-jre_x64_mac_hotspot_${JDK_VER}_${JDK_BUILD}.tar.gz ] ; then
         https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-${JDK_VER}%2B${JDK_BUILD}/OpenJDK11U-jre_x64_mac_hotspot_${JDK_VER}_${JDK_BUILD}.tar.gz
 fi
 
-echo "931a81f4bed38c48b364db57d4ebdd6e4b4ea1466e9bd0eaf8e0f1e47c4569e9  OpenJDK11U-jre_x64_mac_hotspot_${JDK_VER}_${JDK_BUILD}.tar.gz" | shasum -c
+echo "b0cd349e7e428721a3bcfec619e071d25c0397e3e43b7ce22acfd7d834a8ca4b  OpenJDK11U-jre_x64_mac_hotspot_${JDK_VER}_${JDK_BUILD}.tar.gz" | shasum -c
 
 # packr requires a "jdk" and pulls the jre from it - so we have to place it inside
 # the jdk folder at jre/
