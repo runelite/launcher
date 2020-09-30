@@ -30,6 +30,7 @@ parts:
       - libpulse0
       - libasound2
       - libasound2-plugins
+      - gvfs
     override-pull: |
       snapcraftctl pull
       find . -not -name 'RuneLite.jar' -delete
@@ -82,3 +83,4 @@ apps:
     environment:
       _JAVA_OPTIONS: -Duser.home="$SNAP_USER_COMMON"
       ALSA_CONFIG_PATH: "$SNAP/etc/asound.conf"
+      LD_LIBRARY_PATH: "${LD_LIBRARY_PATH}:${SNAP}/usr/lib/x86_64-linux-gnu/gvfs"
