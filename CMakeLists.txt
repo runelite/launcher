@@ -1,7 +1,12 @@
 #
 # project: packr-native
 #
+project(packr)
 cmake_minimum_required(VERSION 2.8)
+
+if(APPLE)
+	set(CMAKE_OSX_ARCHITECTURES "x86_64;arm64")
+endif()
 
 # include the fips main cmake file
 get_filename_component(FIPS_ROOT_DIR "../fips" ABSOLUTE)
