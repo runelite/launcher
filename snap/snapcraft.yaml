@@ -1,5 +1,5 @@
 name: runelite
-base: core18
+base: core20
 title: RuneLite
 version: git
 summary: A popular free, open-source and super fast client for Old School RuneScape
@@ -62,10 +62,6 @@ parts:
 layout:
   /usr/lib/$SNAPCRAFT_ARCH_TRIPLET/alsa-lib:
     bind: $SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/alsa-lib
-  /usr/lib/$SNAPCRAFT_ARCH_TRIPLET/webkit2gtk-4.0:
-    bind: $SNAP/gnome-platform/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/webkit2gtk-4.0
-  /usr/share/xml/iso-codes:
-    bind: $SNAP/gnome-platform/usr/share/xml/iso-codes
 
 apps:
   runelite:
@@ -77,8 +73,9 @@ apps:
       - audio-playback
       - x11
       - opengl
+      - pulseaudio
 
-    extensions: [ gnome-3-28 ]
+    extensions: [ gnome-3-38 ]
     environment:
       _JAVA_OPTIONS: -Duser.home="$SNAP_USER_COMMON"
       ALSA_CONFIG_PATH: "$SNAP/etc/asound.conf"
