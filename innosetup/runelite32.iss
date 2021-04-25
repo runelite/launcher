@@ -29,9 +29,10 @@ Source: "${basedir}\native-win32\RuneLite.exe"; DestDir: "{app}"
 Source: "${basedir}\native-win32\RuneLite.jar"; DestDir: "{app}"
 Source: "${basedir}\native-win32\config.json"; DestDir: "{app}"
 Source: "${basedir}\native-win32\jre\*"; DestDir: "{app}\jre"; Flags: recursesubdirs
-; dependencies of jvm.dll
+; dependencies of jvm.dll and javaaccessbridge.dll
 Source: "${basedir}\native-win32\jre\bin\msvcr120.dll"; DestDir: "{app}"
 Source: "${basedir}\native-win32\jre\bin\msvcp120.dll"; DestDir: "{app}"
+Source: "${basedir}\native-win32\jre\bin\jawt.dll"; DestDir: "{app}"
 
 [Icons]
 ; start menu
