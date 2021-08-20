@@ -74,7 +74,6 @@ apps:
       - audio-playback
       - x11
       - opengl
-      - pulseaudio
 
     extensions: [ gnome-3-38 ]
     environment:
