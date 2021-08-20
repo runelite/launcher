@@ -30,6 +30,7 @@ parts:
       - libpulse0
       - libasound2
       - libasound2-plugins
+      - libnotify-bin
     override-pull: |
       snapcraftctl pull
       find . -not -name 'RuneLite.jar' -delete
