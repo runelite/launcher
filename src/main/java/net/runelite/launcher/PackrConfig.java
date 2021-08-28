@@ -32,6 +32,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.nio.channels.FileChannel;
 import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
@@ -85,17 +86,18 @@ class PackrConfig
 
 		config.put("vmArgs", args);
 
-		File tmpFile = new File("config.json.tmp");
 		try
 		{
-			try (FileOutputStream fout = new FileOutputStream(tmpFile))
+			File tmpFile = File.createTempFile("runelite", null);
+
+			try (FileOutputStream fout = new FileOutputStream(tmpFile);
+				FileChannel channel = fout.getChannel();
+				PrintWriter writer = new PrintWriter(fout))
 			{
-				fout.getChannel().lock();
-				try (PrintWriter writer = new PrintWriter(fout))
-				{
-					writer.write(gson.toJson(config));
-				}
-				// FileOutputStream.close() closes the associated channel, which frees the lock
+				channel.lock();
+				writer.write(gson.toJson(config));
+				channel.force(true);
+				// FileChannel.close() frees the lock
 			}
 
 			try
@@ -111,7 +113,6 @@ class PackrConfig
 		catch (IOException e)
 		{
 			log.warn("error updating packr vm args!", e);
-			tmpFile.delete(); // best effort
 		}
 	}
 
