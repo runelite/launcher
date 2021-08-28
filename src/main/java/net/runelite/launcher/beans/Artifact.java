@@ -34,4 +34,5 @@ public class Artifact
 	private String hash;
 	private int size;
 	private Diff[] diffs;
+	private Platform[] platform;
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018, Adam <Adam@sigterm.info>
+ * Copyright (c) 2021, Adam <Adam@sigterm.info>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -22,53 +22,13 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package net.runelite.launcher;
+package net.runelite.launcher.beans;
 
-import javax.annotation.Nonnull;
-import lombok.extern.slf4j.Slf4j;
+import lombok.Data;
 
-@Slf4j
-public class OS
+@Data
+public class Platform
 {
-	public enum OSType
-	{
-		Windows, MacOS, Linux, Other
-	}
-
-	private static final OSType DETECTED_OS;
-
-	static
-	{
-		final String os = System
-			.getProperty("os.name", "generic")
-			.toLowerCase();
-		DETECTED_OS = parseOs(os);
-		log.debug("Detect OS: {}", DETECTED_OS);
-	}
-
-	static OSType parseOs(@Nonnull String os)
-	{
-		os = os.toLowerCase();
-		if ((os.contains("mac")) || (os.contains("darwin")))
-		{
-			return OSType.MacOS;
-		}
-		else if (os.contains("win"))
-		{
-			return OSType.Windows;
-		}
-		else if (os.contains("linux"))
-		{
-			return OSType.Linux;
-		}
-		else
-		{
-			return OSType.Other;
-		}
-	}
-
-	public static OSType getOs()
-	{
-		return DETECTED_OS;
-	}
+	private String name;
+	private String arch;
 }

@@ -88,6 +88,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.runelite.launcher.beans.Artifact;
 import net.runelite.launcher.beans.Bootstrap;
 import net.runelite.launcher.beans.Diff;
+import net.runelite.launcher.beans.Platform;
 import org.slf4j.LoggerFactory;
 
 @Slf4j
@@ -294,12 +295,42 @@ public class Launcher
 
 			REPO_DIR.mkdirs();
 
+			// Determine artifacts for this OS
+			List<Artifact> artifacts = Arrays.stream(bootstrap.getArtifacts())
+				.filter(a ->
+				{
+					if (a.getPlatform() == null)
+					{
+						return true;
+					}
+
+					final String os = System.getProperty("os.name");
+					final String arch = System.getProperty("os.arch");
+					for (Platform platform : a.getPlatform())
+					{
+						if (platform.getName() == null)
+						{
+							continue;
+						}
+
+						OS.OSType platformOs = OS.parseOs(platform.getName());
+						if ((platformOs == OS.OSType.Other ? platform.getName().equals(os) : platformOs == OS.getOs())
+							&& (platform.getArch() == null || platform.getArch().equals(arch)))
+						{
+							return true;
+						}
+					}
+
+					return false;
+				})
+				.collect(Collectors.toList());
+
 			// Clean out old artifacts from the repository
-			clean(bootstrap.getArtifacts());
+			clean(artifacts);
 
 			try
 			{
-				download(bootstrap, nodiff);
+				download(artifacts, nodiff);
 			}
 			catch (IOException ex)
 			{
@@ -308,14 +339,10 @@ public class Launcher
 				return;
 			}
 
-			List<File> results = Arrays.stream(bootstrap.getArtifacts())
-				.map(dep -> new File(REPO_DIR, dep.getName()))
-				.collect(Collectors.toList());
-
 			SplashScreen.stage(.80, null, "Verifying");
 			try
 			{
-				verifyJarHashes(bootstrap.getArtifacts());
+				verifyJarHashes(artifacts);
 			}
 			catch (VerificationException ex)
 			{
@@ -333,12 +360,16 @@ public class Launcher
 
 			SplashScreen.stage(.90, "Starting the client", "");
 
+			List<File> classpath = artifacts.stream()
+				.map(dep -> new File(REPO_DIR, dep.getName()))
+				.collect(Collectors.toList());
+
 			// packr doesn't let us specify command line arguments
 			if (nojvm || options.has("nojvm"))
 			{
 				try
 				{
-					ReflectionLauncher.launch(results, clientArgs);
+					ReflectionLauncher.launch(classpath, clientArgs);
 				}
 				catch (MalformedURLException ex)
 				{
@@ -349,7 +380,7 @@ public class Launcher
 			{
 				try
 				{
-					JvmLauncher.launch(bootstrap, results, clientArgs, extraJvmParams);
+					JvmLauncher.launch(bootstrap, classpath, clientArgs, extraJvmParams);
 				}
 				catch (IOException ex)
 				{
@@ -429,10 +460,9 @@ public class Launcher
 			: new ArrayList<>();
 	}
 
-	private static void download(Bootstrap bootstrap, boolean nodiff) throws IOException
+	private static void download(List<Artifact> artifacts, boolean nodiff) throws IOException
 	{
-		Artifact[] artifacts = bootstrap.getArtifacts();
-		List<Artifact> toDownload = new ArrayList<>(artifacts.length);
+		List<Artifact> toDownload = new ArrayList<>(artifacts.size());
 		Map<Artifact, Diff> diffs = new HashMap<>();
 		int totalDownloadBytes = 0;
 		final boolean isCompatible = new DefaultDeflateCompatibilityWindow().isCompatible();
@@ -556,7 +586,7 @@ public class Launcher
 		}
 	}
 
-	private static void clean(Artifact[] artifacts)
+	private static void clean(List<Artifact> artifacts)
 	{
 		File[] existingFiles = REPO_DIR.listFiles();
 
@@ -595,7 +625,7 @@ public class Launcher
 		}
 	}
 
-	private static void verifyJarHashes(Artifact[] artifacts) throws VerificationException
+	private static void verifyJarHashes(List<Artifact> artifacts) throws VerificationException
 	{
 		for (Artifact artifact : artifacts)
 		{
