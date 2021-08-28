@@ -754,4 +754,10 @@ public class Launcher
 
 		return byteArrayOutputStream.toByteArray();
 	}
+
+	static boolean isJava17()
+	{
+		// 16 has the same module restrictions as 17, so we'll use the 17 settings for it
+		return Runtime.version().feature() >= 16;
+	}
 }

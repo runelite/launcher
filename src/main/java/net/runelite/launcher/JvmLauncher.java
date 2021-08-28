@@ -103,7 +103,9 @@ class JvmLauncher
 		arguments.add("-cp");
 		arguments.add(classPath.toString());
 
-		String[] jvmArguments = bootstrap.getClientJvm9Arguments();
+		String[] jvmArguments = Launcher.isJava17()
+			? bootstrap.getClientJvm17Arguments()
+			: bootstrap.getClientJvm9Arguments();
 		arguments.addAll(Arrays.asList(jvmArguments));
 		arguments.addAll(extraJvmParams);
 

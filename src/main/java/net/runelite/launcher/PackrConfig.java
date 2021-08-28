@@ -118,21 +118,34 @@ class PackrConfig
 
 	private static String[] getArgs(Bootstrap bootstrap)
 	{
+		return Launcher.isJava17() ? getArgsJvm17(bootstrap) : getArgsJvm11(bootstrap);
+	}
+
+	private static String[] getArgsJvm17(Bootstrap bootstrap)
+	{
 		switch (OS.getOs())
 		{
 			case Windows:
-				if (bootstrap.getLauncherJvm11WindowsArguments() != null)
-				{
-					return bootstrap.getLauncherJvm11WindowsArguments();
-				}
-				return bootstrap.getLauncherJvm11Arguments();
+				String[] args = bootstrap.getLauncherJvm17WindowsArguments();
+				return args != null ? args : bootstrap.getLauncherJvm17Arguments();
 			case MacOS:
-				if (bootstrap.getLauncherJvm11MacArguments() != null)
-				{
-					return bootstrap.getLauncherJvm11MacArguments();
-				}
-				return bootstrap.getLauncherJvm11Arguments();
+				args = bootstrap.getLauncherJvm17MacArguments();
+				return args != null ? args : bootstrap.getLauncherJvm17Arguments();
+			default:
+				return bootstrap.getLauncherJvm17Arguments();
+		}
+	}
 
+	private static String[] getArgsJvm11(Bootstrap bootstrap)
+	{
+		switch (OS.getOs())
+		{
+			case Windows:
+				String[] args = bootstrap.getLauncherJvm11WindowsArguments();
+				return args != null ? args : bootstrap.getLauncherJvm11Arguments();
+			case MacOS:
+				args = bootstrap.getLauncherJvm11MacArguments();
+				return args != null ? args : bootstrap.getLauncherJvm11Arguments();
 			default:
 				return bootstrap.getLauncherJvm11Arguments();
 		}
