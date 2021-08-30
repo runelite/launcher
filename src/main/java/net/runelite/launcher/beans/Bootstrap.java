@@ -29,9 +29,13 @@ import lombok.Data;
 @Data
 public class Bootstrap
 {
-	private String[] clientJvm9Arguments;
-	private String[] clientJvm17Arguments;
 	private Artifact[] artifacts;
+
+	private String[] clientJvm9Arguments;
+
+	private String[] clientJvm17Arguments;
+	private String[] clientJvm17WindowsArguments;
+	private String[] clientJvm17MacArguments;
 
 	private String[] launcherJvm11WindowsArguments;
 	private String[] launcherJvm11MacArguments;

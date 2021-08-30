@@ -103,10 +103,11 @@ class JvmLauncher
 		arguments.add("-cp");
 		arguments.add(classPath.toString());
 
-		String[] jvmArguments = Launcher.isJava17()
-			? bootstrap.getClientJvm17Arguments()
-			: bootstrap.getClientJvm9Arguments();
-		arguments.addAll(Arrays.asList(jvmArguments));
+		String[] jvmArguments = getJvmArguments(bootstrap);
+		if (jvmArguments != null)
+		{
+			arguments.addAll(Arrays.asList(jvmArguments));
+		}
 		arguments.addAll(extraJvmParams);
 
 		arguments.add(LauncherProperties.getMain());
@@ -127,6 +128,28 @@ class JvmLauncher
 			{
 				System.out.println(line);
 			}
+		}
+	}
+
+	private static String[] getJvmArguments(Bootstrap bootstrap)
+	{
+		if (Launcher.isJava17())
+		{
+			switch (OS.getOs())
+			{
+				case Windows:
+					String[] args = bootstrap.getClientJvm17WindowsArguments();
+					return args != null ? args : bootstrap.getClientJvm17Arguments();
+				case MacOS:
+					args = bootstrap.getClientJvm17MacArguments();
+					return args != null ? args : bootstrap.getClientJvm17Arguments();
+				default:
+					return bootstrap.getClientJvm17Arguments();
+			}
+		}
+		else
+		{
+			return bootstrap.getClientJvm9Arguments();
 		}
 	}
 }
