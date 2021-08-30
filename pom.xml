@@ -35,6 +35,7 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.build.outputTimestamp>1</project.build.outputTimestamp>
 
 		<main.class>net.runelite.launcher.Launcher</main.class>
 	</properties>
@@ -170,12 +171,12 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
-				<version>3.1.2</version>
+				<version>3.2.0</version>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-shade-plugin</artifactId>
-				<version>3.2.1</version>
+				<version>3.2.3</version>
 				<executions>
 					<execution>
 						<phase>package</phase>
@@ -261,18 +262,6 @@
 					<!-- exclude generated sources from checkstyle https://stackoverflow.com/a/30406454/7189686 -->
 					<sourceDirectory>${project.build.sourceDirectory}</sourceDirectory>
 				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>io.github.zlika</groupId>
-				<artifactId>reproducible-build-maven-plugin</artifactId>
-				<version>0.7</version>
-				<executions>
-					<execution>
-						<goals>
-							<goal>strip-jar</goal>
-						</goals>
-					</execution>
-				</executions>
 			</plugin>
 			<plugin>
 				<groupId>net.runelite.maven</groupId>
