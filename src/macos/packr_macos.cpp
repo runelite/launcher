@@ -111,18 +111,22 @@ int main(int argc, char** argv) {
 bool loadJNIFunctions(GetDefaultJavaVMInitArgs* getDefaultJavaVMInitArgs, CreateJavaVM* createJavaVM) {
 
     char buf[MAXPATHLEN];
-    string path;
+    string cwd;
 
     if (getcwd(buf, sizeof(buf))) {
-        path.append(buf).append("/");
+        cwd.append(buf).append("/");
     }
 
-    path.append("jre/lib/jli/libjli.dylib");
+    string path = cwd + "jre/lib/libjli.dylib";
 
     void* handle = dlopen(path.c_str(), RTLD_LAZY);
     if (handle == NULL) {
-        cerr << dlerror() << endl;
-        return false;
+        path = cwd + "jre/lib/jli/libjli.dylib";
+        handle = dlopen(path.c_str(), RTLD_LAZY);
+        if (handle == NULL) {
+            cerr << dlerror() << endl;
+            return false;
+        }
     }
 
 	*getDefaultJavaVMInitArgs = (GetDefaultJavaVMInitArgs) dlsym(handle, "JNI_GetDefaultJavaVMInitArgs");
