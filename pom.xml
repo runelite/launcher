@@ -330,12 +330,7 @@
 						<lock>
 							<groupId>org.projectlombok</groupId>
 							<artifactId>lombok</artifactId>
-							<hash>SHA-256:9cadc430e156950d7deb6f226d74c5e2aacb6cf21b7ef60638e6af4369e7bb8d</hash>
-						</lock>
-						<lock>
-							<groupId>io.github.zlika</groupId>
-							<artifactId>reproducible-build-maven-plugin</artifactId>
-							<hash>SHA-256:ecdd21e005f64431fdadf04bbf00744e7afaa0d70515ab217510b9c8d20e1915</hash>
+							<hash>SHA-256:ce947be6c2fbe759fbbe8ef3b42b6825f814c98c8853f1013f2d9630cedf74b0</hash>
 						</lock>
 						<lock>
 							<groupId>net.runelite.maven</groupId>
