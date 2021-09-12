@@ -551,23 +551,31 @@ public class Launcher
 					downloaded += diff.getSize();
 
 					File old = new File(REPO_DIR, diff.getFrom());
+					HashCode hash;
 					try (InputStream patchStream = new GZIPInputStream(new ByteArrayInputStream(out.toByteArray()));
-						FileOutputStream fout = new FileOutputStream(dest))
+						HashingOutputStream fout = new HashingOutputStream(Hashing.sha256(), new FileOutputStream(dest)))
 					{
 						new FileByFileV1DeltaApplier().applyDelta(old, patchStream, fout);
+						hash = fout.hash();
 					}
 
-					continue;
+					if (artifact.getHash().equals(hash.toString()))
+					{
+						log.debug("Patching successful for {}", artifact.getName());
+						continue;
+					}
+
+					log.debug("Patched artifact hash mismatches! {}: got {} expected {}", artifact.getName(), hash.toString(), artifact.getHash());
 				}
 				catch (IOException | VerificationException e)
 				{
 					log.warn("unable to download patch {}", diff.getName(), e);
 					// Fall through and try downloading the full artifact
-
-					// Adjust the download size for the difference
-					totalDownloadBytes -= diff.getSize();
-					totalDownloadBytes += artifact.getSize();
 				}
+
+				// Adjust the download size for the difference
+				totalDownloadBytes -= diff.getSize();
+				totalDownloadBytes += artifact.getSize();
 			}
 
 			log.debug("Downloading {}", artifact.getName());
