@@ -33,7 +33,8 @@ public enum HardwareAccelerationMode
 {
 	OFF,
 	DIRECTDRAW,
-	OPENGL;
+	OPENGL,
+	METAL;
 
 	/**
 	 * Gets list of JVM properties to enable Hardware Acceleration for this mode.
@@ -57,6 +58,9 @@ public enum HardwareAccelerationMode
 			case OFF:
 				params.add("-Dsun.java2d.noddraw=true");
 				params.add("-Dsun.java2d.opengl=false");
+				break;
+			case METAL:
+				params.add("-Dsun.java2d.metal=true");
 				break;
 		}
 
