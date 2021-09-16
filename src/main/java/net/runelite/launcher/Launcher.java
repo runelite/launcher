@@ -188,7 +188,7 @@ public class Launcher
 			log.info("Setting hardware acceleration to {}", hardwareAccelerationMode);
 
 			// Enable hardware acceleration
-			final List<String> extraJvmParams = hardwareAccelerationMode.toParams();
+			final List<String> extraJvmParams = hardwareAccelerationMode.toParams(OS.getOs());
 
 			// Always use IPv4 over IPv6
 			extraJvmParams.add("-Djava.net.preferIPv4Stack=true");
