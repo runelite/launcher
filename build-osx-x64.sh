@@ -74,6 +74,6 @@ codesign -f -s "${SIGNING_IDENTITY}" --entitlements osx/signing.entitlements --o
 # note we use Adam-/create-dmg as upstream does not support UDBZ
 create-dmg --format UDBZ native-osx/RuneLite.app native-osx/ || true
 
-mv native-osx/RuneLite\ *.dmg native-osx/RuneLite.dmg
+mv native-osx/RuneLite\ *.dmg native-osx/RuneLite-x64.dmg
 
-xcrun altool --notarize-app --username "${ALTOOL_USER}" --password "${ALTOOL_PASS}" --primary-bundle-id runelite --file native-osx/RuneLite.dmg || true
+xcrun altool --notarize-app --username "${ALTOOL_USER}" --password "${ALTOOL_PASS}" --primary-bundle-id runelite --file native-osx/RuneLite-x64.dmg || true
