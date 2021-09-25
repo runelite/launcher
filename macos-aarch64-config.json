@@ -1,0 +1,20 @@
+{
+    "platform": "mac",
+    "icon": "packr/runelite.icns",
+    "jdk": "osx-aarch64-jdk",
+    "executable": "RuneLite",
+    "classpath": [
+        "target/RuneLite.jar"
+    ],
+    "mainclass": "net.runelite.launcher.Launcher",
+    "vmargs": [
+       "-Drunelite.launcher.nojvm=true",
+       "-Xmx512m",
+       "-Xss2m",
+       "-XX:CompileThreshold=1500",
+       "-Djna.nosys=true",
+       "--add-opens=java.desktop/com.apple.eawt=ALL-UNNAMED",
+       "--add-opens=java.desktop/sun.awt=ALL-UNNAMED"
+    ],
+    "output": "native-osx-aarch64/RuneLite.app"
+}
