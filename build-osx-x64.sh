@@ -74,6 +74,10 @@ create-dmg --format UDBZ native-osx/RuneLite.app native-osx/ || true
 
 mv native-osx/RuneLite\ *.dmg native-osx/RuneLite-x64.dmg
 
+if ! hdiutil imageinfo native-osx/RuneLite-x64.dmg | grep -q "Format: UDBZ" ; then
+    echo "Format of resulting dmg was not UDBZ, make sure your create-dmg has support for --format"
+    exit 1
+fi
 
 # Notarize app
 if xcrun notarytool submit native-osx/RuneLite-x64.dmg --wait --keychain-profile "AC_PASSWORD" ; then
