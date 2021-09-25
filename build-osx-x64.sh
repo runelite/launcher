@@ -7,8 +7,6 @@ JDK_BUILD="10"
 PACKR_VERSION="runelite-1.0"
 
 SIGNING_IDENTITY="Developer ID Application"
-ALTOOL_USER="user@icloud.com"
-ALTOOL_PASS="@keychain:altool-password"
 
 if ! [ -f OpenJDK11U-jre_x64_mac_hotspot_${JDK_VER}_${JDK_BUILD}.tar.gz ] ; then
     curl -Lo OpenJDK11U-jre_x64_mac_hotspot_${JDK_VER}_${JDK_BUILD}.tar.gz \
@@ -76,4 +74,8 @@ create-dmg --format UDBZ native-osx/RuneLite.app native-osx/ || true
 
 mv native-osx/RuneLite\ *.dmg native-osx/RuneLite-x64.dmg
 
-xcrun altool --notarize-app --username "${ALTOOL_USER}" --password "${ALTOOL_PASS}" --primary-bundle-id runelite --file native-osx/RuneLite-x64.dmg || true
+
+# Notarize app
+if xcrun notarytool submit native-osx/RuneLite-x64.dmg --wait --keychain-profile "AC_PASSWORD" ; then
+    xcrun stapler staple native-osx/RuneLite-x64.dmg
+fi
