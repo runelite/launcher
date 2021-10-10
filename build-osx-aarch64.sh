@@ -30,6 +30,7 @@ if ! [ -d osx-aarch64-jdk ] ; then
         --add-modules jdk.crypto.ec,jdk.httpserver,jdk.unsupported\
         --add-modules jdk.random,jdk.net,jdk.crypto.cryptoki,jdk.accessibility\
         --add-modules jdk.charsets,java.prefs,jdk.unsupported.desktop\
+        --no-header-files --no-man-pages\
         --output osx-aarch64-jdk/jre
 
     # Cleanup
