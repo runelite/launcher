@@ -104,11 +104,12 @@ public class Launcher
 	public static void main(String[] args)
 	{
 		OptionParser parser = new OptionParser();
-		parser.accepts("clientargs").withRequiredArg();
-		parser.accepts("nojvm");
-		parser.accepts("debug");
-		parser.accepts("nodiff");
-		parser.accepts("insecure-skip-tls-verification");
+		parser.accepts("clientargs", "Arguments passed to the client").withRequiredArg();
+		parser.accepts("nojvm", "Launch the client in this VM instead of launching a new VM");
+		parser.accepts("debug", "Enable debug logging");
+		parser.accepts("nodiff", "Always download full artifacts instead of diffs");
+		parser.accepts("insecure-skip-tls-verification", "Disable TLS certificate and hostname verification");
+		parser.accepts("help", "Show this text (use --clientargs --help for client help)").forHelp();
 
 		if (OS.getOs() == OS.OSType.MacOS)
 		{
@@ -145,6 +146,19 @@ public class Launcher
 		{
 			log.error("unable to parse arguments", ex);
 			throw ex;
+		}
+
+		if (options.has("help"))
+		{
+			try
+			{
+				parser.printHelpOn(System.out);
+			}
+			catch (IOException e)
+			{
+				log.error(null, e);
+			}
+			System.exit(0);
 		}
 
 		final boolean nodiff = options.has("nodiff");
