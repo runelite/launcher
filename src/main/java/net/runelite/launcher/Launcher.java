@@ -104,6 +104,7 @@ public class Launcher
 	public static void main(String[] args)
 	{
 		OptionParser parser = new OptionParser();
+		parser.allowsUnrecognizedOptions();
 		parser.accepts("clientargs", "Arguments passed to the client").withRequiredArg();
 		parser.accepts("nojvm", "Launch the client in this VM instead of launching a new VM");
 		parser.accepts("debug", "Enable debug logging");
@@ -368,7 +369,7 @@ public class Launcher
 
 			final Collection<String> clientArgs = getClientArgs(options);
 
-			if (log.isDebugEnabled())
+			if (isDebug)
 			{
 				clientArgs.add("--debug");
 			}
@@ -465,14 +466,24 @@ public class Launcher
 
 	private static Collection<String> getClientArgs(OptionSet options)
 	{
+		final Collection<String> args = options.nonOptionArguments().stream()
+			.filter(String.class::isInstance)
+			.map(String.class::cast)
+			.collect(Collectors.toCollection(ArrayList::new));
+
 		String clientArgs = System.getenv("RUNELITE_ARGS");
-		if (options.has("clientargs"))
+		if (!Strings.isNullOrEmpty(clientArgs))
 		{
-			clientArgs = (String) options.valueOf("clientargs");
+			args.addAll(Splitter.on(' ').omitEmptyStrings().trimResults().splitToList(clientArgs));
 		}
-		return !Strings.isNullOrEmpty(clientArgs)
-			? new ArrayList<>(Splitter.on(' ').omitEmptyStrings().trimResults().splitToList(clientArgs))
-			: new ArrayList<>();
+
+		clientArgs = (String) options.valueOf("clientargs");
+		if (!Strings.isNullOrEmpty(clientArgs))
+		{
+			args.addAll(Splitter.on(' ').omitEmptyStrings().trimResults().splitToList(clientArgs));
+		}
+
+		return args;
 	}
 
 	private static void download(List<Artifact> artifacts, boolean nodiff) throws IOException
