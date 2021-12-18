@@ -81,10 +81,12 @@
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
+			<version>1.7.25</version>
 		</dependency>
 		<dependency>
 			<groupId>ch.qos.logback</groupId>
 			<artifactId>logback-classic</artifactId>
+			<version>1.2.9</version>
 		</dependency>
 		<dependency>
 			<groupId>net.sf.jopt-simple</groupId>
@@ -148,18 +150,6 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
-
-	<dependencyManagement>
-		<dependencies>
-			<dependency>
-				<groupId>ch.qos.logback</groupId>
-				<artifactId>logback-parent</artifactId>
-				<version>1.2.3</version>
-				<type>pom</type>
-				<scope>import</scope>
-			</dependency>
-		</dependencies>
-	</dependencyManagement>
 
 	<build>
 		<finalName>RuneLite</finalName>
@@ -313,12 +303,12 @@
 						<lock>
 							<groupId>ch.qos.logback</groupId>
 							<artifactId>logback-classic</artifactId>
-							<hash>SHA-256:fb53f8539e7fcb8f093a56e138112056ec1dc809ebb020b59d8a36a5ebac37e0</hash>
+							<hash>SHA-256:ad745cc243805800d1ebbf5b7deba03b37c95885e6bce71335a73f7d6d0f14ee</hash>
 						</lock>
 						<lock>
 							<groupId>ch.qos.logback</groupId>
 							<artifactId>logback-core</artifactId>
-							<hash>SHA-256:5946d837fe6f960c02a53eda7a6926ecc3c758bbdd69aa453ee429f858217f22</hash>
+							<hash>SHA-256:4a9ef7ed809b1fbc6992bf87d404087c247e7a9766e25bb84377b58ed5c9eb58</hash>
 						</lock>
 						<lock>
 							<groupId>net.sf.jopt-simple</groupId>
