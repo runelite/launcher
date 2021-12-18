@@ -97,9 +97,37 @@
 			<version>2.8.5</version>
 		</dependency>
 		<dependency>
+			<groupId>com.google.code.findbugs</groupId>
+			<artifactId>jsr305</artifactId>
+			<version>3.0.2</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
 			<groupId>com.google.guava</groupId>
 			<artifactId>guava</artifactId>
 			<version>23.2-jre</version>
+			<exclusions>
+				<!--
+				compile time annotations for static analysis in Guava
+				https://github.com/google/guava/wiki/UseGuavaInYourBuild#what-about-guavas-own-dependencies
+				-->
+				<exclusion>
+					<groupId>com.google.code.findbugs</groupId>
+					<artifactId>jsr305</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>com.google.errorprone</groupId>
+					<artifactId>error_prone_annotations</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>com.google.j2objc</groupId>
+					<artifactId>j2objc-annotations</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.codehaus.mojo</groupId>
+					<artifactId>animal-sniffer-annotations</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.projectlombok</groupId>
@@ -310,7 +338,7 @@
 						<lock>
 							<groupId>com.google.code.findbugs</groupId>
 							<artifactId>jsr305</artifactId>
-							<hash>SHA-256:905721a0eea90a81534abb7ee6ef4ea2e5e645fa1def0a5cd88402df1b46c9ed</hash>
+							<hash>SHA-256:766ad2a0783f2687962c8ad74ceecc38a28b9f72a2d085ee438b7813e928d0c7</hash>
 						</lock>
 						<lock>
 							<groupId>com.google.errorprone</groupId>
