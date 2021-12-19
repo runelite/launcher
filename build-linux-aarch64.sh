@@ -64,22 +64,22 @@ pushd native-linux-aarch64/RuneLite.AppDir/
 ln -s RuneLite AppRun
 popd
 
-if ! [ -f appimagetool-aarch64.AppImage ] ; then
-    curl -Lo appimagetool-aarch64.AppImage \
-        https://github.com/AppImage/AppImageKit/releases/download/$APPIMAGE_VERSION/appimagetool-aarch64.AppImage
-    chmod +x appimagetool-aarch64.AppImage
+if ! [ -f appimagetool-x86_64.AppImage ] ; then
+    curl -Lo appimagetool-x86_64.AppImage \
+        https://github.com/AppImage/AppImageKit/releases/download/$APPIMAGE_VERSION/appimagetool-x86_64.AppImage
+    chmod +x appimagetool-x86_64.AppImage
 fi
 
-echo "c9d058310a4e04b9fbbd81340fff2b5fb44943a630b31881e321719f271bd41a  appimagetool-aarch64.AppImage" | sha256sum -c
+echo "d918b4df547b388ef253f3c9e7f6529ca81a885395c31f619d9aaf7030499a13  appimagetool-x86_64.AppImage" | sha256sum -c
 
-# patch appimagetool to run on qemu https://github.com/AppImage/AppImageKit/issues/1056#issuecomment-643382397
-sed "s|AI\x02|\x00\x00\x00|" appimagetool-aarch64.AppImage > appimagetool-aarch64.AppImage-patched
-chmod +x appimagetool-aarch64.AppImage-patched
+if ! [ -f runtime-aarch64 ] ; then
+    curl -Lo runtime-aarch64 \
+	    https://github.com/AppImage/AppImageKit/releases/download/$APPIMAGE_VERSION/runtime-aarch64
+fi
 
-# instead of allowing fuse in this container, just extract the appimage fs and run it directly
-rm -rf squashfs-root
-./appimagetool-aarch64.AppImage-patched --appimage-extract
+echo "207f8955500cfe8dd5b824ca7514787c023975e083b0269fc14600c380111d85  runtime-aarch64" | sha256sum -c
 
-./squashfs-root/AppRun \
+ARCH=arm_aarch64 ./appimagetool-x86_64.AppImage \
+	--runtime-file runtime-aarch64  \
 	native-linux-aarch64/RuneLite.AppDir/ \
 	native-linux-aarch64/RuneLite-aarch64.AppImage
