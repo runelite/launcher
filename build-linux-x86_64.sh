@@ -47,18 +47,18 @@ java -jar packr_${PACKR_VERSION}.jar \
     XX:CompileThreshold=1500 \
     Djna.nosys=true \
     --output \
-    native-linux/RuneLite.AppDir/ \
+    native-linux-x86_64/RuneLite.AppDir/ \
     --resources \
     target/filtered-resources/runelite.desktop \
     appimage/runelite.png
 
-pushd native-linux/RuneLite.AppDir
+pushd native-linux-x86_64/RuneLite.AppDir
 mkdir -p jre/lib/amd64/server/
 ln -s ../../server/libjvm.so jre/lib/amd64/server/ # packr looks for libjvm at this hardcoded path
 popd
 
 # Symlink AppRun -> RuneLite
-pushd native-linux/RuneLite.AppDir/
+pushd native-linux-x86_64/RuneLite.AppDir/
 ln -s RuneLite AppRun
 popd
 
@@ -71,5 +71,5 @@ fi
 echo "d918b4df547b388ef253f3c9e7f6529ca81a885395c31f619d9aaf7030499a13  appimagetool-x86_64.AppImage" | sha256sum -c
 
 ./appimagetool-x86_64.AppImage \
-	native-linux/RuneLite.AppDir/ \
-	native-linux/RuneLite.AppImage
+	native-linux-x86_64/RuneLite.AppDir/ \
+	native-linux-x86_64/RuneLite.AppImage
