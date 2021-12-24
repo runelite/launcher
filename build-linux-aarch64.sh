@@ -7,6 +7,8 @@ JDK_BUILD="10"
 PACKR_VERSION="runelite-1.1"
 APPIMAGE_VERSION="12"
 
+umask 022
+
 if ! [ -f OpenJDK11U-jre_aarch64_linux_hotspot_${JDK_VER}_${JDK_BUILD}.tar.gz ] ; then
     curl -Lo OpenJDK11U-jre_aarch64_linux_hotspot_${JDK_VER}_${JDK_BUILD}.tar.gz \
         https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-${JDK_VER}%2B${JDK_BUILD}/OpenJDK11U-jre_aarch64_linux_hotspot_${JDK_VER}_${JDK_BUILD}.tar.gz
@@ -28,6 +30,11 @@ if ! [ -f packr_${PACKR_VERSION}.jar ] ; then
 fi
 
 echo "ee3b0386d7a6474b042429e2fe7826fd40088258aec05707f0c722d773b5b1bd  packr_${PACKR_VERSION}.jar" | sha256sum -c
+
+# Note: Host umask may have checked out this directory with g/o permissions blank
+chmod -R u=rwX,go=rX appimage
+# ...ditto for the build process
+chmod 644 target/RuneLite.jar
 
 rm -rf native-linux-aarch64
 
