@@ -64,11 +64,12 @@ java -jar packr_${PACKR_VERSION}.jar \
 pushd native-linux-aarch64/RuneLite.AppDir
 mkdir -p jre/lib/amd64/server/
 ln -s ../../server/libjvm.so jre/lib/amd64/server/ # packr looks for libjvm at this hardcoded path
-popd
 
 # Symlink AppRun -> RuneLite
-pushd native-linux-aarch64/RuneLite.AppDir/
 ln -s RuneLite AppRun
+
+# Ensure RuneLite is executable to all users
+chmod 755 RuneLite
 popd
 
 if ! [ -f appimagetool-x86_64.AppImage ] ; then
