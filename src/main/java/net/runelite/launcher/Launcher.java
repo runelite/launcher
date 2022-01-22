@@ -110,6 +110,7 @@ public class Launcher
 		parser.accepts("debug", "Enable debug logging");
 		parser.accepts("nodiff", "Always download full artifacts instead of diffs");
 		parser.accepts("insecure-skip-tls-verification", "Disable TLS certificate and hostname verification");
+		parser.accepts("scale", "Custom scale factor for Java 2D").withRequiredArg();
 		parser.accepts("help", "Show this text (use --clientargs --help for client help)").forHelp();
 
 		if (OS.getOs() == OS.OSType.MacOS)
@@ -173,6 +174,19 @@ public class Launcher
 		{
 			final Logger logger = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
 			logger.setLevel(Level.DEBUG);
+		}
+
+		// this has to be set prior to the graphics environment startup
+		if (options.has("scale"))
+		{
+			// On Vista+ this calls SetProcessDPIAware(). Since the RuneLite.exe manifest is DPI unaware
+			// Windows will scale the application if this isn't called. Thus the default scaling mode is
+			// Windows scaling due to being DPI unaware.
+			// https://docs.microsoft.com/en-us/windows/win32/hidpi/high-dpi-desktop-application-development-on-windows
+			System.setProperty("sun.java2d.dpiaware", "true");
+			// This sets the Java 2D scaling factor, overriding the default behavior of detecting the scale via
+			// GetDpiForMonitor.
+			System.setProperty("sun.java2d.uiScale", (String) options.valueOf("scale"));
 		}
 
 		try
