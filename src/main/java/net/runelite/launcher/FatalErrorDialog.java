@@ -37,8 +37,10 @@ import java.io.IOException;
 import java.net.ConnectException;
 import java.net.UnknownHostException;
 import java.security.GeneralSecurityException;
+import java.security.cert.CertificateException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.imageio.ImageIO;
+import javax.net.ssl.SSLHandshakeException;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
@@ -220,6 +222,24 @@ public class FatalErrorDialog extends JDialog
 				"be down. ")
 				.addButton("Change your DNS resolver", () -> LinkBrowser.browse(LauncherProperties.getDNSChangeLink()))
 				.open();
+			return;
+		}
+
+		if (err instanceof SSLHandshakeException)
+		{
+			if (err.getCause() instanceof CertificateException)
+			{
+				new FatalErrorDialog("RuneLite was unable verify the certificate of a required server while " + action + ". " +
+					"This can be caused by a firewall, antivirus, malware, misbehaving internet service provider, or a proxy.")
+					.open();
+			}
+			else
+			{
+				new FatalErrorDialog("RuneLite was unable to establish a SSL/TLS connection with a required server while " + action + ". " +
+					"This can be caused by a firewall, antivirus, malware, misbehaving internet service provider, or a proxy.")
+					.open();
+			}
+
 			return;
 		}
 
