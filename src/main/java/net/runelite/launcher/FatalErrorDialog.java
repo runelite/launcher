@@ -229,7 +229,7 @@ public class FatalErrorDialog extends JDialog
 		{
 			if (err.getCause() instanceof CertificateException)
 			{
-				new FatalErrorDialog("RuneLite was unable verify the certificate of a required server while " + action + ". " +
+				new FatalErrorDialog("RuneLite was unable to verify the certificate of a required server while " + action + ". " +
 					"This can be caused by a firewall, antivirus, malware, misbehaving internet service provider, or a proxy.")
 					.open();
 			}
