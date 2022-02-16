@@ -74,7 +74,8 @@ class JvmLauncher
 		Bootstrap bootstrap,
 		List<File> results,
 		Collection<String> clientArgs,
-		List<String> extraJvmParams) throws IOException
+		List<String> jvmProps,
+		List<String> jvmArgs) throws IOException
 	{
 		StringBuilder classPath = new StringBuilder();
 		for (File f : results)
@@ -86,6 +87,7 @@ class JvmLauncher
 
 			classPath.append(f.getAbsolutePath());
 		}
+
 		String javaExePath;
 		try
 		{
@@ -97,7 +99,6 @@ class JvmLauncher
 			return;
 		}
 
-
 		List<String> arguments = new ArrayList<>();
 		arguments.add(javaExePath);
 		arguments.add("-cp");
@@ -108,7 +109,8 @@ class JvmLauncher
 		{
 			arguments.addAll(Arrays.asList(jvmArguments));
 		}
-		arguments.addAll(extraJvmParams);
+		arguments.addAll(jvmProps);
+		arguments.addAll(jvmArgs);
 
 		arguments.add(LauncherProperties.getMain());
 		arguments.addAll(clientArgs);

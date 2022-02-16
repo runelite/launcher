@@ -98,4 +98,18 @@ public enum HardwareAccelerationMode
 
 		return params;
 	}
+
+	public static HardwareAccelerationMode defaultMode(OS.OSType osType)
+	{
+		switch (osType)
+		{
+			case Windows:
+				return HardwareAccelerationMode.DIRECTDRAW;
+			case MacOS:
+				return HardwareAccelerationMode.OPENGL;
+			case Linux:
+			default:
+				return HardwareAccelerationMode.OFF;
+		}
+	}
 }

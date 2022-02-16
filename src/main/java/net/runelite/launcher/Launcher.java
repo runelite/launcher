@@ -63,7 +63,6 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -118,31 +117,18 @@ public class Launcher
 			parser.accepts("psn").withRequiredArg();
 		}
 
-		HardwareAccelerationMode defaultMode;
-		switch (OS.getOs())
-		{
-			case Windows:
-				defaultMode = HardwareAccelerationMode.DIRECTDRAW;
-				break;
-			case MacOS:
-				defaultMode = HardwareAccelerationMode.OPENGL;
-				break;
-			case Linux:
-			default:
-				defaultMode = HardwareAccelerationMode.OFF;
-				break;
-		}
-
 		// Create typed argument for the hardware acceleration mode
 		final ArgumentAcceptingOptionSpec<HardwareAccelerationMode> mode = parser.accepts("mode")
 			.withRequiredArg()
 			.ofType(HardwareAccelerationMode.class)
-			.defaultsTo(defaultMode);
+			.defaultsTo(HardwareAccelerationMode.defaultMode(OS.getOs()));
 
-		OptionSet options;
+		final OptionSet options;
+		final HardwareAccelerationMode hardwareAccelerationMode;
 		try
 		{
 			options = parser.parse(args);
+			hardwareAccelerationMode = options.valueOf(mode);
 		}
 		catch (OptionException ex)
 		{
@@ -179,25 +165,48 @@ public class Launcher
 			logger.setLevel(Level.DEBUG);
 		}
 
-		// this has to be set prior to the graphics environment startup
-		if (options.has("scale"))
-		{
-			// On Vista+ this calls SetProcessDPIAware(). Since the RuneLite.exe manifest is DPI unaware
-			// Windows will scale the application if this isn't called. Thus the default scaling mode is
-			// Windows scaling due to being DPI unaware.
-			// https://docs.microsoft.com/en-us/windows/win32/hidpi/high-dpi-desktop-application-development-on-windows
-			System.setProperty("sun.java2d.dpiaware", "true");
-			// This sets the Java 2D scaling factor, overriding the default behavior of detecting the scale via
-			// GetDpiForMonitor.
-			System.setProperty("sun.java2d.uiScale", (String) options.valueOf("scale"));
-		}
-
 		try
 		{
+			log.info("RuneLite Launcher version {}", LauncherProperties.getVersion());
+
+			final List<String> jvmProps = new ArrayList<>();
+			if (options.has("scale"))
+			{
+				// On Vista+ this calls SetProcessDPIAware(). Since the RuneLite.exe manifest is DPI unaware
+				// Windows will scale the application if this isn't called. Thus the default scaling mode is
+				// Windows scaling due to being DPI unaware.
+				// https://docs.microsoft.com/en-us/windows/win32/hidpi/high-dpi-desktop-application-development-on-windows
+				jvmProps.add("-Dsun.java2d.dpiaware=true");
+				// This sets the Java 2D scaling factor, overriding the default behavior of detecting the scale via
+				// GetDpiForMonitor.
+				jvmProps.add("-Dsun.java2d.uiScale=" + options.valueOf("scale"));
+			}
+
+			log.info("Setting hardware acceleration to {}", hardwareAccelerationMode);
+			jvmProps.addAll(hardwareAccelerationMode.toParams(OS.getOs()));
+
+			// Always use IPv4 over IPv6
+			jvmProps.add("-Djava.net.preferIPv4Stack=true");
+			jvmProps.add("-Djava.net.preferIPv4Addresses=true");
+
+			// Stream launcher version
+			jvmProps.add("-D" + LauncherProperties.getVersionKey() + "=" + LauncherProperties.getVersion());
+
+			if (insecureSkipTlsVerification)
+			{
+				jvmProps.add("-Drunelite.insecure-skip-tls-verification=true");
+			}
+
+			// java2d properties have to be set prior to the graphics environment startup
+			setJvmParams(jvmProps);
+
+			List<String> jvmParams = new ArrayList<>();
+			// Set hs_err_pid location. This is a jvm param and can't be set at runtime.
+			log.debug("Setting JVM crash log location to {}", CRASH_FILES);
+			jvmParams.add("-XX:ErrorFile=" + CRASH_FILES.getAbsolutePath());
+
 			SplashScreen.init();
 			SplashScreen.stage(0, "Preparing", "Setting up environment");
-
-			log.info("RuneLite Launcher version {}", LauncherProperties.getVersion());
 
 			// Print out system info
 			if (log.isDebugEnabled())
@@ -205,7 +214,7 @@ public class Launcher
 				log.debug("Command line arguments: {}", String.join(" ", args));
 				log.debug("Java Environment:");
 				final Properties p = System.getProperties();
-				final Enumeration keys = p.keys();
+				final Enumeration<Object> keys = p.keys();
 
 				while (keys.hasMoreElements())
 				{
@@ -214,32 +223,6 @@ public class Launcher
 					log.debug("  {}: {}", key, value);
 				}
 			}
-
-			// Get hardware acceleration mode
-			final HardwareAccelerationMode hardwareAccelerationMode = options.valueOf(mode);
-			log.info("Setting hardware acceleration to {}", hardwareAccelerationMode);
-
-			// Enable hardware acceleration
-			final List<String> extraJvmParams = hardwareAccelerationMode.toParams(OS.getOs());
-
-			// Always use IPv4 over IPv6
-			extraJvmParams.add("-Djava.net.preferIPv4Stack=true");
-			extraJvmParams.add("-Djava.net.preferIPv4Addresses=true");
-
-			// Stream launcher version
-			extraJvmParams.add("-D" + LauncherProperties.getVersionKey() + "=" + LauncherProperties.getVersion());
-
-			if (insecureSkipTlsVerification)
-			{
-				extraJvmParams.add("-Drunelite.insecure-skip-tls-verification=true");
-			}
-
-			// Set all JVM params
-			setJvmParams(extraJvmParams);
-
-			// Set hs_err_pid location (do this after setJvmParams because it can't be set at runtime)
-			log.debug("Setting JVM crash log location to {}", CRASH_FILES);
-			extraJvmParams.add("-XX:ErrorFile=" + CRASH_FILES.getAbsolutePath());
 
 			if (insecureSkipTlsVerification)
 			{
@@ -324,7 +307,7 @@ public class Launcher
 
 			// update packr vmargs. The only extra vmargs we need to write to disk are the ones which cannot be set
 			// at runtime, which currently is just the vm errorfile.
-			PackrConfig.updateLauncherArgs(bootstrap, Collections.singleton("-XX:ErrorFile=" + CRASH_FILES.getAbsolutePath()));
+			PackrConfig.updateLauncherArgs(bootstrap, jvmParams);
 
 			REPO_DIR.mkdirs();
 
@@ -413,7 +396,7 @@ public class Launcher
 			{
 				try
 				{
-					JvmLauncher.launch(bootstrap, classpath, clientArgs, extraJvmParams);
+					JvmLauncher.launch(bootstrap, classpath, clientArgs, jvmProps, jvmParams);
 				}
 				catch (IOException ex)
 				{
