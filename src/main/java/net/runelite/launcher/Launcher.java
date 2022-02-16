@@ -147,6 +147,9 @@ public class Launcher
 		catch (OptionException ex)
 		{
 			log.error("unable to parse arguments", ex);
+			SwingUtilities.invokeLater(() ->
+				new FatalErrorDialog("RuneLite was unable to parse the provided application arguments: " + ex.getMessage())
+					.open());
 			throw ex;
 		}
 
