@@ -45,7 +45,7 @@ fi
 echo "6552d1e9c86250d84d6f485575d5a20246431984  packr_${PACKR_VERSION}.jar" | shasum -c
 
 java -jar packr_${PACKR_VERSION}.jar \
-	macos-aarch64-config.json
+	packr/macos-aarch64-config.json
 
 cp target/filtered-resources/Info.plist native-osx-aarch64/RuneLite.app/Contents
 

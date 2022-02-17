@@ -1,0 +1,17 @@
+{
+  "platform": "windows64",
+  "jdk": "win64-jdk",
+  "executable": "RuneLite",
+  "classpath": [
+    "target/RuneLite.jar"
+  ],
+  "mainclass": "net.runelite.launcher.Launcher",
+  "vmargs": [
+    "-Drunelite.launcher.nojvm=true",
+    "-Xmx512m",
+    "-Xss2m",
+    "-XX:CompileThreshold=1500",
+    "-Djna.nosys=true"
+  ],
+  "output": "native-win64"
+}

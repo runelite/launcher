@@ -38,26 +38,7 @@ fi
 echo "18b7cbaab4c3f9ea556f621ca42fbd0dc745a4d11e2a08f496e2c3196580cd53  packr_${PACKR_VERSION}.jar" | shasum -c
 
 java -jar packr_${PACKR_VERSION}.jar \
-    --platform \
-    mac \
-    --icon \
-    packr/runelite.icns \
-    --jdk \
-    osx-jdk \
-    --executable \
-    RuneLite \
-    --classpath \
-    target/RuneLite.jar \
-    --mainclass \
-    net.runelite.launcher.Launcher \
-    --vmargs \
-    Drunelite.launcher.nojvm=true \
-    Xmx512m \
-    Xss2m \
-    XX:CompileThreshold=1500 \
-    Djna.nosys=true \
-    --output \
-    native-osx/RuneLite.app
+    packr/macos-x64-config.json
 
 cp target/filtered-resources/Info.plist native-osx/RuneLite.app/Contents
 

@@ -39,27 +39,7 @@ chmod 644 target/RuneLite.jar
 rm -rf native-linux-aarch64
 
 java -jar packr_${PACKR_VERSION}.jar \
-    --platform \
-    linuxaarch64 \
-    --jdk \
-    linux-aarch64-jdk \
-    --executable \
-    RuneLite \
-    --classpath \
-    target/RuneLite.jar \
-    --mainclass \
-    net.runelite.launcher.Launcher \
-    --vmargs \
-    Drunelite.launcher.nojvm=true \
-    Xmx512m \
-    Xss2m \
-    XX:CompileThreshold=1500 \
-    Djna.nosys=true \
-    --output \
-    native-linux-aarch64/RuneLite.AppDir/ \
-    --resources \
-    target/filtered-resources/runelite.desktop \
-    appimage/runelite.png
+    packr/linux-aarch64-config.json
 
 pushd native-linux-aarch64/RuneLite.AppDir
 mkdir -p jre/lib/amd64/server/

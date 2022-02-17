@@ -30,24 +30,7 @@ fi
 echo "18b7cbaab4c3f9ea556f621ca42fbd0dc745a4d11e2a08f496e2c3196580cd53  packr_${PACKR_VERSION}.jar" | sha256sum -c
 
 java -jar packr_${PACKR_VERSION}.jar \
-    --platform \
-    windows32 \
-    --jdk \
-    win32-jdk \
-    --executable \
-    RuneLite \
-    --classpath \
-    target/RuneLite.jar \
-    --mainclass \
-    net.runelite.launcher.Launcher \
-    --vmargs \
-    Drunelite.launcher.nojvm=true \
-    Xmx512m \
-    Xss2m \
-    XX:CompileThreshold=1500 \
-    Djna.nosys=true \
-    --output \
-    native-win32
+    packr/win-x86-config.json
 
 # modify packr exe manifest to enable Windows dpi scaling
 resourcehacker \
