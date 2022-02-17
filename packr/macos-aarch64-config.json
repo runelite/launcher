@@ -12,7 +12,6 @@
        "-Xmx512m",
        "-Xss2m",
        "-XX:CompileThreshold=1500",
-       "-Djna.nosys=true",
        "--add-opens=java.desktop/com.apple.eawt=ALL-UNNAMED",
        "--add-opens=java.desktop/sun.awt=ALL-UNNAMED"
     ],
