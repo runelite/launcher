@@ -27,6 +27,7 @@ Name: DesktopIcon; Description: "Create a &desktop icon";
 [Files]
 Source: "${basedir}\native-win32\RuneLite.exe"; DestDir: "{app}"
 Source: "${basedir}\native-win32\RuneLite.jar"; DestDir: "{app}"
+Source: "${basedir}\native\launcher_x86.dll"; DestDir: "{app}"
 Source: "${basedir}\native-win32\config.json"; DestDir: "{app}"
 Source: "${basedir}\native-win32\jre\*"; DestDir: "{app}\jre"; Flags: recursesubdirs
 ; dependencies of jvm.dll and javaaccessbridge.dll

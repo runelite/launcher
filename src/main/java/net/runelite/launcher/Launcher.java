@@ -168,6 +168,9 @@ public class Launcher
 			logger.setLevel(Level.DEBUG);
 		}
 
+		// RTSS triggers off of the CreateWindow event, so this needs to be in place early, prior to splash screen
+		initDllBlacklist();
+
 		try
 		{
 			log.info("RuneLite Launcher version {}", LauncherProperties.getVersion());
@@ -823,4 +826,40 @@ public class Launcher
 
 		log.info("Performed postinstall steps");
 	}
+
+	private static void initDllBlacklist()
+	{
+		if (OS.getOs() != OS.OSType.Windows)
+		{
+			return;
+		}
+
+		String blacklistedDlls = System.getProperty("runelite.launcher.blacklistedDlls");
+		if (blacklistedDlls == null || blacklistedDlls.isEmpty())
+		{
+			return;
+		}
+
+		String arch = System.getProperty("os.arch");
+		if (!"x86".equals(arch) && !"amd64".equals(arch))
+		{
+			log.debug("System architecture is not supported for launcher natives: {}", arch);
+			return;
+		}
+
+		String[] dlls = blacklistedDlls.split(",");
+
+		try
+		{
+			System.loadLibrary("launcher_" + arch);
+			log.debug("Setting blacklisted dlls: {}", blacklistedDlls);
+			setBlacklistedDlls(dlls);
+		}
+		catch (Error ex)
+		{
+			log.debug("Error setting dll blacklist", ex);
+		}
+	}
+
+	private static native void setBlacklistedDlls(String[] dlls);
 }
