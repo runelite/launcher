@@ -407,6 +407,25 @@ void launchJavaVM(LaunchJavaVMCallback callback) {
 
 	sajson::value jsonRoot = json.get_root();
 
+	// setup the env
+	if (hasJsonValue(jsonRoot, "env", sajson::TYPE_OBJECT)) {
+		sajson::value env = getJsonValue(jsonRoot, "env");
+
+		if (verbose) {
+			cout << "Setting up env..." << endl;
+		}
+
+		for (size_t i = 0; i < env.get_length(); i++) {
+			string key = env.get_object_key(i).as_string();
+			string value = env.get_object_value(i).as_string();
+			if (verbose) {
+				cout << "  " << key << "=" << value << endl;
+			}
+
+			packrSetEnv(key.c_str(), value.c_str());
+		}
+	}
+
 	// load JVM library, get function pointers
 
 	if (verbose) {

@@ -45,6 +45,7 @@ extern "C" {
 	bool loadJNIFunctions(GetDefaultJavaVMInitArgs* getDefaultJavaVMInitArgs, CreateJavaVM* createJavaVM);
 	const char* getExecutablePath(const char* argv0);
 	bool changeWorkingDir(const char* directory);
+	void packrSetEnv(const char *key, const char *value);
 
 	/* entry point for all platforms - called from main()/WinMain() */
 	bool setCmdLineArguments(int argc, char** argv);

@@ -21,6 +21,7 @@
 #include <CoreFoundation/CoreFoundation.h>
 #include <sys/param.h>
 #include <unistd.h>
+#include <stdlib.h>
 
 using namespace std;
 
@@ -201,4 +202,8 @@ const char* getExecutablePath(const char* argv0) {
 
 bool changeWorkingDir(const char* directory) {
 	return chdir(directory) == 0;
+}
+
+void packrSetEnv(const char *key, const char *value) {
+	setenv(key, value, 1);
 }

@@ -137,3 +137,7 @@ const char* getExecutablePath(const char* argv0) {
 bool changeWorkingDir(const char* directory) {
 	return _chdir(directory) == 0;
 }
+
+void packrSetEnv(const char *key, const char *value) {
+	SetEnvironmentVariable(key, value);
+}
