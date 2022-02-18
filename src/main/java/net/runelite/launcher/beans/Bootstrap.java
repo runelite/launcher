@@ -24,6 +24,7 @@
  */
 package net.runelite.launcher.beans;
 
+import java.util.Map;
 import lombok.Data;
 
 @Data
@@ -47,4 +48,8 @@ public class Bootstrap
 
 	private String requiredLauncherVersion;
 	private String requiredJVMVersion;
+
+	private Map<String, String> launcherWindowsEnv;
+	private Map<String, String> launcherMacEnv;
+	private Map<String, String> launcherLinuxEnv;
 }

@@ -85,6 +85,7 @@ class PackrConfig
 		args.addAll(extraJvmArgs);
 
 		config.put("vmArgs", args);
+		config.put("env", getEnv(bootstrap));
 
 		try
 		{
@@ -148,6 +149,21 @@ class PackrConfig
 				return args != null ? args : bootstrap.getLauncherJvm11Arguments();
 			default:
 				return bootstrap.getLauncherJvm11Arguments();
+		}
+	}
+
+	private static Map<String, String> getEnv(Bootstrap bootstrap)
+	{
+		switch (OS.getOs())
+		{
+			case Windows:
+				return bootstrap.getLauncherWindowsEnv();
+			case MacOS:
+				return bootstrap.getLauncherMacEnv();
+			case Linux:
+				return bootstrap.getLauncherLinuxEnv();
+			default:
+				return null;
 		}
 	}
 }
