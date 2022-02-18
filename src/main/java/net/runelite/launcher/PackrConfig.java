@@ -47,7 +47,7 @@ import net.runelite.launcher.beans.Bootstrap;
 @Slf4j
 class PackrConfig
 {
-	// Update the packr vmargs
+	// Update the packr config
 	static void updateLauncherArgs(Bootstrap bootstrap, Collection<String> extraJvmArgs)
 	{
 		File configFile = new File("config.json").getAbsoluteFile();

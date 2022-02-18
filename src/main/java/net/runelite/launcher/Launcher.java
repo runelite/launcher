@@ -52,6 +52,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.security.InvalidKeyException;
+import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.Signature;
@@ -104,6 +105,7 @@ public class Launcher
 	{
 		OptionParser parser = new OptionParser();
 		parser.allowsUnrecognizedOptions();
+		parser.accepts("postinstall", "Perform post-install tasks");
 		parser.accepts("clientargs", "Arguments passed to the client").withRequiredArg();
 		parser.accepts("nojvm", "Launch the client in this VM instead of launching a new VM");
 		parser.accepts("debug", "Enable debug logging");
@@ -154,6 +156,7 @@ public class Launcher
 
 		final boolean nodiff = options.has("nodiff");
 		final boolean insecureSkipTlsVerification = options.has("insecure-skip-tls-verification");
+		final boolean postInstall = options.has("postinstall");
 
 		// Setup debug
 		final boolean isDebug = options.has("debug");
@@ -205,6 +208,17 @@ public class Launcher
 			log.debug("Setting JVM crash log location to {}", CRASH_FILES);
 			jvmParams.add("-XX:ErrorFile=" + CRASH_FILES.getAbsolutePath());
 
+			if (insecureSkipTlsVerification)
+			{
+				setupInsecureTrustManager();
+			}
+
+			if (postInstall)
+			{
+				postInstall(jvmParams);
+				return;
+			}
+
 			SplashScreen.init();
 			SplashScreen.stage(0, "Preparing", "Setting up environment");
 
@@ -222,33 +236,6 @@ public class Launcher
 					final String value = (String) p.get(key);
 					log.debug("  {}: {}", key, value);
 				}
-			}
-
-			if (insecureSkipTlsVerification)
-			{
-				TrustManager trustManager = new X509TrustManager()
-				{
-					@Override
-					public void checkClientTrusted(X509Certificate[] chain, String authType)
-					{
-					}
-
-					@Override
-					public void checkServerTrusted(X509Certificate[] chain, String authType)
-					{
-					}
-
-					@Override
-					public X509Certificate[] getAcceptedIssuers()
-					{
-						return null;
-					}
-				};
-
-				SSLContext sc = SSLContext.getInstance("SSL");
-				sc.init(null, new TrustManager[]{trustManager}, new SecureRandom());
-				HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
-				HttpsURLConnection.setDefaultHostnameVerifier((hostname, session) -> true);
 			}
 
 			SplashScreen.stage(.05, null, "Downloading bootstrap");
@@ -407,9 +394,12 @@ public class Launcher
 		catch (Exception e)
 		{
 			log.error("Failure during startup", e);
-			SwingUtilities.invokeLater(() ->
-				new FatalErrorDialog("RuneLite has encountered an unexpected error during startup.")
-					.open());
+			if (!postInstall)
+			{
+				SwingUtilities.invokeLater(() ->
+					new FatalErrorDialog("RuneLite has encountered an unexpected error during startup.")
+						.open());
+			}
 		}
 		catch (Error e)
 		{
@@ -787,5 +777,50 @@ public class Launcher
 	{
 		// 16 has the same module restrictions as 17, so we'll use the 17 settings for it
 		return Runtime.version().feature() >= 16;
+	}
+
+	private static void setupInsecureTrustManager() throws NoSuchAlgorithmException, KeyManagementException
+	{
+		TrustManager trustManager = new X509TrustManager()
+		{
+			@Override
+			public void checkClientTrusted(X509Certificate[] chain, String authType)
+			{
+			}
+
+			@Override
+			public void checkServerTrusted(X509Certificate[] chain, String authType)
+			{
+			}
+
+			@Override
+			public X509Certificate[] getAcceptedIssuers()
+			{
+				return null;
+			}
+		};
+
+		SSLContext sc = SSLContext.getInstance("SSL");
+		sc.init(null, new TrustManager[]{trustManager}, new SecureRandom());
+		HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+		HttpsURLConnection.setDefaultHostnameVerifier((hostname, session) -> true);
+	}
+
+	private static void postInstall(List<String> jvmParams)
+	{
+		Bootstrap bootstrap;
+		try
+		{
+			bootstrap = getBootstrap();
+		}
+		catch (IOException | VerificationException | CertificateException | SignatureException | InvalidKeyException | NoSuchAlgorithmException ex)
+		{
+			log.error("error fetching bootstrap", ex);
+			return;
+		}
+
+		PackrConfig.updateLauncherArgs(bootstrap, jvmParams);
+
+		log.info("Performed postinstall steps");
 	}
 }

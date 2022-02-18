@@ -40,6 +40,7 @@ Name: "{userprograms}\RuneLite"; Filename: "{app}\RuneLite.exe"
 Name: "{userdesktop}\RuneLite"; Filename: "{app}\RuneLite.exe"; Tasks: DesktopIcon
 
 [Run]
+Filename: "{app}\RuneLite.exe"; Parameters: "--postinstall"; Flags: nowait
 Filename: "{app}\RuneLite.exe"; Description: "&Open RuneLite"; Flags: postinstall skipifsilent nowait
 
 [InstallDelete]
