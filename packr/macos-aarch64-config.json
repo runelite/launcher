@@ -1,5 +1,5 @@
 {
-    "platform": "mac",
+    "platform": "macaarch64",
     "icon": "packr/runelite.icns",
     "jdk": "osx-aarch64-jdk",
     "executable": "RuneLite",

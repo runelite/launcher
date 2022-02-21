@@ -4,7 +4,7 @@ set -e
 
 JDK_VER="11.0.8"
 JDK_BUILD="10"
-PACKR_VERSION="runelite-1.3"
+PACKR_VERSION="runelite-1.4"
 
 SIGNING_IDENTITY="Developer ID Application"
 
@@ -35,7 +35,7 @@ if ! [ -f packr_${PACKR_VERSION}.jar ] ; then
         https://github.com/runelite/packr/releases/download/${PACKR_VERSION}/packr.jar
 fi
 
-echo "f200fb7088dbb5e61e0835fe7b0d7fc1310beda192dacd764927567dcd7c4f0f  packr_${PACKR_VERSION}.jar" | shasum -c
+echo "f51577b005a51331b822a18122ce08fca58cf6fee91f071d5a16354815bbe1e3  packr_${PACKR_VERSION}.jar" | shasum -c
 
 java -jar packr_${PACKR_VERSION}.jar \
     packr/macos-x64-config.json
