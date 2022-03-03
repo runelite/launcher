@@ -138,9 +138,9 @@
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
-			<groupId>net.runelite</groupId>
-			<artifactId>archive-patcher</artifactId>
-			<version>1.0</version>
+			<groupId>net.runelite.archive-patcher</groupId>
+			<artifactId>archive-patcher-applier</artifactId>
+			<version>1.2</version>
 		</dependency>
 
 		<dependency>
@@ -360,9 +360,9 @@
 							<hash>SHA-256:3a03d05adcbb095650e0a8e01b704ef214b0ba98e25d38835f70224b5fba68c2</hash>
 						</lock>
 						<lock>
-							<groupId>net.runelite</groupId>
-							<artifactId>archive-patcher</artifactId>
-							<hash>SHA-256:3dbd9eb9104e46979f2df85108096241780969786fd7c298ac22c83fdf66579f</hash>
+							<groupId>net.runelite.archive-patcher</groupId>
+							<artifactId>archive-patcher-applier</artifactId>
+							<hash>SHA-256:ce932f3eeeb31021ae4d62108fdab23e18b7efd79833e4cd050e2d78d78c3347</hash>
 						</lock>
 					</locks>
 				</configuration>
