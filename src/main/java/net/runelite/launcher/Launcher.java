@@ -195,6 +195,9 @@ public class Launcher
 			jvmProps.add("-Djava.net.preferIPv4Stack=true");
 			jvmProps.add("-Djava.net.preferIPv4Addresses=true");
 
+			// macOS dark mode as of JDK 11.0.8 and 14; leaving this alone forces light mode
+			jvmProps.add("-Dapple.awt.application.appearance=system");
+
 			// Stream launcher version
 			jvmProps.add("-D" + LauncherProperties.getVersionKey() + "=" + LauncherProperties.getVersion());
 
