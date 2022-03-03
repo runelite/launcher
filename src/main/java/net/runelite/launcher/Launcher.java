@@ -195,6 +195,14 @@ public class Launcher
 			jvmProps.add("-Djava.net.preferIPv4Stack=true");
 			jvmProps.add("-Djava.net.preferIPv4Addresses=true");
 
+			// As of JDK-8243269 (11.0.8) and JDK-8235363 (14), AWT makes macOS dark mode support opt-in so interfaces
+			// with hardcoded foreground/background colours don't get broken by system settings. Considering the native
+			// Aqua we draw consists a window border and an about box, it's safe to say we can opt in.
+			if (OS.getOs() == OS.OSType.MacOS)
+			{
+				jvmProps.add("-Dapple.awt.application.appearance=system");
+			}
+
 			// Stream launcher version
 			jvmProps.add("-D" + LauncherProperties.getVersionKey() + "=" + LauncherProperties.getVersion());
 
