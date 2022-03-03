@@ -111,6 +111,7 @@ public class Launcher
 		parser.accepts("debug", "Enable debug logging");
 		parser.accepts("nodiff", "Always download full artifacts instead of diffs");
 		parser.accepts("insecure-skip-tls-verification", "Disable TLS certificate and hostname verification");
+		parser.accepts("use-jre-truststore", "Use JRE cacerts truststore instead of the Windows Trusted Root Certificate Authorities (only on Windows)");
 		parser.accepts("scale", "Custom scale factor for Java 2D").withRequiredArg();
 		parser.accepts("help", "Show this text (use --clientargs --help for client help)").forHelp();
 
@@ -209,6 +210,14 @@ public class Launcher
 			if (insecureSkipTlsVerification)
 			{
 				jvmProps.add("-Drunelite.insecure-skip-tls-verification=true");
+			}
+
+			if (OS.getOs() == OS.OSType.Windows && !options.has("use-jre-truststore"))
+			{
+				// Use the Windows Trusted Root Certificate Authorities instead of the bundled cacerts.
+				// Corporations, schools, antivirus, and malware commonly install root certificates onto
+				// machines for security or other reasons that are not present in the JRE certificate store.
+				jvmProps.add("-Djavax.net.ssl.trustStoreType=Windows-ROOT");
 			}
 
 			// java2d properties have to be set prior to the graphics environment startup
