@@ -103,7 +103,7 @@ public class Launcher
 
 	public static void main(String[] args)
 	{
-		OptionParser parser = new OptionParser();
+		OptionParser parser = new OptionParser(false);
 		parser.allowsUnrecognizedOptions();
 		parser.accepts("postinstall", "Perform post-install tasks");
 		parser.accepts("clientargs", "Arguments passed to the client").withRequiredArg();
@@ -117,7 +117,8 @@ public class Launcher
 
 		if (OS.getOs() == OS.OSType.MacOS)
 		{
-			parser.accepts("psn").withRequiredArg();
+			// Parse macos PSN, eg: -psn_0_352342
+			parser.accepts("p").withRequiredArg();
 		}
 
 		// Create typed argument for the hardware acceleration mode
