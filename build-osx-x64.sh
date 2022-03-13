@@ -2,18 +2,18 @@
 
 set -e
 
-JDK_VER="11.0.8"
-JDK_BUILD="10"
+JDK_VER="11.0.14.1"
+JDK_BUILD="1"
 PACKR_VERSION="runelite-1.4"
 
 SIGNING_IDENTITY="Developer ID Application"
 
 if ! [ -f OpenJDK11U-jre_x64_mac_hotspot_${JDK_VER}_${JDK_BUILD}.tar.gz ] ; then
     curl -Lo OpenJDK11U-jre_x64_mac_hotspot_${JDK_VER}_${JDK_BUILD}.tar.gz \
-        https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-${JDK_VER}%2B${JDK_BUILD}/OpenJDK11U-jre_x64_mac_hotspot_${JDK_VER}_${JDK_BUILD}.tar.gz
+        https://github.com/adoptium/temurin11-binaries/releases/download/jdk-${JDK_VER}%2B${JDK_BUILD}/OpenJDK11U-jre_x64_mac_hotspot_${JDK_VER}_${JDK_BUILD}.tar.gz
 fi
 
-echo "b0cd349e7e428721a3bcfec619e071d25c0397e3e43b7ce22acfd7d834a8ca4b  OpenJDK11U-jre_x64_mac_hotspot_${JDK_VER}_${JDK_BUILD}.tar.gz" | shasum -c
+echo "1b2f792ad05af9dba876db962c189527e645b48f50ceb842b4e39169de553303  OpenJDK11U-jre_x64_mac_hotspot_${JDK_VER}_${JDK_BUILD}.tar.gz" | shasum -c
 
 # packr requires a "jdk" and pulls the jre from it - so we have to place it inside
 # the jdk folder at jre/
