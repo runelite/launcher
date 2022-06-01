@@ -36,13 +36,11 @@ import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
 import com.google.common.hash.HashingOutputStream;
 import com.google.common.io.ByteStreams;
-import com.google.common.io.Files;
 import com.google.gson.Gson;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -51,6 +49,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.file.Files;
 import java.security.InvalidKeyException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
@@ -589,7 +588,7 @@ public class Launcher
 					File old = new File(REPO_DIR, diff.getFrom());
 					HashCode hash;
 					try (InputStream patchStream = new GZIPInputStream(new ByteArrayInputStream(out.toByteArray()));
-						HashingOutputStream fout = new HashingOutputStream(Hashing.sha256(), new FileOutputStream(dest)))
+						HashingOutputStream fout = new HashingOutputStream(Hashing.sha256(), Files.newOutputStream(dest.toPath())))
 					{
 						new FileByFileV1DeltaApplier().applyDelta(old, patchStream, fout);
 						hash = fout.hash();
@@ -616,7 +615,7 @@ public class Launcher
 
 			log.debug("Downloading {}", artifact.getName());
 
-			try (FileOutputStream fout = new FileOutputStream(dest))
+			try (OutputStream fout = Files.newOutputStream(dest.toPath()))
 			{
 				final int totalBytes = totalDownloadBytes;
 				download(artifact.getPath(), artifact.getHash(), (completed) ->
@@ -698,7 +697,7 @@ public class Launcher
 	private static String hash(File file) throws IOException
 	{
 		HashFunction sha256 = Hashing.sha256();
-		return Files.asByteSource(file).hash(sha256).toString();
+		return com.google.common.io.Files.asByteSource(file).hash(sha256).toString();
 	}
 
 	private static Certificate getCertificate() throws CertificateException
