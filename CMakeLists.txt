@@ -8,7 +8,7 @@ cmake_minimum_required(VERSION 2.8)
 get_filename_component(FIPS_ROOT_DIR "../fips" ABSOLUTE)
 include("${FIPS_ROOT_DIR}/cmake/fips.cmake")
 
-set(CMAKE_OSX_DEPLOYMENT_TARGET "10.7")
+set(CMAKE_OSX_DEPLOYMENT_TARGET "10.9")
 
 fips_setup()
 fips_project(packr-native)
