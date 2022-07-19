@@ -36,10 +36,16 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class OS
 {
+	/*
+	 * XDG prefixed variables are OS-defaults
+	 * non-prefixed variables are the running environment variables
+	 * the minuscule variables are the runelite-specific variables
+	 * */
 	private static final Path CONFIG_HOME;
 	private static final Path DATA_HOME;
 	private static final Path CACHE_HOME;
 	private static final Path STATE_HOME;
+	private static final Path PICTURES_DIR;
 
 	public enum OSType
 	{
@@ -59,6 +65,7 @@ public class OS
 		Path XDG_DATA_HOME;
 		Path XDG_CACHE_HOME;
 		Path XDG_STATE_HOME;
+		Path XDG_PICTURES_DIR;
 
 		if (os.contains("mac") || os.contains("darwin"))
 		{
@@ -67,6 +74,8 @@ public class OS
 			XDG_CACHE_HOME = Paths.get(System.getProperty("user.home"), "Library", "Caches");
 			// STATE is a newcomer to the standard. it was split apart from the cache directory... but not on MacOS (yet, at least)
 			XDG_STATE_HOME = Paths.get(System.getProperty("user.home"), "Library", "Caches");
+
+			XDG_PICTURES_DIR = Paths.get(System.getProperty("user.home"), "Pictures");
 
 			DETECTED_OS = OSType.MacOS;
 		}
@@ -78,6 +87,8 @@ public class OS
 			// STATE is a newcomer to the standard. it was split apart from the cache directory... but not on Windows (yet, at least)
 			XDG_STATE_HOME = Paths.get(System.getProperty("user.home"), "AppData", "Local", placeholder, "Cache");
 
+			XDG_PICTURES_DIR = Paths.get(System.getProperty("user.home"), "Pictures");
+
 			DETECTED_OS = OSType.Windows;
 		}
 		else if (os.contains("linux"))
@@ -86,6 +97,8 @@ public class OS
 			XDG_DATA_HOME = Paths.get(System.getProperty("user.home"), ".local", "share");
 			XDG_CACHE_HOME = Paths.get(System.getProperty("user.home"), ".cache");
 			XDG_STATE_HOME = Paths.get(System.getProperty("user.home"), ".local", "state");
+
+			XDG_PICTURES_DIR = Paths.get(System.getProperty("user.home"), "Pictures");
 
 			DETECTED_OS = OSType.Linux;
 		}
@@ -96,15 +109,21 @@ public class OS
 			XDG_CACHE_HOME = Paths.get(System.getProperty("user.home"), ".runelite", "cache");
 			XDG_STATE_HOME = Paths.get(System.getProperty("user.home"), ".runelite", "state");
 
+			XDG_PICTURES_DIR = Paths.get(System.getProperty("user.home"), ".runelite", "Pictures");
+
 			DETECTED_OS = OSType.Other;
 		}
 
+		XDG_PICTURES_DIR = Paths.get(System.getProperty("user.home"), "Pictures");
 
 		// note: system variables don't have a placeholder for the appname.
 		CONFIG_HOME = Paths.get(System.getProperty("XDG_CONFIG_HOME", XDG_CONFIG_HOME.toString()));
 		DATA_HOME = Paths.get(System.getProperty("XDG_DATA_HOME", XDG_DATA_HOME.toString()));
 		CACHE_HOME = Paths.get(System.getProperty("XDG_CACHE_HOME", XDG_CACHE_HOME.toString()));
 		STATE_HOME = Paths.get(System.getProperty("XDG_STATE_HOME", XDG_STATE_HOME.toString()));
+
+		PICTURES_DIR = Paths.get(System.getProperty("XDG_PICTURES_DIR", XDG_PICTURES_DIR.toString()));
+
 		log.debug("Detect OS: {}", DETECTED_OS);
 	}
 
@@ -164,6 +183,7 @@ public class OS
 		String data_home;
 		String cache_home;
 		String state_home;
+		String pictures_dir;
 
 		if (OS.equals("windows"))
 		{
@@ -179,6 +199,7 @@ public class OS
 			cache_home = Paths.get(CACHE_HOME.toString(), appName).toString();
 			state_home = Paths.get(STATE_HOME.toString(), appName).toString();
 		}
+		pictures_dir = Paths.get(PICTURES_DIR.toString(), appName).toString();
 
 		switch (home.toLowerCase())
 		{
@@ -190,6 +211,9 @@ public class OS
 				return cache_home;
 			case "state":
 				return state_home;
+			case "pictures":
+			case "screenshots":
+				return pictures_dir;
 			default:
 				throw new IllegalArgumentException("XDG paths must be config, data, cache or state");
 		}
