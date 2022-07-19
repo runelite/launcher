@@ -94,14 +94,43 @@ import org.slf4j.LoggerFactory;
 @Slf4j
 public class Launcher
 {
-	private static final File RUNELITE_DIR = new File(System.getProperty("user.home"), ".runelite");
-	public static final File LOGS_DIR = new File(RUNELITE_DIR, "logs");
-	private static final File REPO_DIR = new File(RUNELITE_DIR, "repository2");
-	public static final File CRASH_FILES = new File(LOGS_DIR, "jvm_crash_pid_%p.log");
+	private static final File RUNELITE_DIR;
+	private static final File REPO_DIR;
+	public static final File LOGS_DIR;
+	public static final File CRASH_FILES;
+
 	private static final String USER_AGENT = "RuneLite/" + LauncherProperties.getVersion();
+	private static final String APP_NAME = "runelite";
+
+	static
+	{
+		// we are currently keeping Windows and Other OSes in legacy directories
+		// eventually this switch() should be unnecessary
+		switch (OS.getOS())
+		{
+			case Linux:
+			case MacOS:
+				RUNELITE_DIR = new File(OS.getXDG("data", APP_NAME));
+				REPO_DIR = new File(OS.getXDG("data", APP_NAME), "repository2");
+
+				LOGS_DIR = new File(OS.getXDG("state", APP_NAME));
+				CRASH_FILES = new File(LOGS_DIR, "jvm_crash_pid_%p.log");
+				break;
+			case Windows:
+			case Other:
+			default:
+				RUNELITE_DIR = new File(System.getProperty("user.home"), "." + APP_NAME);  // ~/.runelite
+				REPO_DIR = new File(RUNELITE_DIR, "repository2");
+
+				LOGS_DIR = new File(RUNELITE_DIR, "logs");
+				CRASH_FILES = new File(LOGS_DIR, "jvm_crash_pid_%p.log");
+				break;
+		}
+	}
 
 	public static void main(String[] args)
 	{
+
 		OptionParser parser = new OptionParser(false);
 		parser.allowsUnrecognizedOptions();
 		parser.accepts("postinstall", "Perform post-install tasks");
@@ -114,7 +143,7 @@ public class Launcher
 		parser.accepts("scale", "Custom scale factor for Java 2D").withRequiredArg();
 		parser.accepts("help", "Show this text (use --clientargs --help for client help)").forHelp();
 
-		if (OS.getOs() == OS.OSType.MacOS)
+		if (OS.equals("mac"))
 		{
 			// Parse macos PSN, eg: -psn_0_352342
 			parser.accepts("p").withRequiredArg();
@@ -124,7 +153,7 @@ public class Launcher
 		final ArgumentAcceptingOptionSpec<HardwareAccelerationMode> mode = parser.accepts("mode")
 			.withRequiredArg()
 			.ofType(HardwareAccelerationMode.class)
-			.defaultsTo(HardwareAccelerationMode.defaultMode(OS.getOs()));
+			.defaultsTo(HardwareAccelerationMode.defaultMode(OS.getOS()));
 
 		final OptionSet options;
 		final HardwareAccelerationMode hardwareAccelerationMode;
@@ -190,12 +219,12 @@ public class Launcher
 			}
 
 			log.info("Setting hardware acceleration to {}", hardwareAccelerationMode);
-			jvmProps.addAll(hardwareAccelerationMode.toParams(OS.getOs()));
+			jvmProps.addAll(hardwareAccelerationMode.toParams(OS.getOS()));
 
 			// As of JDK-8243269 (11.0.8) and JDK-8235363 (14), AWT makes macOS dark mode support opt-in so interfaces
 			// with hardcoded foreground/background colours don't get broken by system settings. Considering the native
 			// Aqua we draw consists a window border and an about box, it's safe to say we can opt in.
-			if (OS.getOs() == OS.OSType.MacOS)
+			if (OS.equals("mac"))
 			{
 				jvmProps.add("-Dapple.awt.application.appearance=system");
 			}
@@ -208,7 +237,7 @@ public class Launcher
 				jvmProps.add("-Drunelite.insecure-skip-tls-verification=true");
 			}
 
-			if (OS.getOs() == OS.OSType.Windows && !options.has("use-jre-truststore"))
+			if (OS.equals("windows") && !options.has("use-jre-truststore"))
 			{
 				// Use the Windows Trusted Root Certificate Authorities instead of the bundled cacerts.
 				// Corporations, schools, antivirus, and malware commonly install root certificates onto
@@ -323,18 +352,9 @@ public class Launcher
 						return true;
 					}
 
-					final String os = System.getProperty("os.name");
-					final String arch = System.getProperty("os.arch");
 					for (Platform platform : a.getPlatform())
 					{
-						if (platform.getName() == null)
-						{
-							continue;
-						}
-
-						OS.OSType platformOs = OS.parseOs(platform.getName());
-						if ((platformOs == OS.OSType.Other ? platform.getName().equals(os) : platformOs == OS.getOs())
-							&& (platform.getArch() == null || platform.getArch().equals(arch)))
+						if (OS.isCompatible(platform.getName(), platform.getArch()))
 						{
 							return true;
 						}
@@ -842,7 +862,7 @@ public class Launcher
 
 	private static void initDllBlacklist()
 	{
-		if (OS.getOs() != OS.OSType.Windows)
+		if (!OS.equals("windows"))
 		{
 			return;
 		}
