@@ -9,4 +9,12 @@ project.properties
 .settings/
 .classpath
 dependency-reduced-pom.xml
-*.exe
+*.exelinux-jdk
+linux-aarch64-jdk/
+native-linux-x86_64/
+native-linux-aarch64/
+linux-jdk/
+*.AppImage
+*.AppImage-patched
+OpenJDK11U-jre_*_linux_hotspot_*.tar.gz
+packr_runelite-*.jar
