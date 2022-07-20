@@ -74,6 +74,7 @@ public class OS
 			XDG_CACHE_HOME = Paths.get(System.getProperty("user.home"), "Library", "Caches");
 			// STATE is a newcomer to the standard. it was split apart from the cache directory... but not on MacOS (yet, at least)
 			XDG_STATE_HOME = Paths.get(System.getProperty("user.home"), "Library", "Caches");
+			XDG_RUNTIME_DIR = Paths.get(System.getProperty("user.home"), "Library", "Caches");
 
 			XDG_PICTURES_DIR = Paths.get(System.getProperty("user.home"), "Pictures");
 
@@ -84,10 +85,10 @@ public class OS
 			XDG_CONFIG_HOME = Paths.get(System.getProperty("user.home"), "AppData", "Roaming", placeholder, "Config");
 			XDG_DATA_HOME = Paths.get(System.getProperty("user.home"), "AppData", "Local", placeholder, "Data" );
 			XDG_CACHE_HOME = Paths.get(System.getProperty("user.home"), "AppData", "Local", placeholder, "Cache");
-			// STATE is a newcomer to the standard. it was split apart from the cache directory... but not on Windows (yet, at least)
 			XDG_STATE_HOME = Paths.get(System.getProperty("user.home"), "AppData", "Local", placeholder, "Cache");
+			XDG_RUNTIME_DIR = Paths.get(System.getProperty("user.home"), "AppData", "Roaming", placeholder);
 
-			XDG_PICTURES_DIR = Paths.get(System.getProperty("user.home"), "Pictures");
+			XDG_PICTURES_DIR = Paths.get(System.getProperty("user.home"), "Pictures", placeholder);
 
 			DETECTED_OS = OSType.Windows;
 		}
@@ -97,6 +98,9 @@ public class OS
 			XDG_DATA_HOME = Paths.get(System.getProperty("user.home"), ".local", "share");
 			XDG_CACHE_HOME = Paths.get(System.getProperty("user.home"), ".cache");
 			XDG_STATE_HOME = Paths.get(System.getProperty("user.home"), ".local", "state");
+			//  the default runtime directory on systemd is /run/user/1000, but this depends on the init. other
+			//  init systems should make sure they've exported the runtime directory to the environment
+			XDG_RUNTIME_DIR = Paths.get("run", "user", System.getProperty("UID"));
 
 			XDG_PICTURES_DIR = Paths.get(System.getProperty("user.home"), "Pictures");
 
@@ -108,21 +112,36 @@ public class OS
 			XDG_DATA_HOME = Paths.get(System.getProperty("user.home"), ".runelite", "data");
 			XDG_CACHE_HOME = Paths.get(System.getProperty("user.home"), ".runelite", "cache");
 			XDG_STATE_HOME = Paths.get(System.getProperty("user.home"), ".runelite", "state");
+			XDG_RUNTIME_DIR = Paths.get(System.getProperty("user.home"), ".runelite", "runtime");
 
 			XDG_PICTURES_DIR = Paths.get(System.getProperty("user.home"), ".runelite", "Pictures");
 
 			DETECTED_OS = OSType.Other;
 		}
 
-		XDG_PICTURES_DIR = Paths.get(System.getProperty("user.home"), "Pictures");
-
 		// note: system variables don't have a placeholder for the appname.
-		CONFIG_HOME = Paths.get(System.getProperty("XDG_CONFIG_HOME", XDG_CONFIG_HOME.toString()));
-		DATA_HOME = Paths.get(System.getProperty("XDG_DATA_HOME", XDG_DATA_HOME.toString()));
-		CACHE_HOME = Paths.get(System.getProperty("XDG_CACHE_HOME", XDG_CACHE_HOME.toString()));
-		STATE_HOME = Paths.get(System.getProperty("XDG_STATE_HOME", XDG_STATE_HOME.toString()));
-
-		PICTURES_DIR = Paths.get(System.getProperty("XDG_PICTURES_DIR", XDG_PICTURES_DIR.toString()));
+		switch (DETECTED_OS)
+		{
+			case Linux:
+			case Mac:
+				PICTURES_DIR = Paths.get(System.getProperty("XDG_PICTURES_DIR", XDG_PICTURES_DIR.toString()));
+				CONFIG_HOME = Paths.get(System.getProperty("XDG_CONFIG_HOME", XDG_CONFIG_HOME.toString()));
+				DATA_HOME = Paths.get(System.getProperty("XDG_DATA_HOME", XDG_DATA_HOME.toString()));
+				CACHE_HOME = Paths.get(System.getProperty("XDG_CACHE_HOME", XDG_CACHE_HOME.toString()));
+				STATE_HOME = Paths.get(System.getProperty("XDG_STATE_HOME", XDG_STATE_HOME.toString()));
+				RUNTIME_DIR = Paths.get(System.getProperty("XDG_RUNTIME_DIR", XDG_RUNTIME_DIR.toString()));
+				break;
+			case Windows:
+			case Other:
+			default:
+				CONFIG_HOME = XDG_CONFIG_HOME.toString();
+				DATA_HOME = XDG_DATA_HOME.toString();
+				CACHE_HOME = XDG_CACHE_HOME.toString();
+				STATE_HOME = XDG_STATE_HOME.toString();
+				RUNTIME_DIR = XDG_RUNTIME_DIR.toString();
+				PICTURES_DIR = XDG_PICTURES_DIR.toString();
+				break;
+		}
 
 		log.debug("Detect OS: {}", DETECTED_OS);
 	}
@@ -184,6 +203,7 @@ public class OS
 		String cache_home;
 		String state_home;
 		String pictures_dir;
+		String runtime_dir;
 
 		if (OS.equals("windows"))
 		{
@@ -191,6 +211,7 @@ public class OS
 			data_home = DATA_HOME.toString().replace(placeholder, appName);
 			cache_home = CACHE_HOME.toString().replace(placeholder, appName);
 			state_home = STATE_HOME.toString().replace(placeholder, appName);
+			runtime_dir = RUNTIME_DIR.toString().replace(placeholder, appName);
 		}
 		else
 		{
@@ -198,6 +219,7 @@ public class OS
 			data_home = Paths.get(DATA_HOME.toString(), appName).toString();
 			cache_home = Paths.get(CACHE_HOME.toString(), appName).toString();
 			state_home = Paths.get(STATE_HOME.toString(), appName).toString();
+			runtime_dir = Paths.get(RUNTIME_DIR.toString(), appName).toString();
 		}
 		pictures_dir = Paths.get(PICTURES_DIR.toString(), appName).toString();
 
@@ -210,6 +232,8 @@ public class OS
 			case "cache":
 				return cache_home;
 			case "state":
+				return state_home;
+			case "runtime":
 				return state_home;
 			case "pictures":
 			case "screenshots":
