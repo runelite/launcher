@@ -94,6 +94,8 @@ import org.slf4j.LoggerFactory;
 @Slf4j
 public class Launcher
 {
+	private static final File LEGACY_RUNELITE_DIR = new File(System.getProperty("user.home"), ".runelite");
+
 	private static final File RUNELITE_DIR;
 	private static final File REPO_DIR;
 	public static final File LOGS_DIR;
@@ -104,27 +106,38 @@ public class Launcher
 
 	static
 	{
-		// we are currently keeping Windows and Other OSes in legacy directories
-		// eventually this switch() should be unnecessary
-		switch (OS.getOS())
+		// if ~/.runelite is found, use it instead of xdg defaults
+		// to bypass this check, either rename/move/delete the directory, or set RUNELITE_USE_XDG=1 in your environment
+		if (LEGACY_RUNELITE_DIR.exists() && !System.getProperty("RUNELITE_USE_XDG"))
 		{
-			case Linux:
-			case MacOS:
-				RUNELITE_DIR = new File(OS.getXDG("data", APP_NAME));
-				REPO_DIR = new File(OS.getXDG("data", APP_NAME), "repository2");
+			RUNELITE_DIR = new File(System.getProperty("user.home"), ".runelite");
+			REPO_DIR = new File(RUNELITE_DIR, "repository2");
 
-				LOGS_DIR = new File(OS.getXDG("state", APP_NAME));
-				CRASH_FILES = new File(LOGS_DIR, "jvm_crash_pid_%p.log");
-				break;
-			case Windows:
-			case Other:
-			default:
-				RUNELITE_DIR = new File(System.getProperty("user.home"), "." + APP_NAME);  // ~/.runelite
-				REPO_DIR = new File(RUNELITE_DIR, "repository2");
+			LOGS_DIR = new File(RUNELITE_DIR, "logs");
+			CRASH_FILES = new File(LOGS_DIR, "jvm_crash_pid_%p.log");
+		}
+		else
+		{
+			switch (OS.getOS())
+			{
+				case Linux:
+				case MacOS:
+					RUNELITE_DIR = new File(OS.getXDG("data", APP_NAME));
+					REPO_DIR = new File(OS.getXDG("data", APP_NAME), "repository2");
 
-				LOGS_DIR = new File(RUNELITE_DIR, "logs");
-				CRASH_FILES = new File(LOGS_DIR, "jvm_crash_pid_%p.log");
-				break;
+					LOGS_DIR = new File(OS.getXDG("state", APP_NAME));
+					CRASH_FILES = new File(LOGS_DIR, "jvm_crash_pid_%p.log");
+					break;
+				case Windows:
+				case Other:
+				default:
+					RUNELITE_DIR = new File(System.getProperty("user.home"), "." + APP_NAME);  // ~/.runelite
+					REPO_DIR = new File(RUNELITE_DIR, "repository2");
+
+					LOGS_DIR = new File(RUNELITE_DIR, "logs");
+					CRASH_FILES = new File(LOGS_DIR, "jvm_crash_pid_%p.log");
+					break;
+			}
 		}
 	}
 
