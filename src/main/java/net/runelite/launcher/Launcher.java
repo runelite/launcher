@@ -108,7 +108,7 @@ public class Launcher
 	{
 		// if ~/.runelite is found, use it instead of xdg defaults
 		// to bypass this check, either rename/move/delete the directory, or set RUNELITE_USE_XDG=1 in your environment
-		if (LEGACY_RUNELITE_DIR.exists() && !System.getProperty("RUNELITE_USE_XDG"))
+		if (LEGACY_RUNELITE_DIR.exists() && System.getProperty("RUNELITE_USE_XDG", null) == null)
 		{
 			RUNELITE_DIR = new File(System.getProperty("user.home"), ".runelite");
 			REPO_DIR = new File(RUNELITE_DIR, "repository2");
