@@ -66,6 +66,7 @@ import java.util.Collection;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -176,36 +177,36 @@ public class Launcher
 		{
 			log.info("RuneLite Launcher version {}", LauncherProperties.getVersion());
 
-			final List<String> jvmProps = new ArrayList<>();
+			final Map<String, String> jvmProps = new LinkedHashMap<>();
 			if (options.has("scale"))
 			{
 				// On Vista+ this calls SetProcessDPIAware(). Since the RuneLite.exe manifest is DPI unaware
 				// Windows will scale the application if this isn't called. Thus the default scaling mode is
 				// Windows scaling due to being DPI unaware.
 				// https://docs.microsoft.com/en-us/windows/win32/hidpi/high-dpi-desktop-application-development-on-windows
-				jvmProps.add("-Dsun.java2d.dpiaware=true");
+				jvmProps.put("sun.java2d.dpiaware", "true");
 				// This sets the Java 2D scaling factor, overriding the default behavior of detecting the scale via
 				// GetDpiForMonitor.
-				jvmProps.add("-Dsun.java2d.uiScale=" + options.valueOf("scale"));
+				jvmProps.put("sun.java2d.uiScale", String.valueOf(options.valueOf("scale")));
 			}
 
 			log.info("Setting hardware acceleration to {}", hardwareAccelerationMode);
-			jvmProps.addAll(hardwareAccelerationMode.toParams(OS.getOs()));
+			jvmProps.putAll(hardwareAccelerationMode.toParams(OS.getOs()));
 
 			// As of JDK-8243269 (11.0.8) and JDK-8235363 (14), AWT makes macOS dark mode support opt-in so interfaces
 			// with hardcoded foreground/background colours don't get broken by system settings. Considering the native
 			// Aqua we draw consists a window border and an about box, it's safe to say we can opt in.
 			if (OS.getOs() == OS.OSType.MacOS)
 			{
-				jvmProps.add("-Dapple.awt.application.appearance=system");
+				jvmProps.put("apple.awt.application.appearance", "system");
 			}
 
 			// Stream launcher version
-			jvmProps.add("-D" + LauncherProperties.getVersionKey() + "=" + LauncherProperties.getVersion());
+			jvmProps.put(LauncherProperties.getVersionKey(), LauncherProperties.getVersion());
 
 			if (insecureSkipTlsVerification)
 			{
-				jvmProps.add("-Drunelite.insecure-skip-tls-verification=true");
+				jvmProps.put("runelite.insecure-skip-tls-verification", "true");
 			}
 
 			if (OS.getOs() == OS.OSType.Windows && !options.has("use-jre-truststore"))
@@ -213,7 +214,7 @@ public class Launcher
 				// Use the Windows Trusted Root Certificate Authorities instead of the bundled cacerts.
 				// Corporations, schools, antivirus, and malware commonly install root certificates onto
 				// machines for security or other reasons that are not present in the JRE certificate store.
-				jvmProps.add("-Djavax.net.ssl.trustStoreType=Windows-ROOT");
+				jvmProps.put("javax.net.ssl.trustStoreType", "Windows-ROOT");
 			}
 
 			// java2d properties have to be set prior to the graphics environment startup
@@ -429,12 +430,11 @@ public class Launcher
 		}
 	}
 
-	private static void setJvmParams(final Collection<String> params)
+	private static void setJvmParams(final Map<String, String> params)
 	{
-		for (String param : params)
+		for (Map.Entry<String, String> entry : params.entrySet())
 		{
-			final String[] split = param.replace("-D", "").split("=");
-			System.setProperty(split[0], split[1]);
+			System.setProperty(entry.getKey(), entry.getValue());
 		}
 	}
 

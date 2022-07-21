@@ -36,6 +36,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.launcher.beans.Bootstrap;
 import org.slf4j.Logger;
@@ -74,7 +75,7 @@ class JvmLauncher
 		Bootstrap bootstrap,
 		List<File> results,
 		Collection<String> clientArgs,
-		List<String> jvmProps,
+		Map<String, String> jvmProps,
 		List<String> jvmArgs) throws IOException
 	{
 		StringBuilder classPath = new StringBuilder();
@@ -109,7 +110,10 @@ class JvmLauncher
 		{
 			arguments.addAll(Arrays.asList(jvmArguments));
 		}
-		arguments.addAll(jvmProps);
+		for (Map.Entry<String, String> entry : jvmProps.entrySet())
+		{
+			arguments.add("-D" + entry.getKey() + "=" + entry.getValue());
+		}
 		arguments.addAll(jvmArgs);
 
 		arguments.add(LauncherProperties.getMain());
