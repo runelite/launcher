@@ -2,17 +2,17 @@
 
 set -e
 
-JDK_VER="11.0.8"
-JDK_BUILD="10"
-JDK_BUILD_SHORT="10"
+JDK_VER="11.0.16"
+JDK_BUILD="8"
+JDK_BUILD_SHORT="8"
 PACKR_VERSION="runelite-1.3"
 
 if ! [ -f OpenJDK11U-jre_x86-32_windows_hotspot_${JDK_VER}_${JDK_BUILD}.zip ] ; then
     curl -Lo OpenJDK11U-jre_x86-32_windows_hotspot_${JDK_VER}_${JDK_BUILD}.zip \
-        https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-${JDK_VER}%2B${JDK_BUILD}/OpenJDK11U-jre_x86-32_windows_hotspot_${JDK_VER}_${JDK_BUILD_SHORT}.zip
+        https://github.com/adoptium/temurin11-binaries/releases/download/jdk-${JDK_VER}%2B${JDK_BUILD}/OpenJDK11U-jre_x86-32_windows_hotspot_${JDK_VER}_${JDK_BUILD_SHORT}.zip
 fi
 
-echo "00e0eb7112a4cdbaae663110e4c7af6377d2fa01f69c20222790293b4f427f26 OpenJDK11U-jre_x86-32_windows_hotspot_${JDK_VER}_${JDK_BUILD}.zip" | sha256sum -c
+echo "4da2313441de81e289b25b5ea36f10ab14f8c0f16085fb33eabcda502b1f6457 OpenJDK11U-jre_x86-32_windows_hotspot_${JDK_VER}_${JDK_BUILD}.zip" | sha256sum -c
 
 # packr requires a "jdk" and pulls the jre from it - so we have to place it inside
 # the jdk folder at jre/
