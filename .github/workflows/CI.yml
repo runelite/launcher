@@ -91,3 +91,38 @@ jobs:
         path: ${{ steps.snapcraft.outputs.snap }}
         retention-days: 1
         if-no-files-found: error
+  macos:
+    runs-on: macos-11
+    steps:
+    - uses: actions/checkout@v3
+    - name: cache
+      uses: actions/cache@v2
+      with:
+        path: |
+          ~/.m2/repository
+        key: ${{ runner.os }}-cache-${{ hashFiles('**/pom.xml') }}
+        restore-keys: |
+          ${{ runner.os }}-cache-
+    - name: Set up JDK 11
+      uses: actions/setup-java@v2
+      with:
+        java-version: 11
+        distribution: temurin
+    - name: build
+      run: mvn verify -B
+    - run: git clone https://github.com/runelite/create-dmg
+    - run: |
+        set -e
+        cd create-dmg
+        npm install
+        ln -s cli.js create-dmg
+        chmod +x create-dmg
+    - run: echo create-dmg >> $GITHUB_PATH
+    - name: macos-x64
+      run: ./build-osx-x64.sh
+    - uses: actions/upload-artifact@v3
+      with:
+        name: macos-x64
+        path: native-osx/RuneLite-x64.dmg
+        retention-days: 1
+        if-no-files-found: error
