@@ -5,7 +5,7 @@ set -e
 JDK_VER="11.0.8"
 JDK_BUILD="10"
 PACKR_VERSION="runelite-1.3"
-APPIMAGE_VERSION="12"
+APPIMAGE_VERSION="13"
 
 umask 022
 
@@ -58,14 +58,14 @@ if ! [ -f appimagetool-x86_64.AppImage ] ; then
     chmod +x appimagetool-x86_64.AppImage
 fi
 
-echo "d918b4df547b388ef253f3c9e7f6529ca81a885395c31f619d9aaf7030499a13  appimagetool-x86_64.AppImage" | sha256sum -c
+echo "df3baf5ca5facbecfc2f3fa6713c29ab9cefa8fd8c1eac5d283b79cab33e4acb  appimagetool-x86_64.AppImage" | sha256sum -c
 
 if ! [ -f runtime-aarch64 ] ; then
     curl -Lo runtime-aarch64 \
 	    https://github.com/AppImage/AppImageKit/releases/download/$APPIMAGE_VERSION/runtime-aarch64
 fi
 
-echo "207f8955500cfe8dd5b824ca7514787c023975e083b0269fc14600c380111d85  runtime-aarch64" | sha256sum -c
+echo "d2624ce8cc2c64ef76ba986166ad67f07110cdbf85112ace4f91611bc634c96a  runtime-aarch64" | sha256sum -c
 
 ARCH=arm_aarch64 ./appimagetool-x86_64.AppImage \
 	--runtime-file runtime-aarch64  \

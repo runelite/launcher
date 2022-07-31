@@ -5,7 +5,7 @@ set -e
 JDK_VER="11.0.8"
 JDK_BUILD="10"
 PACKR_VERSION="runelite-1.3"
-APPIMAGE_VERSION="12"
+APPIMAGE_VERSION="13"
 
 umask 022
 
@@ -56,7 +56,7 @@ if ! [ -f appimagetool-x86_64.AppImage ] ; then
     chmod +x appimagetool-x86_64.AppImage
 fi
 
-echo "d918b4df547b388ef253f3c9e7f6529ca81a885395c31f619d9aaf7030499a13  appimagetool-x86_64.AppImage" | sha256sum -c
+echo "df3baf5ca5facbecfc2f3fa6713c29ab9cefa8fd8c1eac5d283b79cab33e4acb  appimagetool-x86_64.AppImage" | sha256sum -c
 
 ./appimagetool-x86_64.AppImage \
 	native-linux-x86_64/RuneLite.AppDir/ \
