@@ -65,6 +65,8 @@ jobs:
       run: ./build-linux-x86_64.sh
     - name: linux-aarch64
       run: ./build-linux-aarch64.sh
+    - uses: snapcore/action-build@v1
+      id: snapcraft
     - uses: actions/upload-artifact@v3
       with:
         name: jar
@@ -81,5 +83,11 @@ jobs:
       with:
         name: linux-aarch64
         path: native-linux-aarch64/RuneLite-aarch64.AppImage
+        retention-days: 1
+        if-no-files-found: error
+    - uses: actions/upload-artifact@v3
+      with:
+        name: linux-snap-x64
+        path: ${{ steps.snapcraft.outputs.snap }}
         retention-days: 1
         if-no-files-found: error
