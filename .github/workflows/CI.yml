@@ -114,8 +114,15 @@ jobs:
     - run: echo create-dmg >> $GITHUB_PATH
     - name: macos-x64
       run: ./build-osx-x64.sh
+    - name: macos-aarch64
+      run: ./build-osx-aarch64.sh
     - uses: actions/upload-artifact@v3
       with:
         name: macos-x64
         path: native-osx/RuneLite-x64.dmg
+        if-no-files-found: error
+    - uses: actions/upload-artifact@v3
+      with:
+        name: macos-aarch64
+        path: native-osx-aarch64/RuneLite-aarch64.dmg
         if-no-files-found: error
