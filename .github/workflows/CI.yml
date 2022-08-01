@@ -34,13 +34,11 @@ jobs:
       with:
         name: windows-amd64
         path: RuneLiteSetup.exe
-        retention-days: 1
         if-no-files-found: error
     - uses: actions/upload-artifact@v3
       with:
         name: windows-x86
         path: RuneLiteSetup32.exe
-        retention-days: 1
         if-no-files-found: error
   linux:
     runs-on: ubuntu-20.04
@@ -71,25 +69,21 @@ jobs:
       with:
         name: jar
         path: target/RuneLite.jar
-        retention-days: 1
         if-no-files-found: error
     - uses: actions/upload-artifact@v3
       with:
         name: linux-x64
         path: native-linux-x86_64/RuneLite.AppImage
-        retention-days: 1
         if-no-files-found: error
     - uses: actions/upload-artifact@v3
       with:
         name: linux-aarch64
         path: native-linux-aarch64/RuneLite-aarch64.AppImage
-        retention-days: 1
         if-no-files-found: error
     - uses: actions/upload-artifact@v3
       with:
         name: linux-snap-x64
         path: ${{ steps.snapcraft.outputs.snap }}
-        retention-days: 1
         if-no-files-found: error
   macos:
     runs-on: macos-11
@@ -124,5 +118,4 @@ jobs:
       with:
         name: macos-x64
         path: native-osx/RuneLite-x64.dmg
-        retention-days: 1
         if-no-files-found: error
