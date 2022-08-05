@@ -2,8 +2,8 @@
 
 set -e
 
-JDK_VER="17.0.3"
-JDK_BUILD="7"
+JDK_VER="17.0.4"
+JDK_BUILD="8"
 PACKR_VERSION="runelite-1.4"
 
 SIGNING_IDENTITY="Developer ID Application"
@@ -15,7 +15,7 @@ if ! [ -f ${FILE} ] ; then
     curl -Lo ${FILE} ${URL}
 fi
 
-echo "655a8e2a45805e15331bdbb0f91d9d8ca4681ce435f688e3aaf51a1febfe4f90  ${FILE}" | shasum -c
+echo "81d7cd6de1986e9afdac128e26386291eaf5d15e0521a10ec4021e2798fb6847  ${FILE}" | shasum -c
 
 # packr requires a "jdk" and pulls the jre from it - so we have to place it inside
 # the jdk folder at jre/
