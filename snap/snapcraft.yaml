@@ -1,5 +1,5 @@
 name: runelite
-base: core20
+base: core22
 title: RuneLite
 version: git
 summary: A popular free, open-source and super fast client for Old School RuneScape
@@ -33,7 +33,7 @@ parts:
       - libasound2-plugins
       - libnotify-bin
     override-pull: |
-      snapcraftctl pull
+      craftctl default
       find . -not -name 'RuneLite.jar' -delete
       if [ ! -f RuneLite.jar ]
       then
@@ -76,7 +76,7 @@ apps:
       - x11
       - opengl
 
-    extensions: [ gnome-3-38 ]
+    extensions: [ gnome ]
     environment:
       _JAVA_OPTIONS: -Duser.home="$SNAP_USER_COMMON"
       ALSA_CONFIG_PATH: "$SNAP/etc/asound.conf"
