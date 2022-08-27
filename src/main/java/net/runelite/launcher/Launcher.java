@@ -45,6 +45,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.lang.management.ManagementFactory;
+import java.lang.management.RuntimeMXBean;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -242,7 +244,12 @@ public class Launcher
 			// Print out system info
 			if (log.isDebugEnabled())
 			{
+				final RuntimeMXBean runtime = ManagementFactory.getRuntimeMXBean();
+
 				log.debug("Command line arguments: {}", String.join(" ", args));
+				// This includes arguments from _JAVA_OPTIONS, which are parsed after command line flags and applied to
+				// the global VM args
+				log.debug("Java VM arguments: {}", String.join(" ", runtime.getInputArguments()));
 				log.debug("Java Environment:");
 				final Properties p = System.getProperties();
 				final Enumeration<Object> keys = p.keys();
