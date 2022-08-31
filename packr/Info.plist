@@ -29,7 +29,7 @@
   <key>LSEnvironment</key>
   <dict>
     <key>PATH</key>
-    <string>/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+    <string>/usr/local/bin:/opt/local/bin:/run/current-system/sw/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
   </dict>
   <key>LSRequiresNativeExecution</key>
   <true/>
