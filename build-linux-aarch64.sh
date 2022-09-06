@@ -3,7 +3,7 @@
 set -e
 
 echo "Building 64 bit executable"
-./fips set config linux-make-release
+./fips set config packr-linux-aarch64-make-release
 ./fips clean && ./fips build
 
 echo "Copying 64 bit executable ..."
