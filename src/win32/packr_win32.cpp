@@ -106,6 +106,10 @@ int main(int argc, char** argv) {
 }
 
 bool loadJNIFunctions(GetDefaultJavaVMInitArgs* getDefaultJavaVMInitArgs, CreateJavaVM* createJavaVM) {
+	if (!SetDllDirectory(TEXT("jre\\bin"))) {
+		printLastError("SetDllDirectory");
+		return false;
+	}
 
 	LPCTSTR jvmDLLPath = TEXT("jre\\bin\\server\\jvm.dll");
 
