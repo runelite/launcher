@@ -5,7 +5,8 @@ set -e
 JDK_VER="11.0.16"
 JDK_BUILD="8"
 JDK_BUILD_SHORT="8"
-PACKR_VERSION="runelite-1.3"
+PACKR_VERSION="runelite-1.5"
+PACKR_HASH="b38283101e5623f6b3ce2b35052a229c5c2ed842741651ca201f0145fd79f1f9"
 
 if ! [ -f OpenJDK11U-jre_x86-32_windows_hotspot_${JDK_VER}_${JDK_BUILD}.zip ] ; then
     curl -Lo OpenJDK11U-jre_x86-32_windows_hotspot_${JDK_VER}_${JDK_BUILD}.zip \
@@ -27,7 +28,7 @@ if ! [ -f packr_${PACKR_VERSION}.jar ] ; then
         https://github.com/runelite/packr/releases/download/${PACKR_VERSION}/packr.jar
 fi
 
-echo "f200fb7088dbb5e61e0835fe7b0d7fc1310beda192dacd764927567dcd7c4f0f  packr_${PACKR_VERSION}.jar" | sha256sum -c
+echo "${PACKR_HASH}  packr_${PACKR_VERSION}.jar" | sha256sum -c
 
 java -jar packr_${PACKR_VERSION}.jar \
     packr/win-x86-config.json

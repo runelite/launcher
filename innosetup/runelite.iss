@@ -30,12 +30,6 @@ Source: "${basedir}\native-win64\RuneLite.jar"; DestDir: "{app}"
 Source: "${basedir}\native\launcher_amd64.dll"; DestDir: "{app}"
 Source: "${basedir}\native-win64\config.json"; DestDir: "{app}"
 Source: "${basedir}\native-win64\jre\*"; DestDir: "{app}\jre"; Flags: recursesubdirs
-; dependencies of jvm.dll and javaaccessbridge.dll
-Source: "${basedir}\native-win64\jre\bin\vcruntime140.dll"; DestDir: "{app}"
-Source: "${basedir}\native-win64\jre\bin\ucrtbase.dll"; DestDir: "{app}"
-Source: "${basedir}\native-win64\jre\bin\msvcp140.dll"; DestDir: "{app}"
-Source: "${basedir}\native-win64\jre\bin\api-ms-win-*.dll"; DestDir: "{app}"
-Source: "${basedir}\native-win64\jre\bin\jawt.dll"; DestDir: "{app}"
 
 [Icons]
 ; start menu
