@@ -7,6 +7,8 @@ jobs:
     runs-on: windows-2022
     steps:
     - uses: actions/checkout@v3
+      with:
+        submodules: 'true'
     - name: cache
       uses: actions/cache@v2
       with:
@@ -21,12 +23,38 @@ jobs:
       with:
         java-version: 11
         distribution: temurin
-    - name: build
+    - uses: ilammy/msvc-dev-cmd@v1 # for nmake
+      with:
+        arch: x64
+    - name: build detours x64
+      shell: cmd
+      run: |
+        cd detours/src
+        nmake
+    - uses: ilammy/msvc-dev-cmd@v1 # for nmake
+      with:
+        arch: x86
+    - name: build detours x86
+      shell: cmd
+      run: |
+        cd detours/src
+        nmake
+    - name: build dll x64
+      shell: cmd
+      run: |
+        cmake -S native -B native/build64 -A x64
+        cmake --build native/build64 --config Release
+    - name: build dll x86
+      shell: cmd
+      run: |
+        cmake -S native -B native/build32 -A Win32
+        cmake --build native/build32 --config Release
+    - name: build launcher
       run: mvn verify -B
-    - name: x64
+    - name: x64 installer
       shell: bash
       run: ./build-win64.sh
-    - name: x86
+    - name: x86 installer
       shell: bash
       run: ./build-win32.sh
     - uses: actions/upload-artifact@v3
