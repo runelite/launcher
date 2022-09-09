@@ -277,42 +277,9 @@ public class Launcher
 
 			SplashScreen.stage(.10, null, "Tidying the cache");
 
-			boolean launcherTooOld = bootstrap.getRequiredLauncherVersion() != null &&
-				compareVersion(bootstrap.getRequiredLauncherVersion(), LauncherProperties.getVersion()) > 0;
-
-			boolean jvmTooOld = false;
-			try
+			if (jvmOutdated(bootstrap, options))
 			{
-				if (bootstrap.getRequiredJVMVersion() != null)
-				{
-					jvmTooOld = Runtime.Version.parse(bootstrap.getRequiredJVMVersion())
-						.compareTo(Runtime.version()) > 0;
-				}
-			}
-			catch (IllegalArgumentException e)
-			{
-				log.warn("Unable to parse bootstrap version", e);
-			}
-
-			boolean nojvm = "true".equals(System.getProperty("runelite.launcher.nojvm"));
-
-			if (launcherTooOld || (nojvm && jvmTooOld))
-			{
-				SwingUtilities.invokeLater(() ->
-					new FatalErrorDialog("Your launcher is to old to start RuneLite. Please download and install a more " +
-						"recent one from RuneLite.net.")
-						.addButton("RuneLite.net", () -> LinkBrowser.browse(LauncherProperties.getDownloadLink()))
-						.open());
-				return;
-			}
-			if (jvmTooOld)
-			{
-				SwingUtilities.invokeLater(() ->
-					new FatalErrorDialog("Your Java installation is too old. RuneLite now requires Java " +
-						bootstrap.getRequiredJVMVersion() + " to run. You can get a platform specific version from RuneLite.net," +
-						" or install a newer version of Java.")
-						.addButton("RuneLite.net", () -> LinkBrowser.browse(LauncherProperties.getDownloadLink()))
-						.open());
+				// jvmOutdated opens an error dialog
 				return;
 			}
 
@@ -391,8 +358,8 @@ public class Launcher
 				.map(dep -> new File(REPO_DIR, dep.getName()))
 				.collect(Collectors.toList());
 
-			// packr doesn't let us specify command line arguments
-			if (nojvm || options.has("nojvm"))
+			// we use runelite.launcher.nojvm to signal --nojvm from packr
+			if ("true".equals(System.getProperty("runelite.launcher.nojvm")) || options.has("nojvm"))
 			{
 				try
 				{
@@ -475,6 +442,50 @@ public class Launcher
 			Gson g = new Gson();
 			return g.fromJson(new InputStreamReader(new ByteArrayInputStream(bytes)), Bootstrap.class);
 		}
+	}
+
+	private static boolean jvmOutdated(Bootstrap bootstrap, OptionSet options)
+	{
+		boolean launcherTooOld = bootstrap.getRequiredLauncherVersion() != null &&
+			compareVersion(bootstrap.getRequiredLauncherVersion(), LauncherProperties.getVersion()) > 0;
+
+		boolean jvmTooOld = false;
+		try
+		{
+			if (bootstrap.getRequiredJVMVersion() != null)
+			{
+				jvmTooOld = Runtime.Version.parse(bootstrap.getRequiredJVMVersion())
+					.compareTo(Runtime.version()) > 0;
+			}
+		}
+		catch (IllegalArgumentException e)
+		{
+			log.warn("Unable to parse bootstrap version", e);
+		}
+
+		boolean nojvm = options.has("nojvm") || "true".equals(System.getProperty("runelite.launcher.nojvm"));
+
+		if (launcherTooOld || (nojvm && jvmTooOld))
+		{
+			SwingUtilities.invokeLater(() ->
+				new FatalErrorDialog("Your launcher is to old to start RuneLite. Please download and install a more " +
+					"recent one from RuneLite.net.")
+					.addButton("RuneLite.net", () -> LinkBrowser.browse(LauncherProperties.getDownloadLink()))
+					.open());
+			return true;
+		}
+		if (jvmTooOld)
+		{
+			SwingUtilities.invokeLater(() ->
+				new FatalErrorDialog("Your Java installation is too old. RuneLite now requires Java " +
+					bootstrap.getRequiredJVMVersion() + " to run. You can get a platform specific version from RuneLite.net," +
+					" or install a newer version of Java.")
+					.addButton("RuneLite.net", () -> LinkBrowser.browse(LauncherProperties.getDownloadLink()))
+					.open());
+			return true;
+		}
+
+		return false;
 	}
 
 	private static Collection<String> getClientArgs(OptionSet options)
