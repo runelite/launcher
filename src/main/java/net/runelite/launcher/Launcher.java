@@ -468,7 +468,7 @@ public class Launcher
 		if (launcherTooOld || (nojvm && jvmTooOld))
 		{
 			SwingUtilities.invokeLater(() ->
-				new FatalErrorDialog("Your launcher is to old to start RuneLite. Please download and install a more " +
+				new FatalErrorDialog("Your launcher is too old to start RuneLite. Please download and install a more " +
 					"recent one from RuneLite.net.")
 					.addButton("RuneLite.net", () -> LinkBrowser.browse(LauncherProperties.getDownloadLink()))
 					.open());
