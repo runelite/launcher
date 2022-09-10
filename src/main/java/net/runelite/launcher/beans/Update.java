@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017, Adam <Adam@sigterm.info>
+ * Copyright (c) 2022, Adam <Adam@sigterm.info>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -24,34 +24,18 @@
  */
 package net.runelite.launcher.beans;
 
-import java.util.Map;
 import lombok.Data;
 
 @Data
-public class Bootstrap
+public class Update
 {
-	private Artifact[] artifacts;
-
-	private String[] clientJvm9Arguments;
-
-	private String[] clientJvm17Arguments;
-	private String[] clientJvm17WindowsArguments;
-	private String[] clientJvm17MacArguments;
-
-	private String[] launcherJvm11WindowsArguments;
-	private String[] launcherJvm11MacArguments;
-	private String[] launcherJvm11Arguments;
-
-	private String[] launcherJvm17WindowsArguments;
-	private String[] launcherJvm17MacArguments;
-	private String[] launcherJvm17Arguments;
-
-	private String requiredLauncherVersion;
-	private String requiredJVMVersion;
-
-	private Map<String, String> launcherWindowsEnv;
-	private Map<String, String> launcherMacEnv;
-	private Map<String, String> launcherLinuxEnv;
-
-	private Update[] updates;
+	private String os;
+	private String arch;
+	private String name;
+	private String version;
+	private String minimumVersion;
+	private String url;
+	private String hash;
+	private int size;
+	private double rollout;
 }

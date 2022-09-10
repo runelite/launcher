@@ -5,7 +5,7 @@ set(CMAKE_CXX_STANDARD 17)
 
 find_package(JNI REQUIRED)
 
-add_library(launcher SHARED main.cpp)
+add_library(launcher SHARED main.cpp reg.cpp)
 include_directories(../detours/include ${JNI_INCLUDE_DIRS})
 if (CMAKE_GENERATOR_PLATFORM STREQUAL "x64")
     set_target_properties(launcher PROPERTIES OUTPUT_NAME "launcher_amd64")
