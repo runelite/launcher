@@ -59,13 +59,10 @@ jobs:
       run: ./build-win32.sh
     - uses: actions/upload-artifact@v3
       with:
-        name: windows-amd64
-        path: RuneLiteSetup.exe
-        if-no-files-found: error
-    - uses: actions/upload-artifact@v3
-      with:
-        name: windows-x86
-        path: RuneLiteSetup32.exe
+        name: windows
+        path: |
+          RuneLiteSetup.exe
+          RuneLiteSetup32.exe
         if-no-files-found: error
   linux:
     runs-on: ubuntu-20.04
@@ -97,13 +94,10 @@ jobs:
         if-no-files-found: error
     - uses: actions/upload-artifact@v3
       with:
-        name: linux-x64
-        path: native-linux-x86_64/RuneLite.AppImage
-        if-no-files-found: error
-    - uses: actions/upload-artifact@v3
-      with:
-        name: linux-aarch64
-        path: native-linux-aarch64/RuneLite-aarch64.AppImage
+        name: linux
+        path: |
+          native-linux-x86_64/RuneLite.AppImage
+          native-linux-aarch64/RuneLite-aarch64.AppImage
         if-no-files-found: error
   macos:
     runs-on: macos-11
@@ -138,11 +132,8 @@ jobs:
       run: ./build-osx-aarch64.sh
     - uses: actions/upload-artifact@v3
       with:
-        name: macos-x64
-        path: native-osx/RuneLite-x64.dmg
-        if-no-files-found: error
-    - uses: actions/upload-artifact@v3
-      with:
-        name: macos-aarch64
-        path: native-osx-aarch64/RuneLite-aarch64.dmg
+        name: macos
+        path: |
+          native-osx/RuneLite-x64.dmg
+          native-osx-aarch64/RuneLite-aarch64.dmg
         if-no-files-found: error
