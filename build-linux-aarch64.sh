@@ -2,8 +2,9 @@
 
 set -e
 
-JDK_VER="11.0.16"
-JDK_BUILD="8"
+JDK_VER="11.0.16.1"
+JDK_BUILD="1"
+JDK_HASH="b6607f28fa2906d612d517f0babe4f0f895aa1c3f901edcddb493e33c1e27364"
 PACKR_VERSION="runelite-1.3"
 APPIMAGE_VERSION="13"
 
@@ -14,7 +15,7 @@ if ! [ -f OpenJDK11U-jre_aarch64_linux_hotspot_${JDK_VER}_${JDK_BUILD}.tar.gz ] 
         https://github.com/adoptium/temurin11-binaries/releases/download/jdk-${JDK_VER}%2B${JDK_BUILD}/OpenJDK11U-jre_aarch64_linux_hotspot_${JDK_VER}_${JDK_BUILD}.tar.gz
 fi
 
-echo "3fa9cb99229ede53d4efddb686106df77794e02b1f4defea6b70b2b53380a8c7 OpenJDK11U-jre_aarch64_linux_hotspot_${JDK_VER}_${JDK_BUILD}.tar.gz" | sha256sum -c
+echo "${JDK_HASH} OpenJDK11U-jre_aarch64_linux_hotspot_${JDK_VER}_${JDK_BUILD}.tar.gz" | sha256sum -c
 
 # packr requires a "jdk" and pulls the jre from it - so we have to place it inside
 # the jdk folder at jre/
