@@ -26,6 +26,8 @@ package net.runelite.launcher;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonIOException;
+import com.google.gson.JsonSyntaxException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -66,9 +68,17 @@ class PackrConfig
 		{
 			config = gson.fromJson(new InputStreamReader(fin), Map.class);
 		}
-		catch (IOException e)
+		catch (IOException | JsonIOException | JsonSyntaxException e)
 		{
-			log.warn("error updating packr vm args!", e);
+			log.warn("error deserializing packr vm args!", e);
+			return;
+		}
+
+		if (config == null)
+		{
+			// this can't happen when run from the launcher, because an invalid packr config would prevent the launcher itself
+			// from starting. But could happen if the jar launcher was run separately.
+			log.warn("packr config is null!");
 			return;
 		}
 
