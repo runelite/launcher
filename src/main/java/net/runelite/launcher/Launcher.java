@@ -315,7 +315,12 @@ public class Launcher
 			// at runtime, which currently is just the vm errorfile.
 			PackrConfig.updateLauncherArgs(bootstrap, jvmParams);
 
-			REPO_DIR.mkdirs();
+			if (!REPO_DIR.exists() && !REPO_DIR.mkdirs())
+			{
+				log.error("unable to create repo directory {}", REPO_DIR);
+				SwingUtilities.invokeLater(() -> new FatalErrorDialog("Unable to create RuneLite directory " + REPO_DIR.getAbsolutePath() + ". Check your filesystem permissions are correct.").open());
+				return;
+			}
 
 			// Determine artifacts for this OS
 			List<Artifact> artifacts = Arrays.stream(bootstrap.getArtifacts())
