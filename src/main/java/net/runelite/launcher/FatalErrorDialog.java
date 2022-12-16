@@ -24,6 +24,7 @@
  */
 package net.runelite.launcher;
 
+import com.google.common.base.MoreObjects;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -200,26 +201,26 @@ public class FatalErrorDialog extends JDialog
 	{
 		if (err instanceof VerificationException || err instanceof GeneralSecurityException)
 		{
-			new FatalErrorDialog("RuneLite was unable to verify the security of its connection to the internet while " +
+			new FatalErrorDialog(formatExceptionMessage("RuneLite was unable to verify the security of its connection to the internet while " +
 				action + ". You may have a misbehaving antivirus, internet service provider, a proxy, or an incomplete" +
-				" java installation.")
+				" java installation.", err))
 				.open();
 			return;
 		}
 
 		if (err instanceof ConnectException)
 		{
-			new FatalErrorDialog("RuneLite is unable to connect to a required server while " + action + ". " +
-				"Please check your internet connection")
+			new FatalErrorDialog(formatExceptionMessage("RuneLite is unable to connect to a required server while " + action + ". " +
+				"Please check your internet connection.", err))
 				.open();
 			return;
 		}
 
 		if (err instanceof UnknownHostException)
 		{
-			new FatalErrorDialog("RuneLite is unable to resolve the address of a required server while " + action + ". " +
+			new FatalErrorDialog(formatExceptionMessage("RuneLite is unable to resolve the address of a required server while " + action + ". " +
 				"Your DNS resolver may be misconfigured, pointing to an inaccurate resolver, or your internet connection may " +
-				"be down. ")
+				"be down.", err))
 				.addButton("Change your DNS resolver", () -> LinkBrowser.browse(LauncherProperties.getDNSChangeLink()))
 				.open();
 			return;
@@ -229,20 +230,29 @@ public class FatalErrorDialog extends JDialog
 		{
 			if (err.getCause() instanceof CertificateException)
 			{
-				new FatalErrorDialog("RuneLite was unable to verify the certificate of a required server while " + action + ". " +
-					"This can be caused by a firewall, antivirus, malware, misbehaving internet service provider, or a proxy.")
+				new FatalErrorDialog(formatExceptionMessage("RuneLite was unable to verify the certificate of a required server while " + action + ". " +
+					"This can be caused by a firewall, antivirus, malware, misbehaving internet service provider, or a proxy.", err))
 					.open();
 			}
 			else
 			{
-				new FatalErrorDialog("RuneLite was unable to establish a SSL/TLS connection with a required server while " + action + ". " +
-					"This can be caused by a firewall, antivirus, malware, misbehaving internet service provider, or a proxy.")
+				new FatalErrorDialog(formatExceptionMessage("RuneLite was unable to establish a SSL/TLS connection with a required server while " + action + ". " +
+					"This can be caused by a firewall, antivirus, malware, misbehaving internet service provider, or a proxy.", err))
 					.open();
 			}
 
 			return;
 		}
 
-		new FatalErrorDialog("RuneLite encountered a fatal error while " + action + ".").open();
+		new FatalErrorDialog(formatExceptionMessage("RuneLite encountered a fatal error while " + action + ".", err)).open();
+	}
+
+	private static String formatExceptionMessage(String message, Throwable err)
+	{
+		var nl = System.getProperty("line.separator");
+		return message + nl
+			+ nl
+			+ "Exception: " + err.getClass().getSimpleName() + nl
+			+ "Message: " + MoreObjects.firstNonNull(err.getMessage(), "n/a");
 	}
 }
