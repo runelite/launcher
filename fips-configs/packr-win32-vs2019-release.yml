@@ -1,6 +1,0 @@
----
-platform: win32
-generator: Visual Studio 16 2019
-generator-platform: Win32
-build_tool: cmake
-build_type: Release

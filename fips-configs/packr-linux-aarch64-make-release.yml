@@ -1,7 +1,0 @@
----
-platform: linux
-generator: Unix Makefiles
-build_tool: make
-build_type: Release
-defines:
-  CMAKE_TOOLCHAIN_FILE: arm64-linux-gcc.cmake

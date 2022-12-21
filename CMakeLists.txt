@@ -1,16 +1,25 @@
-#
-# project: packr-native
-#
-project(packr)
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.21)
+cmake_policy(SET CMP0091 NEW)
+project(packr C CXX)
 
-# include the fips main cmake file
-get_filename_component(FIPS_ROOT_DIR "../fips" ABSOLUTE)
-include("${FIPS_ROOT_DIR}/cmake/fips.cmake")
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_CXX_STANDARD 11)
 
+find_package(JNI REQUIRED)
+include_directories(${JNI_INCLUDE_DIRS})
+
+set(CMAKE_SKIP_RPATH TRUE)
 set(CMAKE_OSX_DEPLOYMENT_TARGET "10.9")
 
-fips_setup()
-fips_project(packr-native)
-fips_add_subdirectory(src)
-fips_finish()
+include_directories(dropt/include)
+add_library(dropt STATIC
+    dropt/src/dropt.c
+    dropt/src/dropt_handlers.c
+    dropt/src/dropt_string.c
+    dropt/include/dropt.h
+    dropt/include/dropt_string.h)
+set_property(TARGET dropt PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded")
+
+include_directories(sajson/include)
+
+add_subdirectory(src)
