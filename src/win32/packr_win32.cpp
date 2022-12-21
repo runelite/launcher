@@ -39,26 +39,32 @@ static void waitAtExit(void) {
 
 static bool attachToConsole(int argc, char** argv) {
 
-	bool attach = false;
+	bool allocConsole = false;
 
 	// pre-parse command line here to have a console in case of command line parse errors
-	for (int arg = 0; arg < argc && !attach; arg++) {
-		attach = (argv[arg] != nullptr && stricmp(argv[arg], "--console") == 0);
+	for (int arg = 0; arg < argc && !allocConsole; arg++) {
+		allocConsole = (argv[arg] != nullptr && stricmp(argv[arg], "--console") == 0);
 	}
 
-	if (attach) {
-
+	bool hasConsole;
+	if (allocConsole) {
 		FreeConsole();
-		AllocConsole();
+		hasConsole = AllocConsole();
+	} else {
+		hasConsole = AttachConsole(ATTACH_PARENT_PROCESS);
+	}
 
+	if (hasConsole) {
 		freopen("CONIN$", "r", stdin);
 		freopen("CONOUT$", "w", stdout);
 		freopen("CONOUT$", "w", stderr);
 
-		atexit(waitAtExit);
+		if (allocConsole) {
+			atexit(waitAtExit);
+		}
 	}
 
-	return attach;
+	return hasConsole;
 }
 
 static void printLastError(const char* reason) {
