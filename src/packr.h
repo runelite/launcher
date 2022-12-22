@@ -27,11 +27,11 @@
 typedef jint(JNICALL *GetDefaultJavaVMInitArgs)(void*);
 typedef jint(JNICALL *CreateJavaVM)(JavaVM**, void**, void*);
 
-typedef std::function<void* (void*)> LaunchJavaVMDelegate;
+typedef std::function<void ()> LaunchJavaVMDelegate;
 typedef std::function<void (LaunchJavaVMDelegate delegate, const JavaVMInitArgs& args)> LaunchJavaVMCallback;
 
 #define defaultLaunchVMDelegate \
-	[](LaunchJavaVMDelegate delegate, const JavaVMInitArgs&) { delegate(nullptr); }
+	[](LaunchJavaVMDelegate delegate, const JavaVMInitArgs&) { delegate(); }
 
 extern "C" {
 

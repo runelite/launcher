@@ -42,7 +42,8 @@ void sourceCallBack(void* info) {
 */
 static LaunchJavaVMDelegate s_delegate = NULL;
 void* launchVM(void* param) {
-    return s_delegate(param);
+    s_delegate();
+    return nullptr;
 }
 
 int main(int argc, char** argv) {
@@ -61,7 +62,7 @@ int main(int argc, char** argv) {
                     cout << "Starting JVM on main thread (-XstartOnFirstThread found) ..." << endl;
                 }
 
-                delegate(nullptr);
+                delegate();
                 return;
             }
         }

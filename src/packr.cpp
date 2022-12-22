@@ -532,7 +532,7 @@ void launchJavaVM(LaunchJavaVMCallback callback) {
 		Done as lambda to capture local variables, and remain in function scope.
 	*/
 
-	callback([&](void*) {
+	callback([&]() {
 
 		// create JVM
 
@@ -585,6 +585,21 @@ void launchJavaVM(LaunchJavaVMCallback callback) {
 
 		env->CallStaticVoidMethod(mainClass, mainMethod, appArgs);
 
+		// check if main thread threw an exception
+		jboolean exception = env->ExceptionCheck();
+		int status = EXIT_SUCCESS;
+		if (exception) {
+			env->ExceptionDescribe();
+			status = EXIT_FAILURE;
+		}
+
+		// blocks this thread until all non-daemon threads unload
+		jvm->DestroyJavaVM();
+
+		if (verbose) {
+			cout << "Destroyed Java VM ..." << endl;
+		}
+
 		// cleanup
 
 		for (size_t vmArg = 0; vmArg < vmArgc; vmArg++) {
@@ -599,14 +614,7 @@ void launchJavaVM(LaunchJavaVMCallback callback) {
 
 		delete[] cmdLineArgv;
 
-		// blocks this thread until the Java main() method exits
-
-		jvm->DestroyJavaVM();
-
-		if (verbose) {
-			cout << "Destroyed Java VM ..." << endl;
-		}
-
-		return nullptr;
+		// on macOS this is run in a thread, so use exit() to exit the process
+		exit(status);
 	}, args);
 }
