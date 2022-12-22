@@ -378,12 +378,6 @@ public class Launcher
 			}
 
 			final Collection<String> clientArgs = getClientArgs(options);
-
-			if (isDebug)
-			{
-				clientArgs.add("--debug");
-			}
-
 			SplashScreen.stage(.90, "Starting the client", "");
 
 			List<File> classpath = artifacts.stream()
@@ -712,6 +706,11 @@ public class Launcher
 		if (!Strings.isNullOrEmpty(clientArgs))
 		{
 			args.addAll(Splitter.on(' ').omitEmptyStrings().trimResults().splitToList(clientArgs));
+		}
+
+		if (options.has("debug"))
+		{
+			args.add("--debug");
 		}
 
 		return args;
