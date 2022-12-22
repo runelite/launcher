@@ -56,7 +56,6 @@ import java.io.PrintWriter;
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.channels.FileChannel;
@@ -394,25 +393,11 @@ public class Launcher
 			// we use runelite.launcher.nojvm to signal --nojvm from packr
 			if ("true".equals(System.getProperty("runelite.launcher.nojvm")) || options.has("nojvm"))
 			{
-				try
-				{
-					ReflectionLauncher.launch(classpath, clientArgs);
-				}
-				catch (MalformedURLException ex)
-				{
-					log.error("unable to launch client", ex);
-				}
+				ReflectionLauncher.launch(classpath, clientArgs);
 			}
 			else
 			{
-				try
-				{
-					JvmLauncher.launch(bootstrap, classpath, clientArgs, jvmProps, jvmParams);
-				}
-				catch (IOException ex)
-				{
-					log.error("unable to launch client", ex);
-				}
+				JvmLauncher.launch(bootstrap, classpath, clientArgs, jvmProps, jvmParams);
 			}
 		}
 		catch (Exception e)
