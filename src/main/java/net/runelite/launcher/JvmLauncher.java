@@ -24,11 +24,9 @@
  */
 package net.runelite.launcher;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -122,17 +120,20 @@ class JvmLauncher
 		logger.info("Running {}", arguments);
 
 		ProcessBuilder builder = new ProcessBuilder(arguments.toArray(new String[0]));
-		builder.redirectErrorStream(true);
+		builder.inheritIO();
 		Process process = builder.start();
-
-		SplashScreen.stop();
 
 		if (log.isDebugEnabled())
 		{
-			BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-			for (String line; (line = reader.readLine()) != null; )
+			SplashScreen.stop();
+
+			try
 			{
-				System.out.println(line);
+				process.waitFor();
+			}
+			catch (InterruptedException e)
+			{
+				throw new RuntimeException(e);
 			}
 		}
 	}
