@@ -25,6 +25,9 @@
 
 using namespace std;
 
+// getExecutablePath runs prior to cli args being parsed, so verbose isn't set
+//#define VERBOSE
+
 const char __CLASS_PATH_DELIM = ':';
 
 void sourceCallBack(void* info) {
@@ -176,25 +179,25 @@ const char* getExecutablePath(const char* argv0) {
         strcpy(buf, resourcesDir);
         strcat(buf, "/");
         strcat(buf, executableName);
-        if (verbose) {
-            cout << "Using bundle resource folder [1]: " << resourcesDir << "/[" << executableName << "]" << endl;
-        }
+#ifdef VERBOSE
+        cout << "Using bundle resource folder [1]: " << resourcesDir << "/[" << executableName << "]" << endl;
+#endif
     } else if (foundResources) {
         strcpy(buf, resourcesDir);
         strcat(buf, "/packr");
-        if (verbose) {
-            cout << "Using bundle resource folder [2]: " << resourcesDir << endl;
-        }
+#ifdef VERBOSE
+        cout << "Using bundle resource folder [2]: " << resourcesDir << endl;
+#endif
     } else if (foundPath) {
         strcpy(buf, executablePath);
-        if (verbose) {
-            cout << "Using executable path: " << executablePath << endl;
-        }
+#ifdef VERBOSE
+        cout << "Using executable path: " << executablePath << endl;
+#endif
     } else {
         strcpy(buf, argv0);
-        if (verbose) {
-            cout << "Using [argv0] path: " << argv0 << endl;
-        }
+#ifdef VERBOSE
+        cout << "Using [argv0] path: " << argv0 << endl;
+#endif
     }
 
     return buf;
