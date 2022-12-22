@@ -35,6 +35,10 @@ static string configurationPath("config.json");
 static size_t cmdLineArgc = 0;
 static char** cmdLineArgv = nullptr;
 
+static vector<string> vmArgs;
+static vector<string> classPath;
+static string mainClassName;
+
 #define verify(env, pointer) \
 	if (checkExceptionAndResult(env, pointer)) return EXIT_FAILURE;
 
@@ -270,6 +274,17 @@ string getExecutableName(const char* executablePath) {
 	return string(executablePath);
 }
 
+static dropt_error handle_vec_opt(dropt_context* context,
+                                  const dropt_option* option,
+                                  const dropt_char* optionArgument,
+                                  void* dest) {
+  vector<string>* v = static_cast<vector<string>*>(dest);
+  if (optionArgument != nullptr) {
+	v->push_back(optionArgument);
+  }
+  return dropt_error_none;
+}
+
 bool setCmdLineArguments(int argc, char** argv) {
 
 	const char* executablePath = getExecutablePath(argv[0]);
@@ -293,6 +308,7 @@ bool setCmdLineArguments(int argc, char** argv) {
 		{ '\0', "config", "Specifies the configuration file.", "config.json", dropt_handle_string, &config, dropt_attr_optional_val },
 		{ 'v', "verbose", "Prints additional information.", NULL, dropt_handle_bool, &_verbose, dropt_attr_optional_val },
 		{ '\0', "console", "Attachs a console window. [Windows only]", NULL, dropt_handle_bool, &_console, dropt_attr_optional_val },
+		{ 'J', NULL, "JVM argument", "-Xmx512m", handle_vec_opt, &vmArgs, 0},
 		{ 0, NULL, NULL, NULL, NULL, NULL, 0 }
 	};
 
@@ -383,19 +399,7 @@ bool setCmdLineArguments(int argc, char** argv) {
 	return showHelp == 0 && showVersion == 0;
 }
 
-void launchJavaVM(LaunchJavaVMCallback callback) {
-
-	// change working directory
-
-	if (!workingDir.empty()) {
-		if (verbose) {
-			cout << "Changing working directory to " << workingDir << " ..." << endl;
-		}
-		if (!changeWorkingDir(workingDir.c_str())) {
-			cerr << "Warning: failed to change working directory to " << workingDir << endl;
-		}
-	}
-
+static void loadConfiguration() {
 	// read settings
 
 	sajson::document json = readConfigurationFile(configurationPath);
@@ -426,6 +430,47 @@ void launchJavaVM(LaunchJavaVMCallback callback) {
 		}
 	}
 
+	// setup vm args if not specified via -J
+	if (vmArgs.empty() && hasJsonValue(jsonRoot, "vmArgs", sajson::TYPE_ARRAY)) {
+		sajson::value vmArgs = getJsonValue(jsonRoot, "vmArgs");
+		for (size_t vmArg = 0; vmArg < vmArgs.get_length(); vmArg++) {
+			string vmArgValue = vmArgs.get_array_element(vmArg).as_string();
+			::vmArgs.push_back(vmArgValue);
+		}
+	}
+
+	if (!hasJsonValue(jsonRoot, "mainClass", sajson::TYPE_STRING)) {
+		cerr << "Error: no 'mainClass' element found in config!" << endl;
+		exit(EXIT_FAILURE);
+	}
+
+	mainClassName = getJsonValue(jsonRoot, "mainClass").as_string();
+
+	if (!hasJsonValue(jsonRoot, "classPath", sajson::TYPE_ARRAY)) {
+		cerr << "Error: no 'classPath' array found in config!" << endl;
+		exit(EXIT_FAILURE);
+	}
+
+	sajson::value jsonClassPath = getJsonValue(jsonRoot, "classPath");
+	classPath = extractClassPath(jsonClassPath);
+}
+
+void launchJavaVM(LaunchJavaVMCallback callback) {
+
+	// change working directory
+
+	if (!workingDir.empty()) {
+		if (verbose) {
+			cout << "Changing working directory to " << workingDir << " ..." << endl;
+		}
+		if (!changeWorkingDir(workingDir.c_str())) {
+			cerr << "Warning: failed to change working directory to " << workingDir << endl;
+		}
+	}
+
+	// load configuration
+	loadConfiguration();
+
 	// load JVM library, get function pointers
 
 	if (verbose) {
@@ -443,22 +488,10 @@ void launchJavaVM(LaunchJavaVMCallback callback) {
 	// get default init arguments
 
 	JavaVMInitArgs args;
-	args.version = JNI_VERSION_1_6;
+	args.version = JNI_VERSION_1_8;
 	args.options = nullptr;
 	args.nOptions = 0;
 	args.ignoreUnrecognized = JNI_TRUE;
-
-	if (hasJsonValue(jsonRoot, "jniVersion", sajson::TYPE_INTEGER)) {
-		sajson::value jniVersion = getJsonValue(jsonRoot, "jniVersion");
-		switch (jniVersion.get_integer_value()) {
-			case 8:
-				args.version = JNI_VERSION_1_8;
-				break;
-			default:
-				args.version = JNI_VERSION_1_6;
-				break;
-		}
-	}
 
 	if (getDefaultJavaVMInitArgs(&args) < 0) {
 		cerr << "Error: failed to load default Java VM arguments!" << endl;
@@ -474,13 +507,11 @@ void launchJavaVM(LaunchJavaVMCallback callback) {
 	size_t vmArgc = 0;
 	JavaVMOption* options = nullptr;
 
-	if (hasJsonValue(jsonRoot, "vmArgs", sajson::TYPE_ARRAY)) {
-		sajson::value vmArgs = getJsonValue(jsonRoot, "vmArgs");
-		vmArgc = vmArgs.get_length();
-
+	if (!vmArgs.empty()) {
+		vmArgc = vmArgs.size();
 		options = new JavaVMOption[vmArgc];
 		for (size_t vmArg = 0; vmArg < vmArgc; vmArg++) {
-			string vmArgValue = vmArgs.get_array_element(vmArg).as_string();
+			const string& vmArgValue = vmArgs[vmArg];
 			if (verbose) {
 				cout << "  # " << vmArgValue << endl;
 			}
@@ -538,32 +569,18 @@ void launchJavaVM(LaunchJavaVMCallback callback) {
 			cout << "Loading JAR file ..." << endl;
 		}
 
-		if (!hasJsonValue(jsonRoot, "mainClass", sajson::TYPE_STRING)) {
-			cerr << "Error: no 'mainClass' element found in config!" << endl;
-			exit(EXIT_FAILURE);
-		}
-
-		if (!hasJsonValue(jsonRoot, "classPath", sajson::TYPE_ARRAY)) {
-			cerr << "Error: no 'classPath' array found in config!" << endl;
-			exit(EXIT_FAILURE);
-		}
-
-		const string main = getJsonValue(jsonRoot, "mainClass").as_string();
-		sajson::value jsonClassPath = getJsonValue(jsonRoot, "classPath");
-		vector<string> classPath = extractClassPath(jsonClassPath);
-
 		jclass mainClass = nullptr;
 		jmethodID mainMethod = nullptr;
 
-		if (loadStaticMethod(env, classPath, main, &mainClass, &mainMethod) != 0) {
-			cerr << "Error: failed to load/find main class " << main << endl;
+		if (loadStaticMethod(env, classPath, mainClassName, &mainClass, &mainMethod) != 0) {
+			cerr << "Error: failed to load/find main class " << mainClassName << endl;
 			exit(EXIT_FAILURE);
 		}
 
 		// call main() method
 
 		if (verbose) {
-			cout << "Invoking static " << main << ".main() function ..." << endl;
+			cout << "Invoking static " << mainClassName << ".main() function ..." << endl;
 		}
 
 		env->CallStaticVoidMethod(mainClass, mainMethod, appArgs);
