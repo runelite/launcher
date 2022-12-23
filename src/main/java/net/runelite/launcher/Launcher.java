@@ -327,6 +327,13 @@ public class Launcher
 			catch (IOException | VerificationException | CertificateException | SignatureException | InvalidKeyException | NoSuchAlgorithmException ex)
 			{
 				log.error("error fetching bootstrap", ex);
+
+				String extract = CertPathExtractor.extract(ex);
+				if (extract != null)
+				{
+					log.error("untrusted certificate chain: {}", extract);
+				}
+
 				SwingUtilities.invokeLater(() -> FatalErrorDialog.showNetErrorWindow("downloading the bootstrap", ex));
 				return;
 			}
