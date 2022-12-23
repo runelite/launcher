@@ -32,6 +32,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
+import com.google.common.collect.Streams;
 import com.google.common.escape.Escapers;
 import com.google.common.hash.HashCode;
 import com.google.common.hash.HashFunction;
@@ -120,7 +121,8 @@ public class Launcher
 	private static final File REPO_DIR = new File(RUNELITE_DIR, "repository2");
 	public static final File CRASH_FILES = new File(LOGS_DIR, "jvm_crash_pid_%p.log");
 	private static final String USER_AGENT = "RuneLite/" + LauncherProperties.getVersion();
-	private static final String LAUNCHER_EXECUTABLE_NAME = "RuneLite.exe";
+	static final String LAUNCHER_EXECUTABLE_NAME_WIN = "RuneLite.exe";
+	static final String LAUNCHER_EXECUTABLE_NAME_OSX = "RuneLite";
 	private static final String LAUNCHER_SETTINGS = "settings.json";
 
 	public static void main(String[] args)
@@ -129,7 +131,7 @@ public class Launcher
 		parser.allowsUnrecognizedOptions();
 		parser.accepts("postinstall", "Perform post-install tasks");
 		parser.accepts("clientargs", "Arguments passed to the client").withRequiredArg();
-		parser.accepts("nojvm", "Launch the client in this VM instead of launching a new VM");
+		parser.accepts("nojvm", "Launch the client in this VM instead of launching a new VM. Equivalent to --launch-mode=REFLECT");
 		parser.accepts("debug", "Enable debug logging");
 		parser.accepts("nodiff", "Always download full artifacts instead of diffs");
 		parser.accepts("insecure-skip-tls-verification", "Disable TLS certificate and hostname verification");
@@ -137,12 +139,18 @@ public class Launcher
 		parser.accepts("scale", "Custom scale factor for Java 2D").withRequiredArg();
 		parser.accepts("noupdate", "Skips the launcher self-update (Windows only)");
 		parser.accepts("help", "Show this text (use --clientargs --help for client help)").forHelp();
+		parser.accepts("classpath", "Classpath for the client").withRequiredArg();
 
 		if (OS.getOs() == OS.OSType.MacOS)
 		{
 			// Parse macos PSN, eg: -psn_0_352342
 			parser.accepts("p").withRequiredArg();
 		}
+
+		final ArgumentAcceptingOptionSpec<LaunchMode> launchModeOptionSpec = parser.accepts("launch-mode")
+			.withRequiredArg()
+			.ofType(LaunchMode.class)
+			.defaultsTo(LaunchMode.AUTO);
 
 		// Create typed argument for the hardware acceleration mode
 		final ArgumentAcceptingOptionSpec<HardwareAccelerationMode> mode = parser.accepts("mode")
@@ -152,10 +160,21 @@ public class Launcher
 
 		final OptionSet options;
 		final HardwareAccelerationMode hardwareAccelerationMode;
+		final LaunchMode launchMode;
 		try
 		{
 			options = parser.parse(args);
 			hardwareAccelerationMode = options.valueOf(mode);
+
+			// we use runelite.launcher.reflect to signal to use the reflect launch mode from packr
+			if (options.has("nojvm") || "true".equals(System.getProperty("runelite.launcher.reflect")))
+			{
+				launchMode = LaunchMode.REFLECT;
+			}
+			else
+			{
+				launchMode = options.valueOf(launchModeOptionSpec);
+			}
 		}
 		catch (OptionException ex)
 		{
@@ -200,7 +219,24 @@ public class Launcher
 
 		try
 		{
-			log.info("RuneLite Launcher version {}", LauncherProperties.getVersion());
+			if (options.has("classpath"))
+			{
+				// being called from ForkLauncher. All JVM options are already set.
+				var classpathOpt = String.valueOf(options.valueOf("classpath"));
+				var classpath = Streams.stream(Splitter.on(File.pathSeparatorChar)
+					.split(classpathOpt))
+					.map(File::new)
+					.collect(Collectors.toList());
+				try
+				{
+					ReflectionLauncher.launch(classpath, getClientArgs(options));
+				}
+				catch (Exception e)
+				{
+					log.error("error launching client", e);
+				}
+				return;
+			}
 
 			final Map<String, String> jvmProps = new LinkedHashMap<>();
 			if (options.has("scale"))
@@ -215,7 +251,6 @@ public class Launcher
 				jvmProps.put("sun.java2d.uiScale", String.valueOf(options.valueOf("scale")));
 			}
 
-			log.info("Setting hardware acceleration to {}", hardwareAccelerationMode);
 			jvmProps.putAll(hardwareAccelerationMode.toParams(OS.getOs()));
 
 			// As of JDK-8243269 (11.0.8) and JDK-8235363 (14), AWT makes macOS dark mode support opt-in so interfaces
@@ -242,13 +277,11 @@ public class Launcher
 				jvmProps.put("javax.net.ssl.trustStoreType", "Windows-ROOT");
 			}
 
+			log.info("RuneLite Launcher version {}", LauncherProperties.getVersion());
+			log.info("Setting hardware acceleration to {}", hardwareAccelerationMode);
+
 			// java2d properties have to be set prior to the graphics environment startup
 			setJvmParams(jvmProps);
-
-			List<String> jvmParams = new ArrayList<>();
-			// Set hs_err_pid location. This is a jvm param and can't be set at runtime.
-			log.debug("Setting JVM crash log location to {}", CRASH_FILES);
-			jvmParams.add("-XX:ErrorFile=" + CRASH_FILES.getAbsolutePath());
 
 			if (insecureSkipTlsVerification)
 			{
@@ -257,7 +290,7 @@ public class Launcher
 
 			if (postInstall)
 			{
-				postInstall(jvmParams);
+				postInstall();
 				return;
 			}
 
@@ -304,15 +337,14 @@ public class Launcher
 
 			SplashScreen.stage(.10, null, "Tidying the cache");
 
-			if (jvmOutdated(bootstrap, options))
+			if (jvmOutdated(bootstrap))
 			{
 				// jvmOutdated opens an error dialog
 				return;
 			}
 
-			// update packr vmargs. The only extra vmargs we need to write to disk are the ones which cannot be set
-			// at runtime, which currently is just the vm errorfile.
-			PackrConfig.updateLauncherArgs(bootstrap, jvmParams);
+			// update packr vmargs to the launcher vmargs from bootstrap.
+			PackrConfig.updateLauncherArgs(bootstrap);
 
 			if (!REPO_DIR.exists() && !REPO_DIR.mkdirs())
 			{
@@ -380,17 +412,29 @@ public class Launcher
 			final Collection<String> clientArgs = getClientArgs(options);
 			SplashScreen.stage(.90, "Starting the client", "");
 
-			List<File> classpath = artifacts.stream()
+			var classpath = artifacts.stream()
 				.map(dep -> new File(REPO_DIR, dep.getName()))
 				.collect(Collectors.toList());
 
-			// we use runelite.launcher.nojvm to signal --nojvm from packr
-			if ("true".equals(System.getProperty("runelite.launcher.nojvm")) || options.has("nojvm"))
+			List<String> jvmParams = new ArrayList<>();
+			// Set hs_err_pid location. This is a jvm param and can't be set at runtime.
+			log.debug("Setting JVM crash log location to {}", CRASH_FILES);
+			jvmParams.add("-XX:ErrorFile=" + CRASH_FILES.getAbsolutePath());
+
+			if (launchMode == LaunchMode.REFLECT)
 			{
+				log.debug("Using launch mode: REFLECT");
 				ReflectionLauncher.launch(classpath, clientArgs);
+			}
+			else if (launchMode == LaunchMode.FORK || (launchMode == LaunchMode.AUTO && ForkLauncher.canForkLaunch()))
+			{
+				log.debug("Using launch mode: FORK");
+				ForkLauncher.launch(bootstrap, classpath, clientArgs, jvmProps, jvmParams);
 			}
 			else
 			{
+				// launch mode JVM or AUTO outside of packr
+				log.debug("Using launch mode: JVM");
 				JvmLauncher.launch(bootstrap, classpath, clientArgs, jvmProps, jvmParams);
 			}
 		}
@@ -456,7 +500,7 @@ public class Launcher
 		}
 	}
 
-	private static boolean jvmOutdated(Bootstrap bootstrap, OptionSet options)
+	private static boolean jvmOutdated(Bootstrap bootstrap)
 	{
 		boolean launcherTooOld = bootstrap.getRequiredLauncherVersion() != null &&
 			compareVersion(bootstrap.getRequiredLauncherVersion(), LauncherProperties.getVersion()) > 0;
@@ -475,9 +519,7 @@ public class Launcher
 			log.warn("Unable to parse bootstrap version", e);
 		}
 
-		boolean nojvm = options.has("nojvm") || "true".equals(System.getProperty("runelite.launcher.nojvm"));
-
-		if (launcherTooOld || (nojvm && jvmTooOld))
+		if (launcherTooOld)
 		{
 			SwingUtilities.invokeLater(() ->
 				new FatalErrorDialog("Your launcher is too old to start RuneLite. Please download and install a more " +
@@ -528,7 +570,7 @@ public class Launcher
 
 		Path path = Paths.get(current.info().command().get());
 		if (!path.startsWith(installLocation)
-			|| !path.getFileName().toString().equals(LAUNCHER_EXECUTABLE_NAME))
+			|| !path.getFileName().toString().equals(LAUNCHER_EXECUTABLE_NAME_WIN))
 		{
 			log.debug("Skipping update check due to not running from installer, command is {}",
 				current.info().command().get());
@@ -607,7 +649,7 @@ public class Launcher
 
 			if (ph.info().command().equals(current.info().command()))
 			{
-				log.info("Skipping update {} due to {} process {}", newestUpdate.getVersion(), LAUNCHER_EXECUTABLE_NAME, ph);
+				log.info("Skipping update {} due to {} process {}", newestUpdate.getVersion(), LAUNCHER_EXECUTABLE_NAME_WIN, ph);
 				return;
 			}
 		}
@@ -1046,7 +1088,7 @@ public class Launcher
 		HttpsURLConnection.setDefaultHostnameVerifier((hostname, session) -> true);
 	}
 
-	private static void postInstall(List<String> jvmParams)
+	private static void postInstall()
 	{
 		Bootstrap bootstrap;
 		try
@@ -1059,7 +1101,7 @@ public class Launcher
 			return;
 		}
 
-		PackrConfig.updateLauncherArgs(bootstrap, jvmParams);
+		PackrConfig.updateLauncherArgs(bootstrap);
 
 		log.info("Performed postinstall steps");
 	}

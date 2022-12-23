@@ -5,7 +5,8 @@ set -e
 JDK_VER="11.0.16.1"
 JDK_BUILD="1"
 JDK_HASH="1ffe1a682e8179e35238bf3f93aba0cb185850e202c676f41d38cb0561883eda"
-PACKR_VERSION="runelite-1.3"
+PACKR_VERSION="runelite-1.6"
+PACKR_HASH="df6e816b75753bac6f6436611f5dcf1874b52f77da1c07296dbacf14852f8677"
 APPIMAGE_VERSION="13"
 
 umask 022
@@ -30,7 +31,7 @@ if ! [ -f packr_${PACKR_VERSION}.jar ] ; then
         https://github.com/runelite/packr/releases/download/${PACKR_VERSION}/packr.jar
 fi
 
-echo "f200fb7088dbb5e61e0835fe7b0d7fc1310beda192dacd764927567dcd7c4f0f  packr_${PACKR_VERSION}.jar" | sha256sum -c
+echo "${PACKR_HASH}  packr_${PACKR_VERSION}.jar" | sha256sum -c
 
 # Note: Host umask may have checked out this directory with g/o permissions blank
 chmod -R u=rwX,go=rX appimage

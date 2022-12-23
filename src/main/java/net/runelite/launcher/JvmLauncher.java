@@ -71,13 +71,13 @@ class JvmLauncher
 
 	static void launch(
 		Bootstrap bootstrap,
-		List<File> results,
+		List<File> classpath,
 		Collection<String> clientArgs,
 		Map<String, String> jvmProps,
 		List<String> jvmArgs) throws IOException
 	{
 		StringBuilder classPath = new StringBuilder();
-		for (File f : results)
+		for (var f : classpath)
 		{
 			if (classPath.length() > 0)
 			{
@@ -138,7 +138,7 @@ class JvmLauncher
 		}
 	}
 
-	private static String[] getJvmArguments(Bootstrap bootstrap)
+	static String[] getJvmArguments(Bootstrap bootstrap)
 	{
 		if (Launcher.isJava17())
 		{

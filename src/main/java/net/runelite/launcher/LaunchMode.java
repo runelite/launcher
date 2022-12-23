@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, Adam <Adam@sigterm.info>
+ * Copyright (c) 2022, Adam <Adam@sigterm.info>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -24,48 +24,10 @@
  */
 package net.runelite.launcher;
 
-import java.io.File;
-import java.lang.reflect.Method;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLClassLoader;
-import java.util.Collection;
-import java.util.List;
-import javax.swing.UIManager;
-import lombok.extern.slf4j.Slf4j;
-
-@Slf4j
-class ReflectionLauncher
+public enum LaunchMode
 {
-	static void launch(List<File> classpath, Collection<String> clientArgs) throws MalformedURLException
-	{
-		URL[] jarUrls = new URL[classpath.size()];
-		int i = 0;
-		for (var file : classpath)
-		{
-			log.debug("Adding jar: {}", file);
-			jarUrls[i++] = file.toURI().toURL();
-		}
-
-		ClassLoader parent = ClassLoader.getPlatformClassLoader();
-		URLClassLoader loader = new URLClassLoader(jarUrls, parent);
-
-		UIManager.put("ClassLoader", loader); // hack for Substance
-		Thread thread = new Thread(() ->
-		{
-			try
-			{
-				Class<?> mainClass = loader.loadClass(LauncherProperties.getMain());
-
-				Method main = mainClass.getMethod("main", String[].class);
-				main.invoke(null, (Object) clientArgs.toArray(new String[0]));
-			}
-			catch (Exception ex)
-			{
-				log.error("Unable to launch client", ex);
-			}
-		});
-		thread.setName("RuneLite");
-		thread.start();
-	}
+	AUTO,
+	JVM,
+	FORK,
+	REFLECT;
 }

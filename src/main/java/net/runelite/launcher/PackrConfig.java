@@ -38,10 +38,6 @@ import java.nio.channels.FileChannel;
 import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.launcher.beans.Bootstrap;
@@ -50,11 +46,15 @@ import net.runelite.launcher.beans.Bootstrap;
 class PackrConfig
 {
 	// Update the packr config
-	static void updateLauncherArgs(Bootstrap bootstrap, Collection<String> extraJvmArgs)
+	static void updateLauncherArgs(Bootstrap bootstrap)
 	{
-		File configFile = new File("config.json").getAbsoluteFile();
+		var os = OS.getOs();
+		if (os != OS.OSType.Windows && os != OS.OSType.MacOS)
+		{
+			return;
+		}
 
-		// The AppImage mounts the packr directory on a readonly filesystem, so we can't update the vm args there
+		File configFile = new File("config.json").getAbsoluteFile();
 		if (!configFile.exists() || !configFile.canWrite())
 		{
 			return;
@@ -89,12 +89,7 @@ class PackrConfig
 			return;
 		}
 
-		// Insert JVM arguments to config.json because some of them require restart
-		List<String> args = new ArrayList<>();
-		args.addAll(Arrays.asList(argsArr));
-		args.addAll(extraJvmArgs);
-
-		config.put("vmArgs", args);
+		config.put("vmArgs", argsArr);
 		config.put("env", getEnv(bootstrap));
 
 		try
