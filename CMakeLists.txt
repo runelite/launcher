@@ -8,6 +8,9 @@ set(CMAKE_CXX_STANDARD 11)
 find_package(JNI REQUIRED)
 include_directories(${JNI_INCLUDE_DIRS})
 
+set(THREADS_PREFER_PTHREAD_FLAG ON)
+find_package(Threads REQUIRED)
+
 set(CMAKE_SKIP_RPATH TRUE)
 set(CMAKE_OSX_DEPLOYMENT_TARGET "10.9")
 
