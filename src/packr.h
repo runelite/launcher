@@ -19,10 +19,6 @@
 #include <functional>
 #include <jni.h>
 
-#if !defined(JNI_VERSION_1_8)
-# define JNI_VERSION_1_8 0x00010008
-#endif
-
 typedef jint(JNICALL *GetDefaultJavaVMInitArgs)(void*);
 typedef jint(JNICALL *CreateJavaVM)(JavaVM**, void**, void*);
 
