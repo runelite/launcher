@@ -291,7 +291,6 @@ bool setCmdLineArguments(int argc, char** argv) {
 	executableName = getExecutableName(executablePath);
 
 	dropt_bool showHelp = 0;
-	dropt_bool showVersion = 0;
 	dropt_char* cwd = nullptr;
 	dropt_char* config = nullptr;
 	dropt_bool _verbose = 0;
@@ -302,7 +301,6 @@ bool setCmdLineArguments(int argc, char** argv) {
 		{ 'c', "cli", "Enables this command line interface.", NULL, dropt_handle_bool, &_cli, dropt_attr_optional_val },
 		{ 'h',  "help", "Shows help.", NULL, dropt_handle_bool, &showHelp, dropt_attr_halt },
 		{ '?', NULL, NULL, NULL, dropt_handle_bool, &showHelp, dropt_attr_halt | dropt_attr_hidden },
-		{ '\0', "version", "Shows version information.", NULL, dropt_handle_bool, &showVersion, dropt_attr_halt },
 		{ '\0', "cwd", "Sets the working directory.", NULL, dropt_handle_string, &cwd, dropt_attr_optional_val },
 		{ '\0', "config", "Specifies the configuration file.", "config.json", dropt_handle_string, &config, dropt_attr_optional_val },
 		{ 'v', "verbose", "Prints additional information.", NULL, dropt_handle_bool, &_verbose, dropt_attr_optional_val },
@@ -340,10 +338,6 @@ bool setCmdLineArguments(int argc, char** argv) {
 				cout << endl << "Options:" << endl;
 
 				dropt_print_help(stdout, droptContext, nullptr);
-
-			} else if (showVersion) {
-
-				cout << executableName << " version " << PACKR_VERSION_STRING << endl;
 
 			} else {
 
@@ -388,7 +382,7 @@ bool setCmdLineArguments(int argc, char** argv) {
 
 	dropt_free_context(droptContext);
 
-	return showHelp == 0 && showVersion == 0;
+	return showHelp == 0;
 }
 
 static void loadConfiguration() {
