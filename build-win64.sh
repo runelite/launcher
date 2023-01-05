@@ -6,8 +6,8 @@ JDK_VER="11.0.16.1"
 JDK_BUILD="1"
 JDK_BUILD_SHORT="1"
 JDK_HASH="85ca20dae21fb5949045df02cc47e71495a1903f77a97a93085596e5e96d0714"
-PACKR_VERSION="runelite-1.6"
-PACKR_HASH="df6e816b75753bac6f6436611f5dcf1874b52f77da1c07296dbacf14852f8677"
+PACKR_VERSION="runelite-1.7"
+PACKR_HASH="f61c7faeaa364b6fa91eb606ce10bd0e80f9adbce630d2bae719aef78d45da61"
 
 if ! [ -f OpenJDK11U-jre_x64_windows_hotspot_${JDK_VER}_${JDK_BUILD}.zip ] ; then
     curl -Lo OpenJDK11U-jre_x64_windows_hotspot_${JDK_VER}_${JDK_BUILD}.zip \
