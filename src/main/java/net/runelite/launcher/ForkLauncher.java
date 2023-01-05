@@ -119,7 +119,7 @@ class ForkLauncher
 				sb.append(File.pathSeparatorChar);
 			}
 
-			sb.append(f.getAbsolutePath());
+			sb.append(f.getName());
 		}
 		commands.add(sb.toString());
 

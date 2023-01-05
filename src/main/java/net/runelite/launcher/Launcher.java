@@ -204,7 +204,7 @@ public class Launcher
 				var classpathOpt = String.valueOf(options.valueOf("classpath"));
 				var classpath = Streams.stream(Splitter.on(File.pathSeparatorChar)
 					.split(classpathOpt))
-					.map(File::new)
+					.map(name -> new File(REPO_DIR, name))
 					.collect(Collectors.toList());
 				try
 				{
