@@ -151,3 +151,30 @@ bool changeWorkingDir(const char* directory) {
 void packrSetEnv(const char *key, const char *value) {
 	SetEnvironmentVariable(key, value);
 }
+
+string acpToUtf8(const char *str) {
+	// ACP -> UTF-16
+	int len = MultiByteToWideChar(CP_ACP, 0, str, -1, NULL, 0);
+	if (!len)
+	{
+		return string(str);
+	}
+	LPWSTR out16 = new wchar_t[len];
+	MultiByteToWideChar(CP_ACP, 0, str, -1, out16, len);
+
+	// UTF-16 -> UTF-8
+	len = WideCharToMultiByte(CP_UTF8, 0, out16, -1, NULL, 0, NULL, NULL);
+	if (!len)
+	{
+		delete[] out16;
+		return string(str);
+	}
+	LPSTR out8 = new char[len];
+	WideCharToMultiByte(CP_UTF8, 0, out16, -1, out8, len, NULL, NULL);
+
+	delete[] out16;
+	string out(out8);
+	delete[] out8;
+
+	return out;
+}

@@ -15,6 +15,7 @@
  ******************************************************************************/
 #pragma once
 
+#include <string>
 #include <functional>
 #include <jni.h>
 
@@ -33,22 +34,21 @@ typedef std::function<void (LaunchJavaVMDelegate delegate, const JavaVMInitArgs&
 #define defaultLaunchVMDelegate \
 	[](LaunchJavaVMDelegate delegate, const JavaVMInitArgs&) { delegate(); }
 
-extern "C" {
+/* configuration */
+extern bool verbose;
 
-	/* configuration */
-	extern bool verbose;
+/* platform-dependent constants */
+extern const char __CLASS_PATH_DELIM;
 
-	/* platform-dependent constants */
-	extern const char __CLASS_PATH_DELIM;
+/* platform-dependent functions */
+bool loadJNIFunctions(GetDefaultJavaVMInitArgs* getDefaultJavaVMInitArgs, CreateJavaVM* createJavaVM);
+const char* getExecutablePath(const char* argv0);
+bool changeWorkingDir(const char* directory);
+void packrSetEnv(const char *key, const char *value);
+#ifdef _WIN32
+std::string acpToUtf8(const char *);
+#endif
 
-	/* platform-dependent functions */
-	bool loadJNIFunctions(GetDefaultJavaVMInitArgs* getDefaultJavaVMInitArgs, CreateJavaVM* createJavaVM);
-	const char* getExecutablePath(const char* argv0);
-	bool changeWorkingDir(const char* directory);
-	void packrSetEnv(const char *key, const char *value);
-
-	/* entry point for all platforms - called from main()/WinMain() */
-	bool setCmdLineArguments(int argc, char** argv);
-	void launchJavaVM(LaunchJavaVMCallback callback);
-
-}
+/* entry point for all platforms - called from main()/WinMain() */
+bool setCmdLineArguments(int argc, char** argv);
+void launchJavaVM(LaunchJavaVMCallback callback);

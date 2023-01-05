@@ -32,8 +32,7 @@ static string workingDir;
 static string executableName;
 static string configurationPath("config.json");
 
-static size_t cmdLineArgc = 0;
-static char** cmdLineArgv = nullptr;
+static vector<string> cmdLineArgs;
 
 static vector<string> vmArgs;
 static vector<string> classPath;
@@ -373,22 +372,15 @@ bool setCmdLineArguments(int argc, char** argv) {
 			remains = &argv[1];
 		}
 
-		// count number of unparsed arguments
-
-		char** cnt = remains;
-		while (*cnt != nullptr) {
-			cmdLineArgc++;
-			cnt++;
-		}
-
 		// copy unparsed arguments
-
-		cmdLineArgv = new char*[cmdLineArgc];
-		cmdLineArgc = 0;
-
 		while (*remains != nullptr) {
-			cmdLineArgv[cmdLineArgc] = strdup(*remains);
-			cmdLineArgc++;
+#ifdef _WIN32
+			// On Windows convert the argument using the current ANSI code page
+			// to UTF-8 for the jstring creation later
+			cmdLineArgs.push_back(acpToUtf8(*remains));
+#else
+			cmdLineArgs.push_back(*remains);
+#endif
 			remains++;
 		}
 
@@ -554,12 +546,12 @@ void launchJavaVM(LaunchJavaVMCallback callback) {
 			cout << "Passing command line arguments ..." << endl;
 		}
 
-		jobjectArray appArgs = env->NewObjectArray(cmdLineArgc, env->FindClass("java/lang/String"), nullptr);
-		for (size_t i = 0; i < cmdLineArgc; i++) {
+		jobjectArray appArgs = env->NewObjectArray(cmdLineArgs.size(), env->FindClass("java/lang/String"), nullptr);
+		for (size_t i = 0; i < cmdLineArgs.size(); i++) {
 			if (verbose) {
-				cout << "  # " << cmdLineArgv[i] << endl;
+				cout << "  # " << cmdLineArgs[i] << endl;
 			}
-			jstring arg = env->NewStringUTF(cmdLineArgv[i]);
+			jstring arg = env->NewStringUTF(cmdLineArgs[i].c_str());
 			env->SetObjectArrayElement(appArgs, i, arg);
 		}
 
@@ -607,12 +599,6 @@ void launchJavaVM(LaunchJavaVMCallback callback) {
 		}
 
 		delete[] options;
-
-		for (size_t cmdLineArg = 0; cmdLineArg < cmdLineArgc; cmdLineArg++) {
-			free(cmdLineArgv[cmdLineArg]);
-		}
-
-		delete[] cmdLineArgv;
 
 		// on macOS this is run in a thread, so use exit() to exit the process
 		exit(status);
