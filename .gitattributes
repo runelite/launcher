@@ -1,0 +1,4 @@
+*.java text eol=lf
+*.crt text eol=lf
+*.properties text eol=lf
+*.xml text eol=lf
