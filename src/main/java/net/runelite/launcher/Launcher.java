@@ -119,6 +119,7 @@ public class Launcher
 		parser.accepts("noupdate", "Skips the launcher self-update");
 		parser.accepts("help", "Show this text (use --clientargs --help for client help)").forHelp();
 		parser.accepts("classpath", "Classpath for the client").withRequiredArg();
+		parser.accepts("J", "JVM argument (FORK or JVM launch mode only)").withRequiredArg();
 
 		if (OS.getOs() == OS.OSType.MacOS)
 		{
@@ -406,6 +407,8 @@ public class Launcher
 			// Set hs_err_pid location. This is a jvm param and can't be set at runtime.
 			log.debug("Setting JVM crash log location to {}", CRASH_FILES);
 			jvmParams.add("-XX:ErrorFile=" + CRASH_FILES.getAbsolutePath());
+			// Add VM args from cli/env
+			jvmParams.addAll(getJvmArgs(options));
 
 			if (launchMode == LaunchMode.REFLECT)
 			{
@@ -550,6 +553,25 @@ public class Launcher
 		if (options.has("debug"))
 		{
 			args.add("--debug");
+		}
+
+		return args;
+	}
+
+	private static List<String> getJvmArgs(OptionSet options)
+	{
+		var args = options.valuesOf("J").stream()
+			.filter(String.class::isInstance)
+			.map(String.class::cast)
+			.collect(Collectors.toCollection(ArrayList::new));
+
+		var envArgs = System.getenv("RUNELITE_VMARGS");
+		if (!Strings.isNullOrEmpty(envArgs))
+		{
+			args.addAll(Splitter.on(' ')
+				.omitEmptyStrings()
+				.trimResults()
+				.splitToList(envArgs));
 		}
 
 		return args;
