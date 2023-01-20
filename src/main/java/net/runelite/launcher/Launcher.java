@@ -52,15 +52,12 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.nio.file.Files;
 import java.security.InvalidKeyException;
-import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
 import java.security.Signature;
 import java.security.SignatureException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
-import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -77,10 +74,6 @@ import java.util.function.IntConsumer;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
-import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
 import javax.swing.SwingUtilities;
 import joptsimple.ArgumentAcceptingOptionSpec;
 import joptsimple.OptionException;
@@ -114,7 +107,6 @@ public class Launcher
 		parser.accepts("debug", "Enable debug logging");
 		parser.accepts("nodiff", "Always download full artifacts instead of diffs");
 		parser.accepts("insecure-skip-tls-verification", "Disable TLS certificate and hostname verification");
-		parser.accepts("use-jre-truststore", "Use JRE cacerts truststore instead of the Windows Trusted Root Certificate Authorities (only on Windows)");
 		parser.accepts("scale", "Custom scale factor for Java 2D").withRequiredArg();
 		parser.accepts("noupdate", "Skips the launcher self-update");
 		parser.accepts("help", "Show this text (use --clientargs --help for client help)").forHelp();
@@ -249,14 +241,6 @@ public class Launcher
 				jvmProps.put("runelite.insecure-skip-tls-verification", "true");
 			}
 
-			if (OS.getOs() == OS.OSType.Windows && !options.has("use-jre-truststore"))
-			{
-				// Use the Windows Trusted Root Certificate Authorities instead of the bundled cacerts.
-				// Corporations, schools, antivirus, and malware commonly install root certificates onto
-				// machines for security or other reasons that are not present in the JRE certificate store.
-				jvmProps.put("javax.net.ssl.trustStoreType", "Windows-ROOT");
-			}
-
 			log.info("RuneLite Launcher version {}", LauncherProperties.getVersion());
 			log.info("Setting hardware acceleration to {}", hardwareAccelerationMode);
 
@@ -265,7 +249,11 @@ public class Launcher
 
 			if (insecureSkipTlsVerification)
 			{
-				setupInsecureTrustManager();
+				TrustManagerUtil.setupInsecureTrustManager();
+			}
+			else
+			{
+				TrustManagerUtil.setupTrustManager();
 			}
 
 			if (postInstall)
@@ -877,33 +865,6 @@ public class Launcher
 	{
 		// 16 has the same module restrictions as 17, so we'll use the 17 settings for it
 		return Runtime.version().feature() >= 16;
-	}
-
-	private static void setupInsecureTrustManager() throws NoSuchAlgorithmException, KeyManagementException
-	{
-		TrustManager trustManager = new X509TrustManager()
-		{
-			@Override
-			public void checkClientTrusted(X509Certificate[] chain, String authType)
-			{
-			}
-
-			@Override
-			public void checkServerTrusted(X509Certificate[] chain, String authType)
-			{
-			}
-
-			@Override
-			public X509Certificate[] getAcceptedIssuers()
-			{
-				return null;
-			}
-		};
-
-		SSLContext sc = SSLContext.getInstance("SSL");
-		sc.init(null, new TrustManager[]{trustManager}, new SecureRandom());
-		HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
-		HttpsURLConnection.setDefaultHostnameVerifier((hostname, session) -> true);
 	}
 
 	private static void postInstall()
