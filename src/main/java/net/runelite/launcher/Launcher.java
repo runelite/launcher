@@ -193,6 +193,8 @@ public class Launcher
 		{
 			if (options.has("classpath"))
 			{
+				TrustManagerUtil.setupTrustManager();
+
 				// being called from ForkLauncher. All JVM options are already set.
 				var classpathOpt = String.valueOf(options.valueOf("classpath"));
 				var classpath = Streams.stream(Splitter.on(File.pathSeparatorChar)
