@@ -75,7 +75,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
 import javax.swing.SwingUtilities;
-import joptsimple.ArgumentAcceptingOptionSpec;
 import joptsimple.OptionException;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
@@ -102,8 +101,6 @@ public class Launcher
 		OptionParser parser = new OptionParser(false);
 		parser.allowsUnrecognizedOptions();
 		parser.accepts("postinstall", "Perform post-install tasks");
-		parser.accepts("clientargs", "Arguments passed to the client").withRequiredArg();
-		parser.accepts("nojvm", "Launch the client in this VM instead of launching a new VM. Equivalent to --launch-mode=REFLECT");
 		parser.accepts("debug", "Enable debug logging");
 		parser.accepts("nodiff", "Always download full artifacts instead of diffs");
 		parser.accepts("insecure-skip-tls-verification", "Disable TLS certificate and hostname verification");
@@ -112,6 +109,13 @@ public class Launcher
 		parser.accepts("help", "Show this text (use --clientargs --help for client help)").forHelp();
 		parser.accepts("classpath", "Classpath for the client").withRequiredArg();
 		parser.accepts("J", "JVM argument (FORK or JVM launch mode only)").withRequiredArg();
+		parser.accepts("configure", "Opens configuration GUI");
+		parser.accepts("launch-mode", "JVM launch method (JVM, FORK, REFLECT)")
+			.withRequiredArg()
+			.ofType(LaunchMode.class);
+		parser.accepts("mode", "Java 2D hardware acceleration mode (OFF, DIRECTDRAW, OPENGL, METAL)")
+			.withRequiredArg()
+			.ofType(HardwareAccelerationMode.class);
 
 		if (OS.getOs() == OS.OSType.MacOS)
 		{
@@ -119,34 +123,10 @@ public class Launcher
 			parser.accepts("p").withRequiredArg();
 		}
 
-		final ArgumentAcceptingOptionSpec<LaunchMode> launchModeOptionSpec = parser.accepts("launch-mode")
-			.withRequiredArg()
-			.ofType(LaunchMode.class)
-			.defaultsTo(LaunchMode.AUTO);
-
-		// Create typed argument for the hardware acceleration mode
-		final ArgumentAcceptingOptionSpec<HardwareAccelerationMode> mode = parser.accepts("mode")
-			.withRequiredArg()
-			.ofType(HardwareAccelerationMode.class)
-			.defaultsTo(HardwareAccelerationMode.defaultMode(OS.getOs()));
-
 		final OptionSet options;
-		final HardwareAccelerationMode hardwareAccelerationMode;
-		final LaunchMode launchMode;
 		try
 		{
 			options = parser.parse(args);
-			hardwareAccelerationMode = options.valueOf(mode);
-
-			// we use runelite.launcher.reflect to signal to use the reflect launch mode from packr
-			if (options.has("nojvm") || "true".equals(System.getProperty("runelite.launcher.reflect")))
-			{
-				launchMode = LaunchMode.REFLECT;
-			}
-			else
-			{
-				launchMode = options.valueOf(launchModeOptionSpec);
-			}
 		}
 		catch (OptionException ex)
 		{
@@ -170,15 +150,20 @@ public class Launcher
 			System.exit(0);
 		}
 
-		final boolean nodiff = options.has("nodiff");
-		final boolean insecureSkipTlsVerification = options.has("insecure-skip-tls-verification");
+		if (options.has("configure"))
+		{
+			ConfigurationFrame.open();
+			return;
+		}
+
+		final LauncherSettings settings = LauncherSettings.loadSettings();
+		settings.apply(options);
+
 		final boolean postInstall = options.has("postinstall");
 
-		// Setup debug
-		final boolean isDebug = options.has("debug");
+		// Setup logging
 		LOGS_DIR.mkdirs();
-
-		if (isDebug)
+		if (settings.isDebug())
 		{
 			final Logger logger = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
 			logger.setLevel(Level.DEBUG);
@@ -203,7 +188,7 @@ public class Launcher
 					.collect(Collectors.toList());
 				try
 				{
-					ReflectionLauncher.launch(classpath, getClientArgs(options));
+					ReflectionLauncher.launch(classpath, getClientArgs(settings));
 				}
 				catch (Exception e)
 				{
@@ -213,19 +198,21 @@ public class Launcher
 			}
 
 			final Map<String, String> jvmProps = new LinkedHashMap<>();
-			if (options.has("scale"))
+			if (settings.scale != null)
 			{
-				// On Vista+ this calls SetProcessDPIAware(). Since the RuneLite.exe manifest is DPI unaware
-				// Windows will scale the application if this isn't called. Thus the default scaling mode is
-				// Windows scaling due to being DPI unaware.
+				// This calls SetProcessDPIAware(). Since the RuneLite.exe manifest is DPI unaware
+				// Windows will scale the application if this isn't called. Thus the default scaling
+				// mode is Windows scaling due to being DPI unaware.
 				// https://docs.microsoft.com/en-us/windows/win32/hidpi/high-dpi-desktop-application-development-on-windows
 				jvmProps.put("sun.java2d.dpiaware", "true");
 				// This sets the Java 2D scaling factor, overriding the default behavior of detecting the scale via
 				// GetDpiForMonitor.
-				jvmProps.put("sun.java2d.uiScale", String.valueOf(options.valueOf("scale")));
+				jvmProps.put("sun.java2d.uiScale", Double.toString(settings.scale));
 			}
 
-			jvmProps.putAll(hardwareAccelerationMode.toParams(OS.getOs()));
+			final var hardwareAccelMode = settings.hardwareAccelerationMode == HardwareAccelerationMode.AUTO ?
+				HardwareAccelerationMode.defaultMode(OS.getOs()) : settings.hardwareAccelerationMode;
+			jvmProps.putAll(hardwareAccelMode.toParams(OS.getOs()));
 
 			// As of JDK-8243269 (11.0.8) and JDK-8235363 (14), AWT makes macOS dark mode support opt-in so interfaces
 			// with hardcoded foreground/background colours don't get broken by system settings. Considering the native
@@ -238,18 +225,19 @@ public class Launcher
 			// Stream launcher version
 			jvmProps.put(LauncherProperties.getVersionKey(), LauncherProperties.getVersion());
 
-			if (insecureSkipTlsVerification)
+			if (settings.isSkipTlsVerification())
 			{
 				jvmProps.put("runelite.insecure-skip-tls-verification", "true");
 			}
 
 			log.info("RuneLite Launcher version {}", LauncherProperties.getVersion());
-			log.info("Setting hardware acceleration to {}", hardwareAccelerationMode);
+			log.info("Launcher configuration:\n{}", settings.configurationStr());
+			log.info("Using hardware acceleration mode: {}", hardwareAccelMode);
 
 			// java2d properties have to be set prior to the graphics environment startup
 			setJvmParams(jvmProps);
 
-			if (insecureSkipTlsVerification)
+			if (settings.isSkipTlsVerification())
 			{
 				TrustManagerUtil.setupInsecureTrustManager();
 			}
@@ -310,7 +298,7 @@ public class Launcher
 
 			SplashScreen.stage(.07, null, "Checking for updates");
 
-			Updater.update(bootstrap, options, args);
+			Updater.update(bootstrap, settings, args);
 
 			SplashScreen.stage(.10, null, "Tidying the cache");
 
@@ -365,7 +353,7 @@ public class Launcher
 
 			try
 			{
-				download(artifacts, nodiff);
+				download(artifacts, settings.isNodiffs());
 			}
 			catch (IOException ex)
 			{
@@ -386,7 +374,7 @@ public class Launcher
 				return;
 			}
 
-			final Collection<String> clientArgs = getClientArgs(options);
+			final Collection<String> clientArgs = getClientArgs(settings);
 			SplashScreen.stage(.90, "Starting the client", "");
 
 			var classpath = artifacts.stream()
@@ -398,14 +386,14 @@ public class Launcher
 			log.debug("Setting JVM crash log location to {}", CRASH_FILES);
 			jvmParams.add("-XX:ErrorFile=" + CRASH_FILES.getAbsolutePath());
 			// Add VM args from cli/env
-			jvmParams.addAll(getJvmArgs(options));
+			jvmParams.addAll(getJvmArgs(settings));
 
-			if (launchMode == LaunchMode.REFLECT)
+			if (settings.launchMode == LaunchMode.REFLECT)
 			{
 				log.debug("Using launch mode: REFLECT");
 				ReflectionLauncher.launch(classpath, clientArgs);
 			}
-			else if (launchMode == LaunchMode.FORK || (launchMode == LaunchMode.AUTO && ForkLauncher.canForkLaunch()))
+			else if (settings.launchMode == LaunchMode.FORK || (settings.launchMode == LaunchMode.AUTO && ForkLauncher.canForkLaunch()))
 			{
 				log.debug("Using launch mode: FORK");
 				ForkLauncher.launch(bootstrap, classpath, clientArgs, jvmProps, jvmParams);
@@ -521,26 +509,20 @@ public class Launcher
 		return false;
 	}
 
-	private static Collection<String> getClientArgs(OptionSet options)
+	private static Collection<String> getClientArgs(LauncherSettings settings)
 	{
-		final Collection<String> args = options.nonOptionArguments().stream()
-			.filter(String.class::isInstance)
-			.map(String.class::cast)
-			.collect(Collectors.toCollection(ArrayList::new));
+		final var args = new ArrayList<>(settings.clientArguments);
 
 		String clientArgs = System.getenv("RUNELITE_ARGS");
 		if (!Strings.isNullOrEmpty(clientArgs))
 		{
-			args.addAll(Splitter.on(' ').omitEmptyStrings().trimResults().splitToList(clientArgs));
+			args.addAll(Splitter.on(' ')
+				.omitEmptyStrings()
+				.trimResults()
+				.splitToList(clientArgs));
 		}
 
-		clientArgs = (String) options.valueOf("clientargs");
-		if (!Strings.isNullOrEmpty(clientArgs))
-		{
-			args.addAll(Splitter.on(' ').omitEmptyStrings().trimResults().splitToList(clientArgs));
-		}
-
-		if (options.has("debug"))
+		if (settings.debug)
 		{
 			args.add("--debug");
 		}
@@ -548,12 +530,9 @@ public class Launcher
 		return args;
 	}
 
-	private static List<String> getJvmArgs(OptionSet options)
+	private static List<String> getJvmArgs(LauncherSettings settings)
 	{
-		var args = options.valuesOf("J").stream()
-			.filter(String.class::isInstance)
-			.map(String.class::cast)
-			.collect(Collectors.toCollection(ArrayList::new));
+		var args = new ArrayList<>(settings.jvmArguments);
 
 		var envArgs = System.getenv("RUNELITE_VMARGS");
 		if (!Strings.isNullOrEmpty(envArgs))

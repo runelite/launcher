@@ -48,7 +48,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import joptsimple.OptionSet;
 import lombok.extern.slf4j.Slf4j;
 import static net.runelite.launcher.Launcher.LAUNCHER_EXECUTABLE_NAME_OSX;
 import static net.runelite.launcher.Launcher.LAUNCHER_EXECUTABLE_NAME_WIN;
@@ -67,19 +66,19 @@ class Updater
 {
 	private static final String RUNELITE_APP = "/Applications/RuneLite.app";
 
-	static void update(Bootstrap bootstrap, OptionSet options, String[] args)
+	static void update(Bootstrap bootstrap, LauncherSettings launcherSettings, String[] args)
 	{
 		if (OS.getOs() == OS.OSType.Windows)
 		{
-			updateWindows(bootstrap, options, args);
+			updateWindows(bootstrap, launcherSettings, args);
 		}
 		else if (OS.getOs() == OS.OSType.MacOS)
 		{
-			updateMacos(bootstrap, options, args);
+			updateMacos(bootstrap, launcherSettings, args);
 		}
 	}
 
-	private static void updateMacos(Bootstrap bootstrap, OptionSet options, String[] args)
+	private static void updateMacos(Bootstrap bootstrap, LauncherSettings launcherSettings, String[] args)
 	{
 		ProcessHandle current = ProcessHandle.current();
 		var command = current.info().command();
@@ -113,7 +112,7 @@ class Updater
 			return;
 		}
 
-		final boolean noupdate = options.has("noupdate");
+		final boolean noupdate = launcherSettings.isNoupdates();
 		if (noupdate)
 		{
 			log.info("Skipping update {} due to noupdate being set", newestUpdate.getVersion());
@@ -126,6 +125,8 @@ class Updater
 			return;
 		}
 
+		// launcherSettings have the OptionSet applied to them, so we don't want to write them back to disk.
+		// Load a copy for updating the last update attempt
 		var settings = LauncherSettings.loadSettings();
 		var hours = 1 << Math.min(9, settings.lastUpdateAttemptNum); // 512 hours = ~21 days
 		if (newestUpdate.getHash().equals(settings.lastUpdateHash)
@@ -277,7 +278,7 @@ class Updater
 		return null;
 	}
 
-	private static void updateWindows(Bootstrap bootstrap, OptionSet options, String[] args)
+	private static void updateWindows(Bootstrap bootstrap, LauncherSettings launcherSettings, String[] args)
 	{
 		ProcessHandle current = ProcessHandle.current();
 		if (current.info().command().isEmpty())
@@ -315,7 +316,7 @@ class Updater
 			return;
 		}
 
-		final boolean noupdate = options.has("noupdate");
+		final boolean noupdate = launcherSettings.isNoupdates();
 		if (noupdate)
 		{
 			log.info("Skipping update {} due to noupdate being set", newestUpdate.getVersion());
@@ -328,6 +329,8 @@ class Updater
 			return;
 		}
 
+		// launcherSettings have the OptionSet applied to them, so we don't want to write them back to disk.
+		// Load a copy for updating the last update attempt
 		var settings = LauncherSettings.loadSettings();
 		var hours = 1 << Math.min(9, settings.lastUpdateAttemptNum); // 512 hours = ~21 days
 		if (newestUpdate.getHash().equals(settings.lastUpdateHash)

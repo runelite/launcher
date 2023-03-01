@@ -39,9 +39,15 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import joptsimple.OptionSet;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.helpers.MessageFormatter;
 
 @Data
 @Slf4j
@@ -52,6 +58,100 @@ class LauncherSettings
 	long lastUpdateAttemptTime;
 	String lastUpdateHash;
 	int lastUpdateAttemptNum;
+
+	// configuration
+	boolean debug;
+	boolean nodiffs;
+	boolean skipTlsVerification;
+	boolean noupdates;
+	@Nullable
+	Double scale;
+	List<String> clientArguments = Collections.emptyList();
+	List<String> jvmArguments = Collections.emptyList();
+	HardwareAccelerationMode hardwareAccelerationMode = HardwareAccelerationMode.AUTO;
+	LaunchMode launchMode = LaunchMode.AUTO;
+
+	// override settings with options from cli
+	void apply(OptionSet options)
+	{
+		if (options.has("debug"))
+		{
+			debug = true;
+		}
+		if (options.has("nodiff"))
+		{
+			nodiffs = true;
+		}
+		if (options.has("insecure-skip-tls-verification"))
+		{
+			skipTlsVerification = true;
+		}
+		if (options.has("noupdate"))
+		{
+			noupdates = true;
+		}
+		if (options.has("scale"))
+		{
+			scale = Double.parseDouble(String.valueOf(options.valueOf("scale")));
+		}
+
+		if (options.has("J"))
+		{
+			jvmArguments = options.valuesOf("J").stream()
+				.filter(String.class::isInstance)
+				.map(String.class::cast)
+				.collect(Collectors.toList());
+		}
+
+		if (!options.nonOptionArguments().isEmpty()) // client arguments
+		{
+			clientArguments = options.nonOptionArguments().stream()
+				.filter(String.class::isInstance)
+				.map(String.class::cast)
+				.collect(Collectors.toList());
+		}
+
+		if (options.has("mode"))
+		{
+			hardwareAccelerationMode = (HardwareAccelerationMode) options.valueOf("mode");
+		}
+
+		// we use runelite.launcher.reflect to signal to use the reflect launch mode from packr
+		if ("true".equals(System.getProperty("runelite.launcher.reflect")))
+		{
+			launchMode = LaunchMode.REFLECT;
+		}
+		else if (options.has("launch-mode"))
+		{
+			launchMode = (LaunchMode) options.valueOf("launch-mode");
+		}
+	}
+
+	String configurationStr()
+	{
+		return MessageFormatter.arrayFormat(
+				" debug: {}\n" +
+				" nodiffs: {}\n" +
+				" skip tls verification: {}\n" +
+				" noupdates: {}\n" +
+				" scale: {}\n" +
+				" client arguments: {}\n" +
+				" jvm arguments: {}\n" +
+				" hardware acceleration mode: {}\n" +
+				" launch mode: {}",
+			new Object[]{
+				debug,
+				nodiffs,
+				skipTlsVerification,
+				noupdates,
+				scale == null ? "system" : scale,
+				clientArguments,
+				jvmArguments,
+				hardwareAccelerationMode,
+				launchMode
+			}
+		).getMessage();
+	}
 
 	@Nonnull
 	static LauncherSettings loadSettings()
