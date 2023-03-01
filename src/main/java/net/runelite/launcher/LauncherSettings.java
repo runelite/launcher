@@ -57,7 +57,7 @@ class LauncherSettings
 	static LauncherSettings loadSettings()
 	{
 		var settingsFile = new File(LAUNCHER_SETTINGS).getAbsoluteFile();
-		try (var in = new InputStreamReader(new FileInputStream(settingsFile)))
+		try (var in = new InputStreamReader(new FileInputStream(settingsFile), StandardCharsets.UTF_8))
 		{
 			var settings = new Gson()
 				.fromJson(in, LauncherSettings.class);
