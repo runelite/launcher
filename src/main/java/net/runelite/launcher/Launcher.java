@@ -530,6 +530,11 @@ public class Launcher
 			args.add("--debug");
 		}
 
+		if (settings.safemode)
+		{
+			args.add("--safe-mode");
+		}
+
 		return args;
 	}
 

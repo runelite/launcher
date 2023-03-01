@@ -64,6 +64,7 @@ class LauncherSettings
 	boolean nodiffs;
 	boolean skipTlsVerification;
 	boolean noupdates;
+	boolean safemode;
 	@Nullable
 	Double scale;
 	List<String> clientArguments = Collections.emptyList();
@@ -138,6 +139,7 @@ class LauncherSettings
 				" nodiffs: {}" + System.lineSeparator() +
 				" skip tls verification: {}" + System.lineSeparator() +
 				" noupdates: {}" + System.lineSeparator() +
+				" safe mode: {}" + System.lineSeparator() +
 				" scale: {}" + System.lineSeparator() +
 				" client arguments: {}" + System.lineSeparator() +
 				" jvm arguments: {}" + System.lineSeparator() +
@@ -148,6 +150,7 @@ class LauncherSettings
 				nodiffs,
 				skipTlsVerification,
 				noupdates,
+				safemode,
 				scale == null ? "system" : scale,
 				clientArguments.isEmpty() ? "none" : clientArguments,
 				jvmArguments.isEmpty() ? "none" : jvmArguments,

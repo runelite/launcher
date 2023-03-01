@@ -56,6 +56,7 @@ public class ConfigurationFrame extends JFrame
 	private final JCheckBox chkboxNoDiffs;
 	private final JCheckBox chkboxSkipTlsVerification;
 	private final JCheckBox chkboxNoUpdates;
+	private final JCheckBox chkboxSafemode;
 	private final JTextField txtScale;
 	private final JTextArea txtClientArguments;
 	private final JTextArea txtJvmArguments;
@@ -85,7 +86,7 @@ public class ConfigurationFrame extends JFrame
 
 		var topPanel = new JPanel();
 		topPanel.setBackground(DARKER_GRAY_COLOR);
-		topPanel.setLayout(new GridLayout(2, 2, 0, 0));
+		topPanel.setLayout(new GridLayout(3, 2, 0, 0));
 		topPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 8, 0));
 
 		topPanel.add(chkboxDebug = checkbox(
@@ -110,6 +111,12 @@ public class ConfigurationFrame extends JFrame
 			"Disable updates",
 			"Disables the launcher self updating",
 			Boolean.TRUE.equals(settings.noupdates)
+		));
+
+		topPanel.add(chkboxSafemode = checkbox(
+			"Safe mode",
+			"Launches the client in safe mode",
+			Boolean.TRUE.equals(settings.safemode)
 		));
 
 		pane.add(topPanel);
@@ -190,6 +197,7 @@ public class ConfigurationFrame extends JFrame
 		settings.nodiffs = chkboxNoDiffs.isSelected();
 		settings.skipTlsVerification = chkboxSkipTlsVerification.isSelected();
 		settings.noupdates = chkboxNoUpdates.isSelected();
+		settings.safemode = chkboxSafemode.isSelected();
 
 		var t = txtScale.getText();
 		settings.scale = null;
