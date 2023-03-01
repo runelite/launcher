@@ -149,8 +149,8 @@ class LauncherSettings
 				skipTlsVerification,
 				noupdates,
 				scale == null ? "system" : scale,
-				clientArguments,
-				jvmArguments,
+				clientArguments.isEmpty() ? "none" : clientArguments,
+				jvmArguments.isEmpty() ? "none" : jvmArguments,
 				hardwareAccelerationMode,
 				launchMode
 			}
