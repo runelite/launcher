@@ -24,12 +24,90 @@
  */
 package net.runelite.launcher;
 
+import com.google.common.base.MoreObjects;
+import com.google.gson.Gson;
+import com.google.gson.JsonParseException;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.nio.channels.FileChannel;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.AtomicMoveNotSupportedException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
+import javax.annotation.Nonnull;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
 @Data
+@Slf4j
 class LauncherSettings
 {
+	private static final String LAUNCHER_SETTINGS = "settings.json";
+
 	long lastUpdateAttemptTime;
 	String lastUpdateHash;
 	int lastUpdateAttemptNum;
+
+	@Nonnull
+	static LauncherSettings loadSettings()
+	{
+		var settingsFile = new File(LAUNCHER_SETTINGS).getAbsoluteFile();
+		try (var in = new InputStreamReader(new FileInputStream(settingsFile)))
+		{
+			var settings = new Gson()
+				.fromJson(in, LauncherSettings.class);
+			return MoreObjects.firstNonNull(settings, new LauncherSettings());
+		}
+		catch (FileNotFoundException ex)
+		{
+			log.debug("unable to load settings, file does not exist");
+			return new LauncherSettings();
+		}
+		catch (IOException | JsonParseException e)
+		{
+			log.warn("unable to load settings", e);
+			return new LauncherSettings();
+		}
+	}
+
+	static void saveSettings(LauncherSettings settings)
+	{
+		var settingsFile = new File(LAUNCHER_SETTINGS).getAbsoluteFile();
+
+		try
+		{
+			File tmpFile = File.createTempFile(LAUNCHER_SETTINGS, "json");
+			var gson = new Gson();
+
+			try (FileOutputStream fout = new FileOutputStream(tmpFile);
+				FileChannel channel = fout.getChannel();
+				OutputStreamWriter writer = new OutputStreamWriter(fout, StandardCharsets.UTF_8))
+			{
+				channel.lock();
+				writer.write(gson.toJson(settings));
+				channel.force(true);
+				// FileChannel.close() frees the lock
+			}
+
+			try
+			{
+				Files.move(tmpFile.toPath(), settingsFile.toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+			}
+			catch (AtomicMoveNotSupportedException ex)
+			{
+				log.debug("atomic move not supported", ex);
+				Files.move(tmpFile.toPath(), settingsFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+			}
+		}
+		catch (IOException e)
+		{
+			log.error("unable to save launcher settings!", e);
+			settingsFile.delete();
+		}
+	}
 }

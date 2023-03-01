@@ -24,30 +24,18 @@
  */
 package net.runelite.launcher;
 
-import com.google.common.base.MoreObjects;
 import com.google.common.escape.Escapers;
-import com.google.gson.Gson;
-import com.google.gson.JsonParseException;
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.io.PrintWriter;
-import java.nio.channels.FileChannel;
-import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.CopyOption;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
-import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.time.Instant;
 import java.time.LocalTime;
@@ -58,7 +46,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-import javax.annotation.Nonnull;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import joptsimple.OptionSet;
@@ -78,7 +65,6 @@ import org.w3c.dom.NodeList;
 @Slf4j
 class Updater
 {
-	private static final String LAUNCHER_SETTINGS = "settings.json";
 	private static final String RUNELITE_APP = "/Applications/RuneLite.app";
 
 	static void update(Bootstrap bootstrap, OptionSet options, String[] args)
@@ -140,7 +126,7 @@ class Updater
 			return;
 		}
 
-		var settings = loadSettings();
+		var settings = LauncherSettings.loadSettings();
 		var hours = 1 << Math.min(9, settings.lastUpdateAttemptNum); // 512 hours = ~21 days
 		if (newestUpdate.getHash().equals(settings.lastUpdateHash)
 			&& Instant.ofEpochMilli(settings.lastUpdateAttemptTime).isAfter(Instant.now().minus(hours, ChronoUnit.HOURS)))
@@ -165,7 +151,7 @@ class Updater
 		settings.lastUpdateAttemptTime = System.currentTimeMillis();
 		settings.lastUpdateHash = newestUpdate.getHash();
 		settings.lastUpdateAttemptNum++;
-		saveSettings(settings);
+		LauncherSettings.saveSettings(settings);
 
 		try
 		{
@@ -342,7 +328,7 @@ class Updater
 			return;
 		}
 
-		var settings = loadSettings();
+		var settings = LauncherSettings.loadSettings();
 		var hours = 1 << Math.min(9, settings.lastUpdateAttemptNum); // 512 hours = ~21 days
 		if (newestUpdate.getHash().equals(settings.lastUpdateHash)
 			&& Instant.ofEpochMilli(settings.lastUpdateAttemptTime).isAfter(Instant.now().minus(hours, ChronoUnit.HOURS)))
@@ -382,7 +368,7 @@ class Updater
 		settings.lastUpdateAttemptTime = System.currentTimeMillis();
 		settings.lastUpdateHash = newestUpdate.getHash();
 		settings.lastUpdateAttemptNum++;
-		saveSettings(settings);
+		LauncherSettings.saveSettings(settings);
 
 		try
 		{
@@ -479,64 +465,6 @@ class Updater
 		}
 
 		return newestUpdate;
-	}
-
-	@Nonnull
-	private static LauncherSettings loadSettings()
-	{
-		var settingsFile = new File(LAUNCHER_SETTINGS).getAbsoluteFile();
-		try (var in = new InputStreamReader(new FileInputStream(settingsFile)))
-		{
-			var settings = new Gson()
-				.fromJson(in, LauncherSettings.class);
-			return MoreObjects.firstNonNull(settings, new LauncherSettings());
-		}
-		catch (FileNotFoundException ex)
-		{
-			log.debug("unable to load settings, file does not exist");
-			return new LauncherSettings();
-		}
-		catch (IOException | JsonParseException e)
-		{
-			log.warn("unable to load settings", e);
-			return new LauncherSettings();
-		}
-	}
-
-	private static void saveSettings(LauncherSettings settings)
-	{
-		var settingsFile = new File(LAUNCHER_SETTINGS).getAbsoluteFile();
-
-		try
-		{
-			File tmpFile = File.createTempFile(LAUNCHER_SETTINGS, "json");
-			var gson = new Gson();
-
-			try (FileOutputStream fout = new FileOutputStream(tmpFile);
-				FileChannel channel = fout.getChannel();
-				PrintWriter writer = new PrintWriter(fout))
-			{
-				channel.lock();
-				writer.write(gson.toJson(settings));
-				channel.force(true);
-				// FileChannel.close() frees the lock
-			}
-
-			try
-			{
-				Files.move(tmpFile.toPath(), settingsFile.toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
-			}
-			catch (AtomicMoveNotSupportedException ex)
-			{
-				log.debug("atomic move not supported", ex);
-				Files.move(tmpFile.toPath(), settingsFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-			}
-		}
-		catch (IOException e)
-		{
-			log.warn("error saving launcher settings!", e);
-			settingsFile.delete();
-		}
 	}
 
 	private static double installRollout()
