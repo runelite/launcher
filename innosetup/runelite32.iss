@@ -35,6 +35,7 @@ Source: "${basedir}\native-win32\jre\*"; DestDir: "{app}\jre"; Flags: recursesub
 ; start menu
 Name: "{userprograms}\RuneLite\RuneLite"; Filename: "{app}\RuneLite.exe"
 Name: "{userprograms}\RuneLite\RuneLite (configure)"; Filename: "{app}\RuneLite.exe"; Parameters: "--configure"
+Name: "{userprograms}\RuneLite\RuneLite (safe mode)"; Filename: "{app}\RuneLite.exe"; Parameters: "--safe-mode"
 Name: "{userdesktop}\RuneLite"; Filename: "{app}\RuneLite.exe"; Tasks: DesktopIcon
 
 [Run]
