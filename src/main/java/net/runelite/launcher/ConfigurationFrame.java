@@ -219,7 +219,7 @@ public class ConfigurationFrame extends JFrame
 
 		LauncherSettings.saveSettings(settings);
 
-		log.info("Updated launcher configuration:\n{}", settings.configurationStr());
+		log.info("Updated launcher configuration:" + System.lineSeparator() + "{}", settings.configurationStr());
 
 		dispose();
 	}

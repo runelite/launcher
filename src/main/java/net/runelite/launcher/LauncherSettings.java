@@ -134,14 +134,14 @@ class LauncherSettings
 	String configurationStr()
 	{
 		return MessageFormatter.arrayFormat(
-				" debug: {}\n" +
-				" nodiffs: {}\n" +
-				" skip tls verification: {}\n" +
-				" noupdates: {}\n" +
-				" scale: {}\n" +
-				" client arguments: {}\n" +
-				" jvm arguments: {}\n" +
-				" hardware acceleration mode: {}\n" +
+				" debug: {}" + System.lineSeparator() +
+				" nodiffs: {}" + System.lineSeparator() +
+				" skip tls verification: {}" + System.lineSeparator() +
+				" noupdates: {}" + System.lineSeparator() +
+				" scale: {}" + System.lineSeparator() +
+				" client arguments: {}" + System.lineSeparator() +
+				" jvm arguments: {}" + System.lineSeparator() +
+				" hardware acceleration mode: {}" + System.lineSeparator() +
 				" launch mode: {}",
 			new Object[]{
 				debug,

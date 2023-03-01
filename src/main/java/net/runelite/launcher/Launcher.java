@@ -234,7 +234,7 @@ public class Launcher
 			}
 
 			log.info("RuneLite Launcher version {}", LauncherProperties.getVersion());
-			log.info("Launcher configuration:\n{}", settings.configurationStr());
+			log.info("Launcher configuration:" + System.lineSeparator() + "{}", settings.configurationStr());
 			log.info("Using hardware acceleration mode: {}", hardwareAccelMode);
 
 			// java2d properties have to be set prior to the graphics environment startup
