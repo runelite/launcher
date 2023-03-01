@@ -33,7 +33,8 @@ Source: "${basedir}\native-win32\jre\*"; DestDir: "{app}\jre"; Flags: recursesub
 
 [Icons]
 ; start menu
-Name: "{userprograms}\RuneLite"; Filename: "{app}\RuneLite.exe"
+Name: "{userprograms}\RuneLite\RuneLite"; Filename: "{app}\RuneLite.exe"
+Name: "{userprograms}\RuneLite\RuneLite (configure)"; Filename: "{app}\RuneLite.exe"; Parameters: "--configure"
 Name: "{userdesktop}\RuneLite"; Filename: "{app}\RuneLite.exe"; Tasks: DesktopIcon
 
 [Run]
