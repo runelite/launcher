@@ -113,7 +113,10 @@ public class Launcher
 		parser.accepts("launch-mode", "JVM launch method (JVM, FORK, REFLECT)")
 			.withRequiredArg()
 			.ofType(LaunchMode.class);
-		parser.accepts("mode", "Java 2D hardware acceleration mode (OFF, DIRECTDRAW, OPENGL, METAL)")
+		parser.accepts("hw-accel", "Java 2D hardware acceleration mode (OFF, DIRECTDRAW, OPENGL, METAL)")
+			.withRequiredArg()
+			.ofType(HardwareAccelerationMode.class);
+		parser.accepts("mode", "Alias of hw-accel")
 			.withRequiredArg()
 			.ofType(HardwareAccelerationMode.class);
 

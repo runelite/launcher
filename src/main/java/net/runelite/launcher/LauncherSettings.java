@@ -111,7 +111,11 @@ class LauncherSettings
 				.collect(Collectors.toList());
 		}
 
-		if (options.has("mode"))
+		if (options.has("hw-accel"))
+		{
+			hardwareAccelerationMode = (HardwareAccelerationMode) options.valueOf("hw-accel");
+		}
+		else if (options.has("mode"))
 		{
 			hardwareAccelerationMode = (HardwareAccelerationMode) options.valueOf("mode");
 		}
