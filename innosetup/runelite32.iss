@@ -45,6 +45,8 @@ Filename: "{app}\RuneLite.exe"; Description: "&Open RuneLite"; Flags: postinstal
 [InstallDelete]
 ; Delete the old jvm so it doesn't try to load old stuff with the new vm and crash
 Type: filesandordirs; Name: "{app}\jre"
+; previous shortcut
+Type: files; Name: "{userprograms}\RuneLite.lnk"
 
 [UninstallDelete]
 Type: filesandordirs; Name: "{%USERPROFILE}\.runelite\repository2"
