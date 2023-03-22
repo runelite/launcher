@@ -83,10 +83,14 @@ class ForkLauncher
 		commands.add(path.toAbsolutePath().toString());
 		commands.add("-c");
 		// bootstrap vm args
-		for (var arg : JvmLauncher.getJvmArguments(bootstrap))
+		var clientJvmArgs = JvmLauncher.getJvmArguments(bootstrap);
+		if (clientJvmArgs != null)
 		{
-			commands.add("-J");
-			commands.add(arg);
+			for (var arg : clientJvmArgs)
+			{
+				commands.add("-J");
+				commands.add(arg);
+			}
 		}
 		// launcher vm props
 		for (var prop : jvmProps.entrySet())
