@@ -2,26 +2,23 @@
 
 set -e
 
-JDK_VER="11.0.18"
-JDK_BUILD="10"
-JDK_BUILD_SHORT="10"
-JDK_HASH="a53da51fe7ab5b057ae48188961acf2b4d87e58f1eae563a2cb45f1c21e0e298"
 PACKR_VERSION="runelite-1.7"
 PACKR_HASH="f61c7faeaa364b6fa91eb606ce10bd0e80f9adbce630d2bae719aef78d45da61"
 
-if ! [ -f OpenJDK11U-jre_x86-32_windows_hotspot_${JDK_VER}_${JDK_BUILD}.zip ] ; then
-    curl -Lo OpenJDK11U-jre_x86-32_windows_hotspot_${JDK_VER}_${JDK_BUILD}.zip \
-        https://github.com/adoptium/temurin11-binaries/releases/download/jdk-${JDK_VER}%2B${JDK_BUILD}/OpenJDK11U-jre_x86-32_windows_hotspot_${JDK_VER}_${JDK_BUILD_SHORT}.zip
+source .jdk-versions.sh
+
+if ! [ -f win32_jre.zip ] ; then
+    curl -Lo win32_jre.zip $WIN32_LINK
 fi
 
-echo "${JDK_HASH} OpenJDK11U-jre_x86-32_windows_hotspot_${JDK_VER}_${JDK_BUILD}.zip" | sha256sum -c
+echo "$WIN32_CHKSUM win32_jre.zip" | sha256sum -c
 
 # packr requires a "jdk" and pulls the jre from it - so we have to place it inside
 # the jdk folder at jre/
 if ! [ -d win32-jdk ] ; then
-    unzip OpenJDK11U-jre_x86-32_windows_hotspot_${JDK_VER}_${JDK_BUILD}.zip
+    unzip win32_jre.zip
     mkdir win32-jdk
-    mv jdk-$JDK_VER+$JDK_BUILD_SHORT-jre win32-jdk/jre
+    mv jdk-$WIN32_VERSION-jre win32-jdk/jre
 fi
 
 if ! [ -f packr_${PACKR_VERSION}.jar ] ; then

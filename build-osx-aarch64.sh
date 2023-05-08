@@ -2,29 +2,25 @@
 
 set -e
 
-JDK_VER="17.0.6"
-JDK_BUILD="10"
-JDK_HASH="824b3c92e8be77f03bdb42b634bd8e00cfd9829603bd817dc06675be6f6761f2"
 PACKR_VERSION="runelite-1.7"
 PACKR_HASH="f61c7faeaa364b6fa91eb606ce10bd0e80f9adbce630d2bae719aef78d45da61"
 
 SIGNING_IDENTITY="Developer ID Application"
 
-FILE="OpenJDK17U-jre_aarch64_mac_hotspot_${JDK_VER}_${JDK_BUILD}.tar.gz"
-URL="https://github.com/adoptium/temurin17-binaries/releases/download/jdk-${JDK_VER}%2B${JDK_BUILD}/${FILE}"
+source .jdk-versions.sh
 
-if ! [ -f ${FILE} ] ; then
-    curl -Lo ${FILE} ${URL}
+if ! [ -f mac_aarch64_jre.tar.gz ] ; then
+    curl -Lo mac_aarch64_jre.tar.gz $MAC_AARCH64_LINK
 fi
 
-echo "${JDK_HASH}  ${FILE}" | shasum -c
+echo "$MAC_AARCH64_CHKSUM  mac_aarch64_jre.tar.gz" | shasum -c
 
 # packr requires a "jdk" and pulls the jre from it - so we have to place it inside
 # the jdk folder at jre/
 if ! [ -d osx-aarch64-jdk ] ; then
-    tar zxf ${FILE}
+    tar zxf mac_aarch64_jre.tar.gz
     mkdir osx-aarch64-jdk
-    mv jdk-${JDK_VER}+${JDK_BUILD}-jre osx-aarch64-jdk/jre
+    mv jdk-$MAC_AARCH64_VERSION-jre osx-aarch64-jdk/jre
 
     pushd osx-aarch64-jdk/jre
     # Move JRE out of Contents/Home/

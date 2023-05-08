@@ -2,27 +2,25 @@
 
 set -e
 
-JDK_VER="11.0.18"
-JDK_BUILD="10"
-JDK_HASH="7c73b1a731fc840f2ecb5633906d687bfee4346a8191d3cb1c4370168b16351f"
 PACKR_VERSION="runelite-1.7"
 PACKR_HASH="f61c7faeaa364b6fa91eb606ce10bd0e80f9adbce630d2bae719aef78d45da61"
 
 SIGNING_IDENTITY="Developer ID Application"
 
-if ! [ -f OpenJDK11U-jre_x64_mac_hotspot_${JDK_VER}_${JDK_BUILD}.tar.gz ] ; then
-    curl -Lo OpenJDK11U-jre_x64_mac_hotspot_${JDK_VER}_${JDK_BUILD}.tar.gz \
-        https://github.com/adoptium/temurin11-binaries/releases/download/jdk-${JDK_VER}%2B${JDK_BUILD}/OpenJDK11U-jre_x64_mac_hotspot_${JDK_VER}_${JDK_BUILD}.tar.gz
+source .jdk-versions.sh
+
+if ! [ -f mac64_jre.tar.gz ] ; then
+    curl -Lo mac64_jre.tar.gz $MAC_AMD64_LINK
 fi
 
-echo "${JDK_HASH}  OpenJDK11U-jre_x64_mac_hotspot_${JDK_VER}_${JDK_BUILD}.tar.gz" | shasum -c
+echo "$MAC_AMD64_CHKSUM  mac64_jre.tar.gz" | shasum -c
 
 # packr requires a "jdk" and pulls the jre from it - so we have to place it inside
 # the jdk folder at jre/
 if ! [ -d osx-jdk ] ; then
-    tar zxf OpenJDK11U-jre_x64_mac_hotspot_${JDK_VER}_${JDK_BUILD}.tar.gz
+    tar zxf mac64_jre.tar.gz
     mkdir osx-jdk
-    mv jdk-${JDK_VER}+${JDK_BUILD}-jre osx-jdk/jre
+    mv jdk-$MAC_AMD64_VERSION-jre osx-jdk/jre
 
     pushd osx-jdk/jre
     # Move JRE out of Contents/Home/
