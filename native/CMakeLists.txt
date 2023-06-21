@@ -13,5 +13,8 @@ if (CMAKE_GENERATOR_PLATFORM STREQUAL "x64")
 elseif (CMAKE_GENERATOR_PLATFORM STREQUAL "Win32")
     set_target_properties(launcher PROPERTIES OUTPUT_NAME "launcher_x86")
     target_link_libraries(launcher ${CMAKE_SOURCE_DIR}/../detours/lib.X86/detours.lib)
+elseif (CMAKE_GENERATOR_PLATFORM STREQUAL "ARM64")
+    set_target_properties(launcher PROPERTIES OUTPUT_NAME "launcher_aarch64")
+    target_link_libraries(launcher ${CMAKE_SOURCE_DIR}/../detours/lib.ARM64/detours.lib)
 endif()
 set_property(TARGET launcher PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded") # multi-threaded statically-linked runtime

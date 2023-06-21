@@ -39,4 +39,4 @@ echo RuneLite.exe 64bit sha256sum
 sha256sum native-win-aarch64/RuneLite.exe
 
 # We use the filtered iss file
-iscc target/filtered-resources/runelite.iss
+iscc target/filtered-resources/runeliteaarch64.iss
