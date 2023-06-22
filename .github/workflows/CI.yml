@@ -39,6 +39,14 @@ jobs:
       run: |
         cd detours/src
         nmake
+    - uses: ilammy/msvc-dev-cmd@v1 # for nmake
+      with:
+        arch: amd64_arm64
+    - name: build detours aarch64
+      shell: cmd
+      run: |
+        cd detours/src
+        nmake
     - name: build dll x64
       shell: cmd
       run: |
@@ -71,6 +79,7 @@ jobs:
         path: |
           RuneLiteSetup.exe
           RuneLiteSetup32.exe
+          RuneLiteSetupAArch64.exe
         if-no-files-found: error
   linux:
     runs-on: ubuntu-20.04
