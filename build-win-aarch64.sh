@@ -11,7 +11,7 @@ if ! [ -f win-aarch64_jre.zip ] ; then
     curl -Lo win-aarch64_jre.zip $WIN_AARCH64_LINK
 fi
 
-echo "$WIN_AARCH_64_CHKSUM win-aarch64_jre.zip" | sha256sum -c
+echo "$WIN_AARCH64_CHKSUM win-aarch64_jre.zip" | sha256sum -c
 
 # packr requires a "jdk" and pulls the jre from it - so we have to place it inside
 # the jdk folder at jre/
