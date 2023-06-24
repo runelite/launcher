@@ -1,6 +1,6 @@
 {
   "platform": "windowsaarch64",
-  "jdk": "winaarch64-jdk",
+  "jdk": "win-aarch64-jdk",
   "executable": "RuneLite",
   "classpath": [
     "target/RuneLite.jar"
