@@ -35,7 +35,7 @@ tools/rcedit-x64 native-win-aarch64/RuneLite.exe \
   --application-manifest packr/runelite.manifest \
   --set-icon runelite.ico
 
-echo RuneLite.exe 64bit sha256sum
+echo RuneLite.exe aarch64 sha256sum
 sha256sum native-win-aarch64/RuneLite.exe
 
 # We use the filtered iss file
