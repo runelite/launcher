@@ -2,8 +2,8 @@
 
 set -e
 
-PACKR_VERSION="runelite-1.7"
-PACKR_HASH="f61c7faeaa364b6fa91eb606ce10bd0e80f9adbce630d2bae719aef78d45da61"
+PACKR_VERSION="runelite-1.8"
+PACKR_HASH="ea9e8a9b276cc7548f85cf587c7bd3519104aa9b877f3d7b566fb8492d126744"
 
 source .jdk-versions.sh
 
