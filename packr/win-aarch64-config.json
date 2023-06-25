@@ -1,0 +1,15 @@
+{
+  "platform": "windowsaarch64",
+  "jdk": "win-aarch64-jdk",
+  "executable": "RuneLite",
+  "classpath": [
+    "target/RuneLite.jar"
+  ],
+  "mainclass": "net.runelite.launcher.Launcher",
+  "vmargs": [
+    "-Xmx512m",
+    "-Xss2m",
+    "-XX:CompileThreshold=1500"
+  ],
+  "output": "native-win-aarch64"
+}

@@ -6,6 +6,10 @@ WIN64_LINK=https://github.com/adoptium/temurin11-binaries/releases/download/jdk-
 WIN32_VERSION=11.0.19+7
 WIN32_CHKSUM=e0ad2091780fb180009ce2ddf7a711980829623add7a8799a08746c41d625a2c
 WIN32_LINK=https://github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.19%2B7/OpenJDK11U-jre_x86-32_windows_hotspot_11.0.19_7.zip
+# windows aarch64
+WIN_AARCH64_VERSION=11.0.19+7
+WIN_AARCH64_CHKSUM=2f321bfe2cd2a4759b061f37c82d57d8944e0983bda84d6f9a4d790dd21ccb94
+WIN_AARCH64_LINK=https://aka.ms/download-jdk/microsoft-jdk-11.0.19-windows-aarch64.zip
 # mac x64
 MAC_AMD64_VERSION=11.0.19+7
 MAC_AMD64_CHKSUM=87e439b2193e1a2cf1a8782168bba83b558f54e2708f88ea8296184ea2735c89

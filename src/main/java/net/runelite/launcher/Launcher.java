@@ -882,7 +882,7 @@ public class Launcher
 		}
 
 		String arch = System.getProperty("os.arch");
-		if (!"x86".equals(arch) && !"amd64".equals(arch))
+		if (!Set.of("x86", "amd64", "aarch64").contains(arch))
 		{
 			log.debug("System architecture is not supported for launcher natives: {}", arch);
 			return;
