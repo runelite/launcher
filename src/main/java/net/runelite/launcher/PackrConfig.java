@@ -103,6 +103,7 @@ class PackrConfig
 			{
 				channel.lock();
 				gson.toJson(config, writer);
+				writer.flush();
 				channel.force(true);
 				// FileChannel.close() frees the lock
 			}
