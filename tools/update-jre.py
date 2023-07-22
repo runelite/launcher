@@ -18,7 +18,7 @@ def fetch_jre(prefix, version_range, arch, os):
     }
 
     req = urllib.request.Request(url + urllib.parse.urlencode(params))
-    req.add_header('User-agent', 'Mozilla/5.0') # api seems to block urllib ua
+    req.add_header('User-agent', 'RuneLite') # api seems to block urllib ua
 
     ctx = urllib.request.urlopen(req)
 
@@ -34,8 +34,21 @@ def fetch_jre(prefix, version_range, arch, os):
     print(prefix + "CHKSUM=" + checksum)
     print(prefix + "LINK=" + link)
 
+def fetch_microsoft_jre(prefix, version, arch, os):
+    urlversion = version.split('+')[0] # build is not included in url
+    url = 'https://aka.ms/download-jdk/microsoft-jdk-' + urlversion + '-' + os + '-' + arch + '.zip.sha256sum.txt'
+    req = urllib.request.Request(url)
+    ctx = urllib.request.urlopen(req)
+    checksum = ctx.read().decode("utf-8")
+    shasum = checksum.split(' ')[0]
+    print("# " + os + " " + arch)
+    print(prefix + "VERSION=" + version)
+    print(prefix + "CHKSUM=" + shasum)
+    print(prefix + "LINK=https://aka.ms/download-jdk/microsoft-jdk-" + urlversion + "-" + os + "-" + arch + ".zip")
+
 fetch_jre('WIN64_', '11.0.19+7', 'x64', 'windows')
 fetch_jre('WIN32_', '11.0.19+7', 'x86', 'windows')
+fetch_microsoft_jre('WIN_AARCH64_', '11.0.19+7', 'aarch64', 'windows')
 fetch_jre('MAC_AMD64_', '11.0.19+7', 'x64', 'mac')
 fetch_jre('MAC_AARCH64_', '17.0.7+7', 'aarch64', 'mac')
 fetch_jre('LINUX_AMD64_', '11.0.19+7', 'x64', 'linux')
