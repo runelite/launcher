@@ -6,6 +6,7 @@ endif()
 
 add_executable(packr WIN32 packr.cpp)
 if(WIN32)
+    set_target_properties(packr PROPERTIES LINK_FLAGS "/LARGEADDRESSAWARE")
     target_sources(packr PUBLIC win32/packr_win32.cpp win32/packr_win32.manifest)
     set_property(TARGET packr PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded") # multi-threaded statically-linked runtime
 elseif(APPLE)
