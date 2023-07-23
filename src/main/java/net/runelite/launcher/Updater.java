@@ -446,6 +446,7 @@ class Updater
 
 		final var os = System.getProperty("os.name");
 		final var arch = System.getProperty("os.arch");
+		final var ver = System.getProperty("os.version");
 		final var launcherVersion = LauncherProperties.getVersion();
 		if (os == null || arch == null || launcherVersion == null)
 		{
@@ -457,6 +458,8 @@ class Updater
 		{
 			var updateOs = OS.parseOs(update.getOs());
 			if ((updateOs == OS.OSType.Other ? update.getOs().equals(os) : updateOs == OS.getOs()) &&
+				(update.getOsName() == null || update.getOsName().equals(os)) &&
+				(update.getOsVersion() == null || update.getOsVersion().equals(ver)) &&
 				(update.getArch() == null || arch.equals(update.getArch())) &&
 				compareVersion(update.getVersion(), launcherVersion) > 0 &&
 				(update.getMinimumVersion() == null || compareVersion(launcherVersion, update.getMinimumVersion()) >= 0) &&
