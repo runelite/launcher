@@ -2,8 +2,8 @@
 
 set -e
 
-PACKR_VERSION="runelite-1.7"
-PACKR_HASH="f61c7faeaa364b6fa91eb606ce10bd0e80f9adbce630d2bae719aef78d45da61"
+PACKR_VERSION="runelite-1.9"
+PACKR_HASH="544efb4a88f561aa40a6dc9453d13a00231f10ed867f741ac7f6ded2757c1b8d"
 
 source .jdk-versions.sh
 
@@ -37,6 +37,8 @@ tools/rcedit-x64 native-win64/RuneLite.exe \
 
 echo RuneLite.exe 64bit sha256sum
 sha256sum native-win64/RuneLite.exe
+
+dumpbin //HEADERS native-win64/RuneLite.exe
 
 # We use the filtered iss file
 iscc target/filtered-resources/runelite.iss
