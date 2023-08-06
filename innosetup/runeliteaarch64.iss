@@ -27,7 +27,7 @@ Name: DesktopIcon; Description: "Create a &desktop icon";
 [Files]
 Source: "${basedir}\native-win-aarch64\RuneLite.exe"; DestDir: "{app}"
 Source: "${basedir}\native-win-aarch64\RuneLite.jar"; DestDir: "{app}"
-Source: "${basedir}\native\buildaarch64\Release\launcher_aarch64.dll"; DestDir: "{app}"
+Source: "${basedir}\liblauncher\buildaarch64\Release\launcher_aarch64.dll"; DestDir: "{app}"
 Source: "${basedir}\native-win-aarch64\config.json"; DestDir: "{app}"
 Source: "${basedir}\native-win-aarch64\jre\*"; DestDir: "{app}\jre"; Flags: recursesubdirs
 

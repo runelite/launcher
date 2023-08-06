@@ -50,18 +50,18 @@ jobs:
     - name: build dll x64
       shell: cmd
       run: |
-        cmake -S native -B native/build64 -A x64
-        cmake --build native/build64 --config Release
+        cmake -S liblauncher -B liblauncher/build64 -A x64
+        cmake --build liblauncher/build64 --config Release
     - name: build dll x86
       shell: cmd
       run: |
-        cmake -S native -B native/build32 -A Win32
-        cmake --build native/build32 --config Release
+        cmake -S liblauncher -B liblauncher/build32 -A Win32
+        cmake --build liblauncher/build32 --config Release
     - name: build dll aarch64
       shell: cmd
       run: |
-        cmake -S native -B native/buildaarch64 -A ARM64
-        cmake --build native/buildaarch64 --config Release
+        cmake -S liblauncher -B liblauncher/buildaarch64 -A ARM64
+        cmake --build liblauncher/buildaarch64 --config Release
     - name: build launcher
       run: mvn verify -B
     - name: x64 installer

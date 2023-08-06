@@ -27,7 +27,7 @@ Name: DesktopIcon; Description: "Create a &desktop icon";
 [Files]
 Source: "${basedir}\native-win32\RuneLite.exe"; DestDir: "{app}"
 Source: "${basedir}\native-win32\RuneLite.jar"; DestDir: "{app}"
-Source: "${basedir}\native\build32\Release\launcher_x86.dll"; DestDir: "{app}"
+Source: "${basedir}\liblauncher\build32\Release\launcher_x86.dll"; DestDir: "{app}"
 Source: "${basedir}\native-win32\config.json"; DestDir: "{app}"
 Source: "${basedir}\native-win32\jre\*"; DestDir: "{app}\jre"; Flags: recursesubdirs
 
