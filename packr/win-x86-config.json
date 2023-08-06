@@ -1,15 +1,11 @@
 {
-  "platform": "windows32",
-  "jdk": "win32-jdk",
-  "executable": "RuneLite",
-  "classpath": [
-    "target/RuneLite.jar"
+  "classPath": [
+    "RuneLite.jar"
   ],
-  "mainclass": "net.runelite.launcher.Launcher",
-  "vmargs": [
+  "mainClass": "net.runelite.launcher.Launcher",
+  "vmArgs": [
     "-Xmx512m",
     "-Xss2m",
     "-XX:CompileThreshold=1500"
-  ],
-  "output": "native-win32"
+  ]
 }

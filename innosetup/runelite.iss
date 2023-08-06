@@ -25,11 +25,11 @@ OutputBaseFilename=RuneLiteSetup
 Name: DesktopIcon; Description: "Create a &desktop icon";
 
 [Files]
-Source: "${basedir}\native-win64\RuneLite.exe"; DestDir: "{app}"
-Source: "${basedir}\native-win64\RuneLite.jar"; DestDir: "{app}"
-Source: "${basedir}\liblauncher\build64\Release\launcher_amd64.dll"; DestDir: "{app}"
-Source: "${basedir}\native-win64\config.json"; DestDir: "{app}"
-Source: "${basedir}\native-win64\jre\*"; DestDir: "{app}\jre"; Flags: recursesubdirs
+Source: "${basedir}\build\win-x64\RuneLite.exe"; DestDir: "{app}"
+Source: "${basedir}\build\win-x64\RuneLite.jar"; DestDir: "{app}"
+Source: "${basedir}\build\win-x64\launcher_amd64.dll"; DestDir: "{app}"
+Source: "${basedir}\build\win-x64\config.json"; DestDir: "{app}"
+Source: "${basedir}\build\win-x64\jre\*"; DestDir: "{app}\jre"; Flags: recursesubdirs
 
 [Icons]
 ; start menu

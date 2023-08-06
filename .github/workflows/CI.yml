@@ -62,6 +62,24 @@ jobs:
       run: |
         cmake -S liblauncher -B liblauncher/buildaarch64 -A ARM64
         cmake --build liblauncher/buildaarch64 --config Release
+    - name: build native launcher x64
+      shell: cmd
+      run: |
+        cd native
+        cmake -B build-x64 -A x64
+        cmake --build build-x64 --config Release
+    - name: build native launcher x86
+      shell: cmd
+      run: |
+        cd native
+        cmake -B build-x86 -A Win32
+        cmake --build build-x86 --config Release
+    - name: build native launcher aarch64
+      shell: cmd
+      run: |
+        cd native
+        cmake -B build-aarch64 -A ARM64
+        cmake --build build-aarch64 --config Release
     - name: build launcher
       run: mvn verify -B
     - name: x64 installer
@@ -84,7 +102,11 @@ jobs:
   linux:
     runs-on: ubuntu-20.04
     steps:
+    - run: sudo apt update
+    - run: sudo apt install -y gcc-9-aarch64-linux-gnu g++-9-aarch64-linux-gnu
     - uses: actions/checkout@v3
+      with:
+        submodules: 'true'
     - name: cache
       uses: actions/cache@v3
       with:
@@ -98,6 +120,18 @@ jobs:
       with:
         java-version: 11
         distribution: temurin
+    - name: build native launcher x64
+      run: |
+        set -e -x
+        cd native
+        cmake -B build-x64 .
+        cmake --build build-x64 --config Release
+    - name: build native launcher aarch64
+      run: |
+        set -e -x
+        cd native
+        cmake -DCMAKE_TOOLCHAIN_FILE=arm64-linux-gcc.cmake -B build-aarch64 .
+        cmake --build build-aarch64 --config Release
     - name: build
       run: mvn verify -B
     - name: linux-x64
@@ -113,13 +147,15 @@ jobs:
       with:
         name: linux
         path: |
-          native-linux-x86_64/RuneLite.AppImage
-          native-linux-aarch64/RuneLite-aarch64.AppImage
+          RuneLite.AppImage
+          RuneLite-aarch64.AppImage
         if-no-files-found: error
   macos:
     runs-on: macos-11
     steps:
     - uses: actions/checkout@v3
+      with:
+        submodules: 'true'
     - name: cache
       uses: actions/cache@v3
       with:
@@ -133,6 +169,18 @@ jobs:
       with:
         java-version: 11
         distribution: temurin
+    - name: build native launcher x64
+      run: |
+        set -e -x
+        cd native
+        cmake -B build-x64 .
+        cmake --build build-x64 --config Release
+    - name: build native launcher aarch64
+      run: |
+        set -e -x
+        cd native
+        cmake -DCMAKE_OSX_ARCHITECTURES=arm64 -B build-aarch64 .
+        cmake --build build-aarch64 --config Release
     - name: build
       run: mvn verify -B
     - run: git clone https://github.com/runelite/create-dmg
@@ -151,6 +199,6 @@ jobs:
       with:
         name: macos
         path: |
-          native-osx/RuneLite-x64.dmg
-          native-osx-aarch64/RuneLite-aarch64.dmg
+          RuneLite-x64.dmg
+          RuneLite-aarch64.dmg
         if-no-files-found: error

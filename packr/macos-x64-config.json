@@ -1,16 +1,11 @@
 {
-    "platform": "mac64",
-    "icon": "packr/runelite.icns",
-    "jdk": "osx-jdk",
-    "executable": "RuneLite",
-    "classpath": [
-        "target/RuneLite.jar"
-    ],
-    "mainclass": "net.runelite.launcher.Launcher",
-    "vmargs": [
-       "-Xmx512m",
-       "-Xss2m",
-       "-XX:CompileThreshold=1500"
-    ],
-    "output": "native-osx/RuneLite.app"
+  "classPath": [
+    "RuneLite.jar"
+  ],
+  "mainClass": "net.runelite.launcher.Launcher",
+  "vmArgs": [
+    "-Xmx512m",
+    "-Xss2m",
+    "-XX:CompileThreshold=1500"
+  ]
 }

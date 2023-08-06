@@ -2,13 +2,14 @@
 
 set -e
 
-PACKR_VERSION="runelite-1.7"
-PACKR_HASH="f61c7faeaa364b6fa91eb606ce10bd0e80f9adbce630d2bae719aef78d45da61"
 APPIMAGE_VERSION="13"
 
 umask 022
 
 source .jdk-versions.sh
+
+rm -rf build/linux-x64
+mkdir -p build/linux-x64
 
 if ! [ -f linux64_jre.tar.gz ] ; then
     curl -Lo linux64_jre.tar.gz $LINUX_AMD64_LINK
@@ -16,30 +17,21 @@ fi
 
 echo "$LINUX_AMD64_CHKSUM linux64_jre.tar.gz" | sha256sum -c
 
-# packr requires a "jdk" and pulls the jre from it - so we have to place it inside
-# the jdk folder at jre/
-if ! [ -d linux-jdk ] ; then
-    tar zxf linux64_jre.tar.gz
-    mkdir linux-jdk
-    mv jdk-$LINUX_AMD64_VERSION-jre linux-jdk/jre
-fi
-
-if ! [ -f packr_${PACKR_VERSION}.jar ] ; then
-    curl -Lo packr_${PACKR_VERSION}.jar \
-        https://github.com/runelite/packr/releases/download/${PACKR_VERSION}/packr.jar
-fi
-
-echo "${PACKR_HASH}  packr_${PACKR_VERSION}.jar" | sha256sum -c
-
 # Note: Host umask may have checked out this directory with g/o permissions blank
 chmod -R u=rwX,go=rX appimage
 # ...ditto for the build process
 chmod 644 target/RuneLite.jar
 
-java -jar packr_${PACKR_VERSION}.jar \
-    packr/linux-x64-config.json
+cp native/build-x64/src/RuneLite build/linux-x64/
+cp target/RuneLite.jar build/linux-x64/
+cp packr/linux-x64-config.json build/linux-x64/config.json
+cp target/filtered-resources/runelite.desktop build/linux-x64/
+cp appimage/runelite.png build/linux-x64/
 
-pushd native-linux-x86_64/RuneLite.AppDir
+tar zxf linux64_jre.tar.gz
+mv jdk-$LINUX_AMD64_VERSION-jre build/linux-x64/jre
+
+pushd build/linux-x64/
 mkdir -p jre/lib/amd64/server/
 ln -s ../../server/libjvm.so jre/lib/amd64/server/ # packr looks for libjvm at this hardcoded path
 
@@ -59,5 +51,5 @@ fi
 echo "df3baf5ca5facbecfc2f3fa6713c29ab9cefa8fd8c1eac5d283b79cab33e4acb  appimagetool-x86_64.AppImage" | sha256sum -c
 
 ./appimagetool-x86_64.AppImage \
-	native-linux-x86_64/RuneLite.AppDir/ \
-	native-linux-x86_64/RuneLite.AppImage
+	build/linux-x64/ \
+	RuneLite.AppImage

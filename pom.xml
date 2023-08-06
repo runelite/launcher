@@ -277,7 +277,7 @@
 									</excludes>
 								</resource>
 								<resource>
-									<directory>packr</directory>
+									<directory>osx</directory>
 									<filtering>true</filtering>
 									<includes>
 										<include>*.plist</include>

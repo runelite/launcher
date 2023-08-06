@@ -1,20 +1,12 @@
 {
-    "platform": "linuxaarch64",
-    "jdk": "linux-aarch64-jdk",
-    "executable": "RuneLite",
-    "classpath": [
-        "target/RuneLite.jar"
-    ],
-    "mainclass": "net.runelite.launcher.Launcher",
-    "vmargs": [
-       "-Drunelite.launcher.reflect=true",
-       "-Xmx512m",
-       "-Xss2m",
-       "-XX:CompileThreshold=1500"
-    ],
-    "output": "native-linux-aarch64/RuneLite.AppDir/",
-    "resources": [
-      "target/filtered-resources/runelite.desktop",
-      "appimage/runelite.png"
-    ]
+  "classPath": [
+    "RuneLite.jar"
+  ],
+  "mainClass": "net.runelite.launcher.Launcher",
+  "vmArgs": [
+    "-Drunelite.launcher.reflect=true",
+    "-Xmx512m",
+    "-Xss2m",
+    "-XX:CompileThreshold=1500"
+  ]
 }
