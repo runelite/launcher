@@ -4,6 +4,11 @@ set -e
 
 SIGNING_IDENTITY="Developer ID Application"
 
+pushd native
+cmake -DCMAKE_OSX_ARCHITECTURES=arm64 -B build-aarch64 .
+cmake --build build-aarch64 --config Release
+popd
+
 source .jdk-versions.sh
 
 rm -rf build/macos-aarch64

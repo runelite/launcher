@@ -2,6 +2,11 @@
 
 set -e
 
+pushd native
+cmake -B build-x64 .
+cmake --build build-x64 --config Release
+popd
+
 APPIMAGE_VERSION="13"
 
 umask 022

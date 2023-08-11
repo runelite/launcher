@@ -2,6 +2,14 @@
 
 set -e
 
+cmake -S liblauncher -B liblauncher/buildaarch64 -A ARM64
+cmake --build liblauncher/buildaarch64 --config Release
+
+pushd native
+cmake -B build-aarch64 -A ARM64
+cmake --build build-aarch64 --config Release
+popd
+
 source .jdk-versions.sh
 
 rm -rf build/win-aarch64

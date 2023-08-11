@@ -4,6 +4,11 @@ set -e
 
 SIGNING_IDENTITY="Developer ID Application"
 
+pushd native
+cmake -DCMAKE_OSX_ARCHITECTURES=x86_64 -B build-x64 .
+cmake --build build-x64 --config Release
+popd
+
 source .jdk-versions.sh
 
 rm -rf build/macos-x64

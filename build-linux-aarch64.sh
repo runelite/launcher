@@ -2,6 +2,11 @@
 
 set -e
 
+pushd native
+cmake -DCMAKE_TOOLCHAIN_FILE=arm64-linux-gcc.cmake -B build-aarch64 .
+cmake --build build-aarch64 --config Release
+popd
+
 APPIMAGE_VERSION="13"
 
 umask 022
