@@ -38,142 +38,6 @@ static vector<string> vmArgs;
 static vector<string> classPath;
 static string mainClassName;
 
-#define verify(env, pointer) \
-	if (checkExceptionAndResult(env, pointer)) return EXIT_FAILURE;
-
-static bool checkExceptionAndResult(JNIEnv* env, void* pointer) {
-	if (env->ExceptionOccurred() != nullptr) {
-		env->ExceptionDescribe();
-		env->ExceptionClear();
-		return true;
-	}
-	return pointer == nullptr;
-}
-
-static int loadStaticMethod(JNIEnv* env, const vector<string>& classPath, string className, jclass* resultClass, jmethodID* resultMethod) {
-
-	//! Method to retrieve 'static void main(String[] args)' from a user-defined class path.
-	//! The original 'packr' passes "-Djava.class.path=<path-to-jar>" as an argument during
-	//! initialization of the JVM. For some reason this didn't work for me on *some* systems.
-	//!
-	//! This method uses JNI voodoo to get the thread context classloader, construct a file
-	//! URL, point it to the user JAR, then use the classloader to load the application class'
-	//! static main() method.
-	//!
-	//! References:
-	//! http://stackoverflow.com/questions/20328012/c-plugin-jni-java-classpath
-	//! http://www.java-gaming.org/index.php/topic,6516.0
-
-	size_t cp = 0;
-	size_t numCp = classPath.size();
-
-	if (verbose) {
-		cout << "Adding " << numCp << " classpaths ..." << endl;
-	}
-
-	jclass urlClass = env->FindClass("java/net/URL");
-	verify(env, urlClass);
-
-	jobjectArray urlArray = env->NewObjectArray(numCp, urlClass, nullptr);
-	verify(env, urlArray);
-
-	for (string classPathURL : classPath) {
-
-		if (verbose) {
-			cout << "  # " << classPathURL << endl;
-		}
-
-		jstring urlStr = env->NewStringUTF(classPathURL.c_str());
-		verify(env, urlStr);
-
-		// URL url = new File("{classPathURL}").toURI().toURL();
-
-		jclass fileClass = env->FindClass("java/io/File");
-		verify(env, fileClass);
-
-		jmethodID fileCtor = env->GetMethodID(fileClass, "<init>", "(Ljava/lang/String;)V");
-		verify(env, fileCtor);
-
-		jobject file = env->NewObject(fileClass, fileCtor, urlStr);
-		verify(env, file);
-
-		jmethodID toUriMethod = env->GetMethodID(fileClass, "toURI", "()Ljava/net/URI;");
-		verify(env, toUriMethod);
-
-		jobject uri = env->CallObjectMethod(file, toUriMethod);
-		verify(env, uri);
-
-		jclass uriClass = env->FindClass("java/net/URI");
-		verify(env, uriClass);
-
-		jmethodID toUrlMethod = env->GetMethodID(uriClass, "toURL", "()Ljava/net/URL;");
-		verify(env, toUrlMethod);
-
-		jobject url = env->CallObjectMethod(uri, toUrlMethod);
-		verify(env, url);
-
-		env->SetObjectArrayElement(urlArray, cp++, url);
-	}
-
-	// Thread thread = Thread.currentThread();
-
-	jclass threadClass = env->FindClass("java/lang/Thread");
-	verify(env, threadClass);
-
-	jmethodID threadGetCurrent = env->GetStaticMethodID(threadClass, "currentThread", "()Ljava/lang/Thread;");
-	verify(env, threadGetCurrent);
-
-	jobject thread = env->CallStaticObjectMethod(threadClass, threadGetCurrent);
-	verify(env, thread);
-
-	// ClassLoader contextClassLoader = thread.getContextClassLoader();
-
-	jmethodID threadGetLoader = env->GetMethodID(threadClass, "getContextClassLoader", "()Ljava/lang/ClassLoader;");
-	verify(env, threadGetLoader);
-
-	jobject contextClassLoader = env->CallObjectMethod(thread, threadGetLoader);
-	verify(env, contextClassLoader);
-
-	// URLClassLoader urlClassLoader = new URLClassLoader(urlArray, contextClassLoader);
-
-	jclass urlClassLoaderClass = env->FindClass("java/net/URLClassLoader");
-	verify(env, urlClassLoaderClass);
-	
-	jmethodID urlClassLoaderCtor = env->GetMethodID(urlClassLoaderClass, "<init>", "([Ljava/net/URL;Ljava/lang/ClassLoader;)V");
-	verify(env, urlClassLoaderCtor);
-
-	jobject urlClassLoader = env->NewObject(urlClassLoaderClass, urlClassLoaderCtor, urlArray, contextClassLoader);
-	verify(env, urlClassLoader);
-
-	// thread.setContextClassLoader(urlClassLoader)
-
-	jmethodID threadSetLoader = env->GetMethodID(threadClass, "setContextClassLoader", "(Ljava/lang/ClassLoader;)V");
-	verify(env, threadSetLoader);
-
-	env->CallVoidMethod(thread, threadSetLoader, urlClassLoader);
-
-	// Class<?> mainClass = urlClassLoader.loadClass(<main-class-name>)
-
-	jmethodID loadClass = env->GetMethodID(urlClassLoaderClass, "loadClass", "(Ljava/lang/String;)Ljava/lang/Class;");
-	verify(env, loadClass);
-
-	jstring mainClassNameUTF = env->NewStringUTF(className.c_str());
-	verify(env, mainClassNameUTF);
-
-	jobject mainClass = env->CallObjectMethod(urlClassLoader, loadClass, mainClassNameUTF);
-	verify(env, mainClass);
-
-	// method: 'void main(String[])'
-
-	jmethodID mainMethod = env->GetStaticMethodID((jclass) mainClass, "main", "([Ljava/lang/String;)V");
-	verify(env, mainMethod);
-
-	*resultClass = (jclass) mainClass;
-	*resultMethod = mainMethod;
-
-	return 0;
-}
-
 static sajson::document readConfigurationFile(string fileName) {
 
 	ifstream in(fileName.c_str(), std::ios::in | std::ios::binary);
@@ -491,20 +355,27 @@ void launchJavaVM(LaunchJavaVMCallback callback) {
 	}
 
 	size_t vmArgc = 0;
-	JavaVMOption* options = nullptr;
+	JavaVMOption* options = new JavaVMOption[1 + vmArgs.size()];
 
-	if (!vmArgs.empty()) {
-		vmArgc = vmArgs.size();
-		options = new JavaVMOption[vmArgc];
-		for (size_t vmArg = 0; vmArg < vmArgc; vmArg++) {
-			const string& vmArgValue = vmArgs[vmArg];
-			if (verbose) {
-				cout << "  # " << vmArgValue << endl;
-			}
-			options[vmArg].optionString = strdup(vmArgValue.c_str());
-			options[vmArg].extraInfo = nullptr;
+	string javaClassPath = "-Djava.class.path=";
+	for (unsigned int i = 0; i < classPath.size(); ++i) {
+		if (i > 0) {
+			javaClassPath.append(1, __CLASS_PATH_DELIM);
 		}
+		javaClassPath.append(classPath[i]);
 	}
+	options[vmArgc].optionString = strdup(javaClassPath.c_str());
+	options[vmArgc++].extraInfo = nullptr;
+
+	for (const string &vmArgValue : vmArgs) {
+		if (verbose) {
+			cout << "  # " << vmArgValue << endl;
+		}
+		options[vmArgc].optionString = strdup(vmArgValue.c_str());
+		options[vmArgc++].extraInfo = nullptr;
+	}
+
+	assert(vmArgc == 1 + vmArgs.size());
 
 	args.nOptions = vmArgc;
 	args.options = options;
@@ -552,14 +423,21 @@ void launchJavaVM(LaunchJavaVMCallback callback) {
 		// load main class & method from classpath
 
 		if (verbose) {
-			cout << "Loading JAR file ..." << endl;
+			cout << "Loading main class ..." << endl;
 		}
 
-		jclass mainClass = nullptr;
-		jmethodID mainMethod = nullptr;
+		string binaryClassName = mainClassName;
+		replace(binaryClassName.begin(), binaryClassName.end(), '.', '/');
 
-		if (loadStaticMethod(env, classPath, mainClassName, &mainClass, &mainMethod) != 0) {
-			cerr << "Error: failed to load/find main class " << mainClassName << endl;
+		jclass mainClass = env->FindClass(binaryClassName.c_str());
+		if (!mainClass) {
+			cerr << "Error: failed to find main class " << binaryClassName << endl;
+			exit(EXIT_FAILURE);
+		}
+
+		jmethodID mainMethod = env->GetStaticMethodID(mainClass, "main", "([Ljava/lang/String;)V");
+		if (!mainMethod) {
+			cerr << "Error: failed to find main method in " << binaryClassName << endl;
 			exit(EXIT_FAILURE);
 		}
 
