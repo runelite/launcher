@@ -4,7 +4,7 @@
   ],
   "mainClass": "net.runelite.launcher.Launcher",
   "vmArgs": [
-    "-Xmx512m",
+    "-Xmx768m",
     "-Xss2m",
     "-XX:CompileThreshold=1500"
   ]

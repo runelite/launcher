@@ -5,7 +5,7 @@
   "mainClass": "net.runelite.launcher.Launcher",
   "vmArgs": [
     "-Drunelite.launcher.reflect=true",
-    "-Xmx512m",
+    "-Xmx768m",
     "-Xss2m",
     "-XX:CompileThreshold=1500"
   ]
