@@ -404,6 +404,12 @@ public class Launcher
 			}
 			else
 			{
+				if (System.getenv("APPIMAGE") != null)
+				{
+					// java.home is in the appimage, so we can never use the jvm launcher
+					throw new RuntimeException("JVM launcher is not supported from the appimage");
+				}
+
 				// launch mode JVM or AUTO outside of packr
 				log.debug("Using launch mode: JVM");
 				JvmLauncher.launch(bootstrap, classpath, clientArgs, jvmProps, jvmParams);

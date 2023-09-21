@@ -41,22 +41,32 @@ class ForkLauncher
 	static boolean canForkLaunch()
 	{
 		var os = OS.getOs();
-		if (os != OS.OSType.Windows && os != OS.OSType.MacOS)
+
+		if (os == OS.OSType.Linux)
 		{
-			return false;
+			var appimage = System.getenv("APPIMAGE");
+			if (appimage != null)
+			{
+				return true;
+			}
 		}
 
-		ProcessHandle current = ProcessHandle.current();
-		var command = current.info().command();
-		if (command.isEmpty())
+		if (os == OS.OSType.Windows || os == OS.OSType.MacOS)
 		{
-			return false;
+			ProcessHandle current = ProcessHandle.current();
+			var command = current.info().command();
+			if (command.isEmpty())
+			{
+				return false;
+			}
+
+			Path path = Paths.get(command.get());
+			var name = path.getFileName().toString();
+			return name.equals(Launcher.LAUNCHER_EXECUTABLE_NAME_WIN)
+				|| name.equals(Launcher.LAUNCHER_EXECUTABLE_NAME_OSX);
 		}
 
-		Path path = Paths.get(command.get());
-		var name = path.getFileName().toString();
-		return name.equals(Launcher.LAUNCHER_EXECUTABLE_NAME_WIN)
-			|| name.equals(Launcher.LAUNCHER_EXECUTABLE_NAME_OSX);
+		return false;
 	}
 
 	static void launch(
@@ -67,16 +77,30 @@ class ForkLauncher
 		List<String> jvmArgs) throws IOException
 	{
 		ProcessHandle current = ProcessHandle.current();
-		Path path = Paths.get(current.info().command().get());
+		Path path;
 
-		if (OS.getOs() == OS.OSType.MacOS)
+		switch (OS.getOs())
 		{
-			// on macOS packr changes the cwd to the resource directory prior to launching the JVM,
-			// causing current.info().command() to return /Applications/RuneLite.app/Contents/Resources/./RuneLite
-			// despite the executable really being at /Applications/RuneLite.app/Contents/MacOS/RuneLite
-			path = path.normalize()
-				.resolveSibling(Path.of("..", "MacOS", path.getFileName().toString()))
-				.normalize();
+			case Windows:
+				path = Paths.get(current.info().command().get());
+				break;
+			case MacOS:
+				path = Paths.get(current.info().command().get());
+				// on macOS packr changes the cwd to the resource directory prior to launching the JVM,
+				// causing current.info().command() to return /Applications/RuneLite.app/Contents/Resources/./RuneLite
+				// despite the executable really being at /Applications/RuneLite.app/Contents/MacOS/RuneLite
+				path = path.normalize()
+					.resolveSibling(Path.of("..", "MacOS", path.getFileName().toString()))
+					.normalize();
+				break;
+			case Linux:
+				// the executable is in the fuse-mounted filesystem of the appimage, which goes away after the launcher
+				// exits. So relaunch the appimage instead.
+				var appimage = System.getenv("APPIMAGE");
+				path = Path.of(appimage);
+				break;
+			default:
+				throw new IllegalStateException("invalid os");
 		}
 
 		var commands = new ArrayList<>();
