@@ -26,6 +26,8 @@
   <true/>
   <key>NSRequiresAquaSystemAppearance</key>
   <false/>
+  <key>LSApplicationCategoryType</key>
+  <string>public.app-category.games</string>
   <key>LSEnvironment</key>
   <dict>
     <key>PATH</key>
