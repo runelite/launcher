@@ -46,10 +46,13 @@ def fetch_microsoft_jre(prefix, version, arch, os):
     print(prefix + "CHKSUM=" + shasum)
     print(prefix + "LINK=https://aka.ms/download-jdk/microsoft-jdk-" + urlversion + "-" + os + "-" + arch + ".zip")
 
-fetch_jre('WIN64_', '11.0.20+8', 'x64', 'windows')
-fetch_jre('WIN32_', '11.0.20+8', 'x86', 'windows')
-fetch_microsoft_jre('WIN_AARCH64_', '11.0.20+8', 'aarch64', 'windows')
-fetch_jre('MAC_AMD64_', '11.0.20+8', 'x64', 'mac')
-fetch_jre('MAC_AARCH64_', '17.0.8+7', 'aarch64', 'mac')
-fetch_jre('LINUX_AMD64_', '11.0.20+8', 'x64', 'linux')
-fetch_jre('LINUX_AARCH64_', '11.0.20+8', 'aarch64', 'linux')
+ver11 = '11.0.21+9'
+ver17 = '17.0.9+9'
+
+fetch_jre('WIN64_', ver11, 'x64', 'windows')
+fetch_jre('WIN32_', ver11, 'x86', 'windows')
+fetch_microsoft_jre('WIN_AARCH64_', ver11, 'aarch64', 'windows')
+fetch_jre('MAC_AMD64_', ver11, 'x64', 'mac')
+fetch_jre('MAC_AARCH64_', ver17, 'aarch64', 'mac')
+fetch_jre('LINUX_AMD64_', ver11, 'x64', 'linux')
+fetch_jre('LINUX_AARCH64_', ver11, 'aarch64', 'linux')
