@@ -56,3 +56,4 @@ Type: filesandordirs; Name: "{app}"
 [Code]
 #include "upgrade.pas"
 #include "usernamecheck.pas"
+#include "dircheck.pas"
