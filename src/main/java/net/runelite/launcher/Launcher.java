@@ -587,6 +587,11 @@ public class Launcher
 			{
 				hash = null;
 			}
+			catch (IOException ex)
+			{
+				dest.delete();
+				hash = null;
+			}
 
 			if (Objects.equals(hash, artifact.getHash()))
 			{
@@ -608,9 +613,9 @@ public class Launcher
 					{
 						oldhash = hash(old);
 					}
-					catch (FileNotFoundException ex)
+					catch (IOException ex)
 					{
-						oldhash = null;
+						continue;
 					}
 
 					// Check if old file is valid
