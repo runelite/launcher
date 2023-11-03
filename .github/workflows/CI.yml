@@ -126,8 +126,10 @@ jobs:
         distribution: temurin
     - name: build
       run: mvn verify -B
-    - run: git clone https://github.com/runelite/create-dmg
-    - run: |
+    - name: clone create-dmg
+      run: git clone https://github.com/runelite/create-dmg -b runelite-1.0
+    - name: build create-dmg
+      run: |
         set -e
         cd create-dmg
         npm install
