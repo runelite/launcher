@@ -46,8 +46,16 @@ codesign -f -s "${SIGNING_IDENTITY}" --entitlements osx/signing.entitlements --o
 create-dmg --format UDBZ $APPBASE . || true
 mv RuneLite\ *.dmg RuneLite-x64.dmg
 
+# dump for CI
+hdiutil imageinfo RuneLite-x64.dmg
+
 if ! hdiutil imageinfo RuneLite-x64.dmg | grep -q "Format: UDBZ" ; then
     echo "Format of resulting dmg was not UDBZ, make sure your create-dmg has support for --format"
+    exit 1
+fi
+
+if ! hdiutil imageinfo RuneLite-x64.dmg | grep -q "Apple_HFS" ; then
+    echo Filesystem of dmg is not Apple_HFS
     exit 1
 fi
 

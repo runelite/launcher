@@ -60,6 +60,19 @@ codesign -f -s "${SIGNING_IDENTITY}" --entitlements osx/signing.entitlements --o
 create-dmg $APPBASE . || true
 mv RuneLite\ *.dmg RuneLite-aarch64.dmg
 
+# dump for CI
+hdiutil imageinfo RuneLite-aarch64.dmg
+
+if ! hdiutil imageinfo RuneLite-aarch64.dmg | grep -q "Format: ULFO" ; then
+    echo Format of dmg is not ULFO
+    exit 1
+fi
+
+if ! hdiutil imageinfo RuneLite-aarch64.dmg | grep -q "Apple_HFS" ; then
+    echo Filesystem of dmg is not Apple_HFS
+    exit 1
+fi
+
 # Notarize app
 if xcrun notarytool submit RuneLite-aarch64.dmg --wait --keychain-profile "AC_PASSWORD" ; then
     xcrun stapler staple RuneLite-aarch64.dmg
