@@ -140,13 +140,22 @@ jobs:
         chmod +x create-dmg
     - run: echo create-dmg >> $GITHUB_PATH
     - name: macos-x64
-      run: ./build-osx-x64.sh
+      run: ./build-osx-x64.sh --build --dmg
     - name: macos-aarch64
-      run: ./build-osx-aarch64.sh
+      run: ./build-osx-aarch64.sh --build --dmg
+    # tar app to keep permissions correct
+    - name: tar app
+      run: tar -cf app.tar build/macos-x64/RuneLite.app build/macos-aarch64/RuneLite.app build-osx-x64.sh build-osx-aarch64.sh osx/signing.entitlements
     - uses: actions/upload-artifact@v3
       with:
-        name: macos
+        name: macos-dmg
         path: |
           RuneLite-x64.dmg
           RuneLite-aarch64.dmg
+        if-no-files-found: error
+    - uses: actions/upload-artifact@v3
+      with:
+        name: macos-app
+        path: |
+          app.tar
         if-no-files-found: error
