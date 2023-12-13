@@ -50,7 +50,10 @@ class ReflectionLauncher
 		ClassLoader parent = ClassLoader.getPlatformClassLoader();
 		URLClassLoader loader = new URLClassLoader(jarUrls, parent);
 
-		UIManager.put("ClassLoader", loader); // hack for Substance
+		// Swing requires the UIManager ClassLoader to be set if the LAF
+		// is not in the boot classpath
+		UIManager.put("ClassLoader", loader);
+
 		Thread thread = new Thread(() ->
 		{
 			try
