@@ -21,21 +21,6 @@ build() {
 
     echo "$MAC_AARCH64_CHKSUM  mac_aarch64_jre.tar.gz" | shasum -c
 
-    # packr requires a "jdk" and pulls the jre from it - so we have to place it inside
-    # the jdk folder at jre/
-    if ! [ -d osx-aarch64-jdk ] ; then
-        tar zxf mac_aarch64_jre.tar.gz
-        mkdir osx-aarch64-jdk
-        mv jdk-$MAC_AARCH64_VERSION-jre osx-aarch64-jdk/jre
-
-        pushd osx-aarch64-jdk/jre
-        # Move JRE out of Contents/Home/
-        mv Contents/Home/* .
-        # Remove unused leftover folders
-        rm -rf Contents
-        popd
-    fi
-
     mkdir -p $APPBASE/Contents/{MacOS,Resources}
 
     cp native/build-aarch64/src/RuneLite $APPBASE/Contents/MacOS/
