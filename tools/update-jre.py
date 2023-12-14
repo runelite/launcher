@@ -52,7 +52,7 @@ ver17 = '17.0.9+9'
 fetch_jre('WIN64_', ver11, 'x64', 'windows')
 fetch_jre('WIN32_', ver11, 'x86', 'windows')
 fetch_microsoft_jre('WIN_AARCH64_', ver11, 'aarch64', 'windows')
-fetch_jre('MAC_AMD64_', ver11, 'x64', 'mac')
+fetch_jre('MAC_AMD64_', ver17, 'x64', 'mac')
 fetch_jre('MAC_AARCH64_', ver17, 'aarch64', 'mac')
 fetch_jre('LINUX_AMD64_', ver11, 'x64', 'linux')
 fetch_jre('LINUX_AARCH64_', ver11, 'aarch64', 'linux')
