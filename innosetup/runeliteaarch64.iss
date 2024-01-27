@@ -25,9 +25,9 @@ OutputBaseFilename=RuneLiteSetupAArch64
 Name: DesktopIcon; Description: "Create a &desktop icon";
 
 [Files]
-Source: "${basedir}\build\win-aarch64\RuneLite.exe"; DestDir: "{app}"
+Source: "${basedir}\build\win-aarch64\RuneLite.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "${basedir}\build\win-aarch64\RuneLite.jar"; DestDir: "{app}"
-Source: "${basedir}\build\win-aarch64\launcher_aarch64.dll"; DestDir: "{app}"
+Source: "${basedir}\build\win-aarch64\launcher_aarch64.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "${basedir}\build\win-aarch64\config.json"; DestDir: "{app}"
 Source: "${basedir}\build\win-aarch64\jre\*"; DestDir: "{app}\jre"; Flags: recursesubdirs
 
