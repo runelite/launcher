@@ -12,7 +12,7 @@ ArchitecturesAllowed=arm64
 PrivilegesRequired=lowest
 
 WizardSmallImageFile=${basedir}/innosetup/runelite_small.bmp
-SetupIconFile=${basedir}/runelite.ico
+SetupIconFile=${basedir}/innosetup/runelite.ico
 UninstallDisplayIcon={app}\RuneLite.exe
 
 Compression=lzma2
