@@ -50,6 +50,7 @@ import java.lang.management.RuntimeMXBean;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.file.AccessDeniedException;
 import java.nio.file.Files;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -88,13 +89,15 @@ import org.slf4j.LoggerFactory;
 @Slf4j
 public class Launcher
 {
-	private static final File RUNELITE_DIR = new File(System.getProperty("user.home"), ".runelite");
+	static final File RUNELITE_DIR = new File(System.getProperty("user.home"), ".runelite");
 	public static final File LOGS_DIR = new File(RUNELITE_DIR, "logs");
-	private static final File REPO_DIR = new File(RUNELITE_DIR, "repository2");
+	static final File REPO_DIR = new File(RUNELITE_DIR, "repository2");
 	public static final File CRASH_FILES = new File(LOGS_DIR, "jvm_crash_pid_%p.log");
 	private static final String USER_AGENT = "RuneLite/" + LauncherProperties.getVersion();
 	static final String LAUNCHER_EXECUTABLE_NAME_WIN = "RuneLite.exe";
 	static final String LAUNCHER_EXECUTABLE_NAME_OSX = "RuneLite";
+	static boolean nativesLoaded;
+	static FilePermsStep filePermsStep = FilePermsStep.REGULAR_VERIFICATION;
 
 	public static void main(String[] args)
 	{
@@ -119,6 +122,9 @@ public class Launcher
 		parser.accepts("mode", "Alias of hw-accel")
 			.withRequiredArg()
 			.ofType(HardwareAccelerationMode.class);
+		parser.accepts("fixfileperms", "Called by the launcher to fix filesystem permission problems")
+			.withRequiredArg()
+			.ofType(FilePermsStep.class);
 
 		if (OS.getOs() == OS.OSType.MacOS)
 		{
@@ -157,6 +163,11 @@ public class Launcher
 		{
 			ConfigurationFrame.open();
 			return;
+		}
+
+		if (options.has("fixfileperms"))
+		{
+			filePermsStep = (FilePermsStep) options.valueOf("fixfileperms");
 		}
 
 		final LauncherSettings settings = LauncherSettings.loadSettings();
@@ -199,6 +210,9 @@ public class Launcher
 				}
 				return;
 			}
+
+			// verify filesystem permissions after the fork launcher has run, so we don't verify perms twice
+			FilePermissionManager.verifyFixFilePerms();
 
 			final Map<String, String> jvmProps = new LinkedHashMap<>();
 			if (settings.scale != null)
@@ -318,6 +332,7 @@ public class Launcher
 			if (!REPO_DIR.exists() && !REPO_DIR.mkdirs())
 			{
 				log.error("unable to create repo directory {}", REPO_DIR);
+				FilePermissionManager.verifyFixFilePerms(true);
 				SwingUtilities.invokeLater(() -> new FatalErrorDialog("Unable to create RuneLite directory " + REPO_DIR.getAbsolutePath() + ". Check your filesystem permissions are correct.").open());
 				return;
 			}
@@ -420,6 +435,10 @@ public class Launcher
 			log.error("Failure during startup", e);
 			if (!postInstall)
 			{
+				if (e instanceof AccessDeniedException)
+				{
+					FilePermissionManager.verifyFixFilePerms(true);
+				}
 				SwingUtilities.invokeLater(() ->
 					new FatalErrorDialog("RuneLite has encountered an unexpected error during startup.")
 						.open());
@@ -904,6 +923,7 @@ public class Launcher
 		{
 			System.loadLibrary("launcher_" + arch);
 			log.debug("Loaded launcher native launcher_{}", arch);
+			nativesLoaded = true;
 		}
 		catch (Error ex)
 		{
