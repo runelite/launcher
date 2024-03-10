@@ -33,7 +33,6 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
-import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
@@ -169,9 +168,6 @@ class TrustManagerUtil
 		SSLContext sc = SSLContext.getInstance("TLS");
 		sc.init(null, new TrustManager[]{combiningTrustManager}, new SecureRandom());
 		SSLContext.setDefault(sc);
-		// HttpsURLConnection has its own SSLSocketFactory cache which defaults to SSLContext.getDefault().getSocketFactory()
-		HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
-		// SSLSocketFactory also has its own SSLSocketFactory cache, but it can't be changed
 	}
 
 	static void setupInsecureTrustManager() throws NoSuchAlgorithmException, KeyManagementException
@@ -199,8 +195,5 @@ class TrustManagerUtil
 		SSLContext sc = SSLContext.getInstance("TLS");
 		sc.init(null, new TrustManager[]{trustManager}, new SecureRandom());
 		SSLContext.setDefault(sc);
-		// HttpsURLConnection has its own SSLSocketFactory cache which defaults to SSLContext.getDefault().getSocketFactory()
-		HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
-		HttpsURLConnection.setDefaultHostnameVerifier((hostname, session) -> true);
 	}
 }
