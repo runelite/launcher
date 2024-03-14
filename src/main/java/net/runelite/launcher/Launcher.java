@@ -88,9 +88,9 @@ import org.slf4j.LoggerFactory;
 @Slf4j
 public class Launcher
 {
-	private static final File RUNELITE_DIR = new File(System.getProperty("user.home"), ".runelite");
-	public static final File LOGS_DIR = new File(RUNELITE_DIR, "logs");
-	private static final File REPO_DIR = new File(RUNELITE_DIR, "repository2");
+	static final File RUNELITE_DIR = new File(System.getProperty("user.home"), ".runelite");
+	static final File LOGS_DIR = new File(RUNELITE_DIR, "logs");
+	static final File REPO_DIR = new File(RUNELITE_DIR, "repository2");
 	public static final File CRASH_FILES = new File(LOGS_DIR, "jvm_crash_pid_%p.log");
 	private static final String USER_AGENT = "RuneLite/" + LauncherProperties.getVersion();
 	static final String LAUNCHER_EXECUTABLE_NAME_WIN = "RuneLite.exe";
@@ -290,9 +290,23 @@ public class Launcher
 				}
 			}
 
+			// fix up permissions before potentially removing the RUNASADMIN compat key
+			if (FilesystemPermissions.check())
+			{
+				// check() opens an error dialog
+				return;
+			}
+
 			if (JagexLauncherCompatibility.check())
 			{
 				// check() opens an error dialog
+				return;
+			}
+
+			if (!REPO_DIR.exists() && !REPO_DIR.mkdirs())
+			{
+				log.error("unable to create directory {}", REPO_DIR);
+				SwingUtilities.invokeLater(() -> new FatalErrorDialog("Unable to create RuneLite directory " + REPO_DIR.getAbsolutePath() + ". Check your filesystem permissions are correct.").open());
 				return;
 			}
 
@@ -330,13 +344,6 @@ public class Launcher
 
 			// update packr vmargs to the launcher vmargs from bootstrap.
 			PackrConfig.updateLauncherArgs(bootstrap);
-
-			if (!REPO_DIR.exists() && !REPO_DIR.mkdirs())
-			{
-				log.error("unable to create repo directory {}", REPO_DIR);
-				SwingUtilities.invokeLater(() -> new FatalErrorDialog("Unable to create RuneLite directory " + REPO_DIR.getAbsolutePath() + ". Check your filesystem permissions are correct.").open());
-				return;
-			}
 
 			// Determine artifacts for this OS
 			List<Artifact> artifacts = Arrays.stream(bootstrap.getArtifacts())
@@ -987,4 +994,9 @@ public class Launcher
 	static native boolean regDeleteValue(String key, String subKey, String value);
 
 	static native boolean isProcessElevated(long pid);
+
+	static native void setFileACL(String folder, String[] sids);
+	static native String getUserSID();
+
+	static native long runas(String path, String args);
 }

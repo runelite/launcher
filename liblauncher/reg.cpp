@@ -1,7 +1,7 @@
 #include <Windows.h>
 #include <jni.h>
 
-static void rlThrow(JNIEnv *env, const char *msg) {
+void rlThrow(JNIEnv *env, const char *msg) {
     if (env->ExceptionCheck()) {
         return;
     }
