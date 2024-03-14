@@ -95,6 +95,7 @@ public class Launcher
 	private static final String USER_AGENT = "RuneLite/" + LauncherProperties.getVersion();
 	static final String LAUNCHER_EXECUTABLE_NAME_WIN = "RuneLite.exe";
 	static final String LAUNCHER_EXECUTABLE_NAME_OSX = "RuneLite";
+	static boolean nativesLoaded;
 
 	private static HttpClient httpClient;
 
@@ -287,6 +288,12 @@ public class Launcher
 					final String value = (String) p.get(key);
 					log.debug("  {}: {}", key, value);
 				}
+			}
+
+			if (JagexLauncherCompatibility.check())
+			{
+				// check() opens an error dialog
+				return;
 			}
 
 			SplashScreen.stage(.05, null, "Downloading bootstrap");
@@ -943,6 +950,7 @@ public class Launcher
 		{
 			System.loadLibrary("launcher_" + arch);
 			log.debug("Loaded launcher native launcher_{}", arch);
+			nativesLoaded = true;
 		}
 		catch (Error ex)
 		{
@@ -974,4 +982,9 @@ public class Launcher
 	private static native void setBlacklistedDlls(String[] dlls);
 
 	static native String regQueryString(String subKey, String value);
+
+	// Requires elevated permissions. Current valid inputs for key are: "HKCU" and "HKLM"
+	static native boolean regDeleteValue(String key, String subKey, String value);
+
+	static native boolean isProcessElevated(long pid);
 }
