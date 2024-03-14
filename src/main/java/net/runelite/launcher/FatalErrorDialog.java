@@ -216,8 +216,20 @@ public class FatalErrorDialog extends JDialog
 
 		if (err instanceof SocketException) // includes ConnectException
 		{
-			new FatalErrorDialog(formatExceptionMessage("RuneLite is unable to connect to a required server while " + action + ". " +
-				"Please check your internet connection.", err))
+			String message = "RuneLite is unable to connect to a required server while " + action + ".";
+
+			// hardcoded error message from PlainSocketImpl.c for WSAEADDRNOTAVAIL
+			if (err.getMessage().equals("connect: Address is invalid on local machine, or port is not valid on remote machine"))
+			{
+				message += " Cannot assign requested address. This error is most commonly caused by \"split tunneling\" support in VPN software." +
+					" If you are using a VPN, try turning \"split tunneling\" off.";
+			}
+			else
+			{
+				message += " Please check your internet connection.";
+			}
+
+			new FatalErrorDialog(formatExceptionMessage(message, err))
 				.open();
 			return;
 		}
