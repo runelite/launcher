@@ -224,6 +224,11 @@ public class FatalErrorDialog extends JDialog
 				message += " Cannot assign requested address. This error is most commonly caused by \"split tunneling\" support in VPN software." +
 					" If you are using a VPN, try turning \"split tunneling\" off.";
 			}
+			// WSAEACCES error formatted by NET_ThrowNew()
+			else if (err.getMessage().equals("Permission denied: connect"))
+			{
+				message += " Your internet access is blocked. Firewall or antivirus software may have blocked the connection.";
+			}
 			else
 			{
 				message += " Please check your internet connection.";
