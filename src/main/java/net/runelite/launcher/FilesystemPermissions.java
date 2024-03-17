@@ -24,6 +24,7 @@
  */
 package net.runelite.launcher;
 
+import com.google.common.base.Stopwatch;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -43,6 +44,7 @@ class FilesystemPermissions
 	// https://learn.microsoft.com/en-us/windows/win32/secauthz/well-known-sids
 	private static final String SID_SYSTEM = "S-1-5-18";
 	private static final String SID_ADMINISTRATORS = "S-1-5-32-544";
+	private static final int MAX_FILES_PER_DIRECTORY = 64;
 
 	static boolean check()
 	{
@@ -70,7 +72,10 @@ class FilesystemPermissions
 
 				// Files.walk is depth-first, which doesn't work if the permissions on the root don't allow traversal.
 				// So we do our own walk.
+				Stopwatch sw = Stopwatch.createStarted();
 				setTreeACL(RUNELITE_DIR, sid);
+				sw.stop();
+				log.debug("setTreeACL time: {}", sw);
 			}
 			catch (Exception ex)
 			{
@@ -122,7 +127,12 @@ class FilesystemPermissions
 			}
 		}
 
-		if (!checkPermissions(RUNELITE_DIR))
+		Stopwatch sw = Stopwatch.createStarted();
+		boolean permissionsOk = checkPermissions(RUNELITE_DIR, true);
+		sw.stop();
+		log.debug("checkPermissions time: {}", sw);
+
+		if (!permissionsOk)
 		{
 			String message;
 			if (elevated)
@@ -150,21 +160,30 @@ class FilesystemPermissions
 		return false;
 	}
 
-	private static boolean checkPermissions(File tree)
+	private static boolean checkPermissions(File tree, boolean root)
 	{
+		// Directory traversal and isWritable() is very slow. On my system checking 16k files
+		// takes ~13 seconds with traversal. The majority of these files tend to be screenshots
+		// which are less interesting.
+		//
+		// Traverse only the top level directories, and limit the number of files checked,
+		// to keep it speedy. The primary files which prevent the launcher and client from
+		// working are all here (repository2, cache, logs, profiles2).
 		boolean ok = true;
+		int numFiles = 0;
 		for (File file : tree.listFiles())
 		{
 			if (file.isDirectory())
 			{
-				if (!checkPermissions(file))
+				if (root && !checkPermissions(file, false))
 				{
 					ok = false;
 				}
 			}
-			else
+			else if (numFiles++ < MAX_FILES_PER_DIRECTORY)
 			{
 				Path path = file.toPath();
+				log.debug("Checking permissions of {}", path);
 				if (!Files.isReadable(path) || !Files.isWritable(path))
 				{
 					log.error("Permissions for {} are incorrect. Readable: {} writable: {}",
