@@ -10,3 +10,4 @@ project.properties
 .classpath
 dependency-reduced-pom.xml
 RuneLiteSetup*.exe
+build/
