@@ -28,6 +28,7 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import com.google.archivepatcher.applier.FileByFileV1DeltaApplier;
 import com.google.archivepatcher.shared.DefaultDeflateCompatibilityWindow;
+import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.collect.Streams;
@@ -50,7 +51,9 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.Signature;
@@ -70,6 +73,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.function.IntConsumer;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -78,11 +82,17 @@ import javax.swing.SwingUtilities;
 import joptsimple.OptionException;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
+import kotlin.text.Charsets;
 import lombok.extern.slf4j.Slf4j;
+import net.rsprox.patch.PatchResult;
+import net.rsprox.patch.runelite.RuneLitePatcher;
 import net.runelite.launcher.beans.Artifact;
 import net.runelite.launcher.beans.Bootstrap;
 import net.runelite.launcher.beans.Diff;
 import net.runelite.launcher.beans.Platform;
+import org.newsclub.net.unix.AFOutputStream;
+import org.newsclub.net.unix.AFUNIXSocket;
+import org.newsclub.net.unix.AFUNIXSocketAddress;
 import org.slf4j.LoggerFactory;
 
 @Slf4j
@@ -122,6 +132,11 @@ public class Launcher
 		parser.accepts("mode", "Alias of hw-accel")
 			.withRequiredArg()
 			.ofType(HardwareAccelerationMode.class);
+
+		parser.accepts("rsa", "RSA Modulus").withRequiredArg();
+		parser.accepts("port", "Patched port").withRequiredArg();
+		parser.accepts("socket_id", "Unix socket id").withRequiredArg();
+		parser.accepts("jav_config", "JAV config url").withRequiredArg();
 
 		if (OS.getOs() == OS.OSType.MacOS)
 		{
@@ -401,7 +416,55 @@ public class Launcher
 				return;
 			}
 
+			Artifact injectedClient = artifacts
+				.stream()
+				.filter(artifact -> artifact.getName().startsWith("injected-client-") && artifact.getName().endsWith(".jar"))
+				.findFirst()
+				.orElseThrow();
+			String rsa = String.valueOf(options.valueOf("rsa"));
+			int port = Integer.parseInt(String.valueOf(options.valueOf("port")));
+			RuneLitePatcher patcher = new RuneLitePatcher();
+			PatchResult result = patcher.patch(
+				new File(REPO_DIR, injectedClient.getName()).toPath(),
+				rsa,
+				port
+			);
+			Preconditions.checkState(result instanceof PatchResult.Success);
+			PatchResult.Success success = (PatchResult.Success) result;
+			Path output = success.getOutputPath();
+			injectedClient.setName(output.toFile().getName());
+			String oldModulus = success.getOldModulus();
+			long socketId = Long.parseLong(String.valueOf(options.valueOf("socket_id")));
+			File socketFile = Path.of(System.getProperty("user.home"))
+				.resolve(".rsprox")
+				.resolve("sockets")
+				.resolve(socketId + ".socket")
+				.toFile();
+			try (AFUNIXSocket socket = AFUNIXSocket.newInstance()) {
+				socket.connect(AFUNIXSocketAddress.of(socketFile));
+				try (InputStream in = socket.getInputStream()) {
+					byte[] buf = new byte[socket.getReceiveBufferSize()];
+					final int read = in.read(buf);
+					String req = new String(buf, 0, read);
+					if (req.equals("old-rsa-modulus:")) {
+						AFOutputStream outputStream = socket.getOutputStream();
+						outputStream.write(oldModulus.getBytes(Charsets.UTF_8));
+						outputStream.flush();
+					} else {
+						throw new IllegalStateException("Unknown request: " + req);
+					}
+				}
+			}
+			Artifact clientArtifact = artifacts
+				.stream()
+				.filter(artifact -> artifact.getName().startsWith("client-") && artifact.getName().endsWith(".jar"))
+				.findFirst()
+				.orElseThrow();
+			Path localHostPatch = patcher.patchLocalHostSupport(new File(REPO_DIR, clientArtifact.getName()).toPath());
+			clientArtifact.setName(localHostPatch.toFile().getName());
+
 			final Collection<String> clientArgs = getClientArgs(settings);
+			clientArgs.add("--jav_config=" + options.valueOf("jav_config"));
 			SplashScreen.stage(.90, "Starting the client", "");
 
 			var classpath = artifacts.stream()
