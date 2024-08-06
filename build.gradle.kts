@@ -1,8 +1,18 @@
 @file:Suppress("VulnerableLibrariesLocal")
 
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import java.nio.file.Files
+import java.nio.file.Path
+import kotlin.io.path.Path
+
+
 repositories {
     maven("https://repo.maven.apache.org/maven2")
     maven("https://repo.runelite.net")
+}
+
+plugins {
+    alias(libs.plugins.shadowjar)
 }
 
 dependencies {
@@ -21,4 +31,29 @@ dependencies {
     annotationProcessor("org.projectlombok:lombok:1.18.20")
     implementation("net.runelite.archive-patcher:archive-patcher-applier:1.2")
     testImplementation("junit:junit:4.12")
+    implementation(projects.patch)
+    implementation(projects.patch.patchRunelite)
+    implementation(libs.junixsocket)
+}
+
+private val runelitePath: Path = Path(System.getProperty("user.home"), ".rsprox", "runelite")
+Files.createDirectories(runelitePath)
+val shadowJar =
+    tasks.withType<ShadowJar> {
+        archiveBaseName.set("runelite-launcher")
+        archiveClassifier.set("")
+        archiveVersion.set("")
+        this.destinationDirectory.set(runelitePath.toFile())
+        this.isZip64 = true
+        mergeServiceFiles()
+    }
+
+tasks.withType<Jar> {
+    manifest {
+        attributes["Main-Class"] = "net.runelite.launcher.Launcher"
+    }
+}
+
+tasks.build {
+    finalizedBy(shadowJar)
 }
