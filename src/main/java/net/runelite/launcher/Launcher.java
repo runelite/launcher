@@ -416,52 +416,7 @@ public class Launcher
 				return;
 			}
 
-			Artifact injectedClient = artifacts
-				.stream()
-				.filter(artifact -> artifact.getName().startsWith("injected-client-") && artifact.getName().endsWith(".jar"))
-				.findFirst()
-				.orElseThrow();
-			String rsa = String.valueOf(options.valueOf("rsa"));
-			int port = Integer.parseInt(String.valueOf(options.valueOf("port")));
-			RuneLitePatcher patcher = new RuneLitePatcher();
-			PatchResult result = patcher.patch(
-				new File(REPO_DIR, injectedClient.getName()).toPath(),
-				rsa,
-				port
-			);
-			Preconditions.checkState(result instanceof PatchResult.Success);
-			PatchResult.Success success = (PatchResult.Success) result;
-			Path output = success.getOutputPath();
-			injectedClient.setName(output.toFile().getName());
-			String oldModulus = success.getOldModulus();
-			long socketId = Long.parseLong(String.valueOf(options.valueOf("socket_id")));
-			File socketFile = Path.of(System.getProperty("user.home"))
-				.resolve(".rsprox")
-				.resolve("sockets")
-				.resolve(socketId + ".socket")
-				.toFile();
-			try (AFUNIXSocket socket = AFUNIXSocket.newInstance()) {
-				socket.connect(AFUNIXSocketAddress.of(socketFile));
-				try (InputStream in = socket.getInputStream()) {
-					byte[] buf = new byte[socket.getReceiveBufferSize()];
-					final int read = in.read(buf);
-					String req = new String(buf, 0, read);
-					if (req.equals("old-rsa-modulus:")) {
-						AFOutputStream outputStream = socket.getOutputStream();
-						outputStream.write(oldModulus.getBytes(Charsets.UTF_8));
-						outputStream.flush();
-					} else {
-						throw new IllegalStateException("Unknown request: " + req);
-					}
-				}
-			}
-			Artifact clientArtifact = artifacts
-				.stream()
-				.filter(artifact -> artifact.getName().startsWith("client-") && artifact.getName().endsWith(".jar"))
-				.findFirst()
-				.orElseThrow();
-			Path localHostPatch = patcher.patchLocalHostSupport(new File(REPO_DIR, clientArtifact.getName()).toPath());
-			clientArtifact.setName(localHostPatch.toFile().getName());
+			patchArtifacts(artifacts, options);
 
 			final Collection<String> clientArgs = getClientArgs(settings);
 			clientArgs.add("--jav_config=" + options.valueOf("jav_config"));
@@ -521,6 +476,55 @@ public class Launcher
 		{
 			SplashScreen.stop();
 		}
+	}
+
+	private static void patchArtifacts(List<Artifact> artifacts, OptionSet options) throws IOException {
+		Artifact injectedClient = artifacts
+			.stream()
+			.filter(artifact -> artifact.getName().startsWith("injected-client-") && artifact.getName().endsWith(".jar"))
+			.findFirst()
+			.orElseThrow();
+		String rsa = String.valueOf(options.valueOf("rsa"));
+		int port = Integer.parseInt(String.valueOf(options.valueOf("port")));
+		RuneLitePatcher patcher = new RuneLitePatcher();
+		PatchResult result = patcher.patch(
+			new File(REPO_DIR, injectedClient.getName()).toPath(),
+			rsa,
+			port
+		);
+		Preconditions.checkState(result instanceof PatchResult.Success);
+		PatchResult.Success success = (PatchResult.Success) result;
+		Path output = success.getOutputPath();
+		injectedClient.setName(output.toFile().getName());
+		String oldModulus = success.getOldModulus();
+		long socketId = Long.parseLong(String.valueOf(options.valueOf("socket_id")));
+		File socketFile = Path.of(System.getProperty("user.home"))
+			.resolve(".rsprox")
+			.resolve("sockets")
+			.resolve(socketId + ".socket")
+			.toFile();
+		try (AFUNIXSocket socket = AFUNIXSocket.newInstance()) {
+			socket.connect(AFUNIXSocketAddress.of(socketFile));
+			try (InputStream in = socket.getInputStream()) {
+				byte[] buf = new byte[socket.getReceiveBufferSize()];
+				final int read = in.read(buf);
+				String req = new String(buf, 0, read);
+				if (req.equals("old-rsa-modulus:")) {
+					AFOutputStream outputStream = socket.getOutputStream();
+					outputStream.write(oldModulus.getBytes(Charsets.UTF_8));
+					outputStream.flush();
+				} else {
+					throw new IllegalStateException("Unknown request: " + req);
+				}
+			}
+		}
+		Artifact clientArtifact = artifacts
+			.stream()
+			.filter(artifact -> artifact.getName().startsWith("client-") && artifact.getName().endsWith(".jar"))
+			.findFirst()
+			.orElseThrow();
+		Path localHostPatch = patcher.patchLocalHostSupport(new File(REPO_DIR, clientArtifact.getName()).toPath());
+		clientArtifact.setName(localHostPatch.toFile().getName());
 	}
 
 	private static void setJvmParams(final Map<String, String> params)
