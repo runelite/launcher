@@ -51,7 +51,6 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.InvalidKeyException;
@@ -73,7 +72,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
-import java.util.function.Function;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ForkJoinPool;
 import java.util.function.IntConsumer;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -482,65 +482,97 @@ public class Launcher
 		}
 	}
 
-	private static void patchArtifacts(List<Artifact> artifacts, OptionSet options) throws IOException {
-		SplashScreen.stage(.93, "RSProx", "Patching injected-client");
-		Artifact injectedClient = artifacts
-			.stream()
-			.filter(artifact -> artifact.getName().startsWith("injected-client-") && artifact.getName().endsWith(".jar"))
-			.findFirst()
-			.orElseThrow();
-		String rsa = String.valueOf(options.valueOf("rsa"));
-		int port = Integer.parseInt(String.valueOf(options.valueOf("port")));
-		RuneLitePatcher patcher = new RuneLitePatcher();
-		PatchResult result = patcher.patch(
-			new File(REPO_DIR, injectedClient.getName()).toPath(),
-			rsa,
-			port
-		);
-		Preconditions.checkState(result instanceof PatchResult.Success);
-		PatchResult.Success success = (PatchResult.Success) result;
-		Path output = success.getOutputPath();
-		injectedClient.setName(output.toFile().getName());
-		SplashScreen.stage(.95, "RSProx", "Informing proxy of RSA");
-		String oldModulus = success.getOldModulus();
-		long socketId = Long.parseLong(String.valueOf(options.valueOf("socket_id")));
-		File socketFile = Path.of(System.getProperty("user.home"))
-			.resolve(".rsprox")
-			.resolve("sockets")
-			.resolve(socketId + ".socket")
-			.toFile();
-		try (AFUNIXSocket socket = AFUNIXSocket.newInstance()) {
-			socket.connect(AFUNIXSocketAddress.of(socketFile));
-			try (InputStream in = socket.getInputStream()) {
-				byte[] buf = new byte[socket.getReceiveBufferSize()];
-				final int read = in.read(buf);
-				String req = new String(buf, 0, read);
-				if (req.equals("old-rsa-modulus:")) {
-					AFOutputStream outputStream = socket.getOutputStream();
-					outputStream.write(oldModulus.getBytes(Charsets.UTF_8));
-					outputStream.flush();
-				} else {
-					throw new IllegalStateException("Unknown request: " + req);
-				}
-			}
-		}
-		SplashScreen.stage(.97, "RSProx", "Patching runelite-client");
-		Artifact clientArtifact = artifacts
-			.stream()
-			.filter(artifact -> artifact.getName().startsWith("client-") && artifact.getName().endsWith(".jar"))
-			.findFirst()
-			.orElseThrow();
-		Path localHostPatch = patcher.patchLocalHostSupport(new File(REPO_DIR, clientArtifact.getName()).toPath());
-		clientArtifact.setName(localHostPatch.toFile().getName());
+	private static final Object splashScreenLock = new Object();
 
-		SplashScreen.stage(.99, "RSProx", "Patching runelite-api");
-		Artifact apiArtifact = artifacts
-			.stream()
-			.filter(artifact -> artifact.getName().startsWith("runelite-api-") && artifact.getName().endsWith(".jar"))
-			.findFirst()
-			.orElseThrow();
-		Path apiPatch = patcher.patchRuneLiteApi(new File(REPO_DIR, apiArtifact.getName()).toPath());
-		apiArtifact.setName(apiPatch.toFile().getName());
+	private static void patchArtifacts(List<Artifact> artifacts, OptionSet options) {
+		SplashScreen.stage(.95, "RSProx", "Patching RuneLite");
+		List<Callable<Void>> tasks = new ArrayList<>();
+		tasks.add(buildInjectedClientPatchTask(artifacts, options));
+		tasks.add(buildRuneLiteClientPatchTask(artifacts));
+		tasks.add(buildRuneLiteApiPatchTask(artifacts));
+		ForkJoinPool.commonPool().invokeAll(tasks);
+	}
+
+	private static Callable<Void> buildInjectedClientPatchTask(List<Artifact> artifacts, OptionSet options) {
+		return () -> {
+            Artifact injectedClient = artifacts
+                .stream()
+                .filter(artifact -> artifact.getName().startsWith("injected-client-") && artifact.getName().endsWith(".jar"))
+                .findFirst()
+                .orElseThrow();
+            String rsa = String.valueOf(options.valueOf("rsa"));
+            int port = Integer.parseInt(String.valueOf(options.valueOf("port")));
+            RuneLitePatcher patcher = new RuneLitePatcher();
+            PatchResult result = patcher.patch(
+                new File(REPO_DIR, injectedClient.getName()).toPath(),
+                rsa,
+                port
+            );
+            Preconditions.checkState(result instanceof PatchResult.Success);
+            PatchResult.Success success = (PatchResult.Success) result;
+			synchronized (splashScreenLock) {
+				SplashScreen.stage(.95, "RSProx", "Patched injected-client");
+			}
+            Path output = success.getOutputPath();
+            injectedClient.setName(output.toFile().getName());
+            String oldModulus = success.getOldModulus();
+            long socketId = Long.parseLong(String.valueOf(options.valueOf("socket_id")));
+            File socketFile = Path.of(System.getProperty("user.home"))
+                .resolve(".rsprox")
+                .resolve("sockets")
+                .resolve(socketId + ".socket")
+                .toFile();
+            try (AFUNIXSocket socket = AFUNIXSocket.newInstance()) {
+                socket.connect(AFUNIXSocketAddress.of(socketFile));
+                try (InputStream in = socket.getInputStream()) {
+                    byte[] buf = new byte[socket.getReceiveBufferSize()];
+                    final int read = in.read(buf);
+                    String req = new String(buf, 0, read);
+                    if (req.equals("old-rsa-modulus:")) {
+                        AFOutputStream outputStream = socket.getOutputStream();
+                        outputStream.write(oldModulus.getBytes(Charsets.UTF_8));
+                        outputStream.flush();
+                    } else {
+                        throw new IllegalStateException("Unknown request: " + req);
+                    }
+                }
+            }
+            return null;
+        };
+	}
+
+	private static Callable<Void> buildRuneLiteClientPatchTask(List<Artifact> artifacts) {
+		return () -> {
+			RuneLitePatcher patcher = new RuneLitePatcher();
+			Artifact clientArtifact = artifacts
+				.stream()
+				.filter(artifact -> artifact.getName().startsWith("client-") && artifact.getName().endsWith(".jar"))
+				.findFirst()
+				.orElseThrow();
+			Path localHostPatch = patcher.patchLocalHostSupport(new File(REPO_DIR, clientArtifact.getName()).toPath());
+			clientArtifact.setName(localHostPatch.toFile().getName());
+			synchronized (splashScreenLock) {
+				SplashScreen.stage(.95, "RSProx", "Patched runelite-client");
+			}
+			return null;
+		};
+	}
+
+	private static Callable<Void> buildRuneLiteApiPatchTask(List<Artifact> artifacts) {
+		return () -> {
+			RuneLitePatcher patcher = new RuneLitePatcher();
+			Artifact apiArtifact = artifacts
+				.stream()
+				.filter(artifact -> artifact.getName().startsWith("runelite-api-") && artifact.getName().endsWith(".jar"))
+				.findFirst()
+				.orElseThrow();
+			Path apiPatch = patcher.patchRuneLiteApi(new File(REPO_DIR, apiArtifact.getName()).toPath());
+			apiArtifact.setName(apiPatch.toFile().getName());
+			synchronized (splashScreenLock) {
+				SplashScreen.stage(.95, "RSProx", "Patched runelite-api");
+			}
+			return null;
+		};
 	}
 
 	private static void setJvmParams(final Map<String, String> params)
