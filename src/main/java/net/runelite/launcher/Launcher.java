@@ -532,6 +532,15 @@ public class Launcher
 			.orElseThrow();
 		Path localHostPatch = patcher.patchLocalHostSupport(new File(REPO_DIR, clientArtifact.getName()).toPath());
 		clientArtifact.setName(localHostPatch.toFile().getName());
+
+		SplashScreen.stage(.99, "RSProx", "Patching runelite-api");
+		Artifact apiArtifact = artifacts
+			.stream()
+			.filter(artifact -> artifact.getName().startsWith("runelite-api-") && artifact.getName().endsWith(".jar"))
+			.findFirst()
+			.orElseThrow();
+		Path apiPatch = patcher.patchRuneLiteApi(new File(REPO_DIR, apiArtifact.getName()).toPath());
+		apiArtifact.setName(apiPatch.toFile().getName());
 	}
 
 	private static void setJvmParams(final Map<String, String> params)
