@@ -479,6 +479,7 @@ public class Launcher
 	}
 
 	private static void patchArtifacts(List<Artifact> artifacts, OptionSet options) throws IOException {
+		SplashScreen.stage(.93, "RSProx", "Patching injected-client");
 		Artifact injectedClient = artifacts
 			.stream()
 			.filter(artifact -> artifact.getName().startsWith("injected-client-") && artifact.getName().endsWith(".jar"))
@@ -496,6 +497,7 @@ public class Launcher
 		PatchResult.Success success = (PatchResult.Success) result;
 		Path output = success.getOutputPath();
 		injectedClient.setName(output.toFile().getName());
+		SplashScreen.stage(.95, "RSProx", "Informing proxy of RSA");
 		String oldModulus = success.getOldModulus();
 		long socketId = Long.parseLong(String.valueOf(options.valueOf("socket_id")));
 		File socketFile = Path.of(System.getProperty("user.home"))
@@ -518,6 +520,7 @@ public class Launcher
 				}
 			}
 		}
+		SplashScreen.stage(.97, "RSProx", "Patching runelite-client");
 		Artifact clientArtifact = artifacts
 			.stream()
 			.filter(artifact -> artifact.getName().startsWith("client-") && artifact.getName().endsWith(".jar"))
