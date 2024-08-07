@@ -34,6 +34,8 @@ dependencies {
     implementation(projects.patch)
     implementation(projects.patch.patchRunelite)
     implementation(libs.junixsocket)
+    implementation(platform(libs.log4j.bom))
+    implementation(libs.bundles.log4j)
 }
 
 private val runelitePath: Path = Path(System.getProperty("user.home"), ".rsprox", "runelite")
