@@ -137,6 +137,7 @@ public class Launcher
 		parser.accepts("port", "Patched port").withRequiredArg();
 		parser.accepts("socket_id", "Unix socket id").withRequiredArg();
 		parser.accepts("jav_config", "JAV config url").withRequiredArg();
+		parser.accepts("developer-mode");
 
 		if (OS.getOs() == OS.OSType.MacOS)
 		{
@@ -420,6 +421,9 @@ public class Launcher
 
 			final Collection<String> clientArgs = getClientArgs(settings);
 			clientArgs.add("--jav_config=" + options.valueOf("jav_config"));
+			if (options.has("developer-mode")) {
+				clientArgs.add("--developer-mode");
+			}
 			SplashScreen.stage(.90, "Starting the client", "");
 
 			var classpath = artifacts.stream()
