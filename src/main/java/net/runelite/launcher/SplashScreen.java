@@ -73,7 +73,7 @@ public class SplashScreen extends JFrame implements ActionListener
 
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setUndecorated(true);
-		try (var in = SplashScreen.class.getResourceAsStream("runelite_128.png"))
+		try (var in = SplashScreen.class.getResourceAsStream(LauncherProperties.getRuneLite128()))
 		{
 			setIconImage(ImageIO.read(in));
 		}
@@ -84,7 +84,7 @@ public class SplashScreen extends JFrame implements ActionListener
 		Font font = new Font(Font.DIALOG, Font.PLAIN, 12);
 
 		BufferedImage logo;
-		try (var in = SplashScreen.class.getResourceAsStream("runelite_splash.png"))
+		try (var in = SplashScreen.class.getResourceAsStream(LauncherProperties.getRuneLiteSplash()))
 		{
 			logo = ImageIO.read(in);
 		}

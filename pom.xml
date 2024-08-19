@@ -392,4 +392,15 @@
 			</extension>
 		</extensions>
 	</build>
+
+	<profiles>
+		<profile>
+			<id>runelite</id>
+			<properties>
+				<runelite.net>runelite.net</runelite.net>
+				<runelite.128>runelite_128.png</runelite.128>
+				<runelite.splash>runelite_splash.png</runelite.splash>
+			</properties>
+		</profile>
+	</profiles>
 </project>

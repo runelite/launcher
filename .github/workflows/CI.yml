@@ -2,6 +2,9 @@ name: CI
 
 on: [ push, pull_request ]
 
+env:
+  RUNELITE_PROFILE: ${{ vars.RUNELITE_PROFILE }}
+
 jobs:
   windows:
     runs-on: windows-2022
@@ -48,7 +51,7 @@ jobs:
         cd detours/src
         nmake
     - name: build launcher
-      run: mvn verify -B
+      run: mvn verify -B -P $env:RUNELITE_PROFILE
     - name: x64 installer
       shell: bash
       run: ./build-win64.sh
@@ -88,7 +91,7 @@ jobs:
         java-version: 11
         distribution: temurin
     - name: build
-      run: mvn verify -B
+      run: mvn verify -B -P $RUNELITE_PROFILE
     - name: linux-x64
       run: ./build-linux-x86_64.sh
     - name: linux-aarch64
@@ -128,7 +131,7 @@ jobs:
         java-version: 11
         distribution: temurin
     - name: build
-      run: mvn verify -B
+      run: mvn verify -B -P $RUNELITE_PROFILE
     - name: clone create-dmg
       run: git clone https://github.com/runelite/create-dmg -b runelite-1.0
     - name: build create-dmg

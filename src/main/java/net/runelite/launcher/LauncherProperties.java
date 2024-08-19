@@ -40,6 +40,8 @@ public class LauncherProperties
 	private static final String BOOTSTRAP = "runelite.bootstrap";
 	private static final String BOOTSTRAPSIG = "runelite.bootstrapsig";
 	private static final String MAIN = "runelite.main";
+	private static final String RUNELITE_128 = "runelite.128";
+	private static final String RUNELITE_SPLASH = "runelite.splash";
 
 	private static final Properties properties = new Properties();
 
@@ -100,5 +102,15 @@ public class LauncherProperties
 	public static String getMain()
 	{
 		return properties.getProperty(MAIN);
+	}
+
+	public static String getRuneLite128()
+	{
+		return properties.getProperty(RUNELITE_128);
+	}
+
+	public static String getRuneLiteSplash()
+	{
+		return properties.getProperty(RUNELITE_SPLASH);
 	}
 }

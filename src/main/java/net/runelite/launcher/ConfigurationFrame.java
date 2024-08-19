@@ -68,7 +68,7 @@ public class ConfigurationFrame extends JFrame
 		setTitle("RuneLite Launcher Configuration");
 
 		BufferedImage iconImage;
-		try (var in = ConfigurationFrame.class.getResourceAsStream("runelite_128.png"))
+		try (var in = ConfigurationFrame.class.getResourceAsStream(LauncherProperties.getRuneLite128()))
 		{
 			iconImage = ImageIO.read(in);
 		}
