@@ -1,0 +1,33 @@
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0
+                      http://maven.apache.org/xsd/settings-1.0.0.xsd">
+
+    <activeProfiles>
+        <activeProfile>s3</activeProfile>
+    </activeProfiles>
+
+    <profiles>
+        <profile>
+            <id>s3</id>
+            <repositories>
+                <repository>
+                    <id>cdn.rsprox.net</id>
+                    <url>s3://cdn.rsprox.net/maven</url>
+                </repository>
+            </repositories>
+        </profile>
+    </profiles>
+
+    <servers>
+        <server>
+            <id>cdn.rsprox.net</id>
+            <username>{env.AWS_S3_ACCESS_KEY}</username>
+            <password>${env.AWS_S3_SECRET_ACCESS_KEY}</password>
+            <configuration>
+                <region>eu-west-1</region>
+                <publicRepository>true</publicRepository>
+            </configuration>
+        </server>
+    </servers>
+</settings>
