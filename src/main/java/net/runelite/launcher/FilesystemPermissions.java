@@ -28,6 +28,7 @@ import com.google.common.base.Stopwatch;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import javax.swing.SwingUtilities;
@@ -182,7 +183,17 @@ class FilesystemPermissions
 			}
 			else if (numFiles++ < MAX_FILES_PER_DIRECTORY)
 			{
-				Path path = file.toPath();
+				Path path;
+				try
+				{
+					path = file.toPath();
+				}
+				catch (InvalidPathException ex)
+				{
+					log.error("file is not a valid path", ex);
+					continue;
+				}
+
 				log.debug("Checking permissions of {}", path);
 				if (!Files.isReadable(path) || !Files.isWritable(path))
 				{
