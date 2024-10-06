@@ -51,7 +51,7 @@
 	<distributionManagement>
 		<repository>
 			<id>cdn.rsprox.net</id>
-			<url>s3://cdn.rsprox.net/maven</url>
+			<url>s3://cdn.rsprox.net/runelite/launcher/</url>
 		</repository>
 	</distributionManagement>
 
@@ -190,8 +190,6 @@
 	</dependencies>
 
 	<build>
-		<finalName>RuneLite</finalName>
-
 		<resources>
 			<resource>
 				<directory>src/main/resources</directory>
@@ -248,37 +246,6 @@
 						<addMavenDescriptor>false</addMavenDescriptor>
 					</archive>
 				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-shade-plugin</artifactId>
-				<version>3.2.3</version>
-				<executions>
-					<execution>
-						<phase>package</phase>
-						<goals>
-							<goal>shade</goal>
-						</goals>
-						<configuration>
-							<minimizeJar>true</minimizeJar>
-
-							<transformers>
-								<transformer
-										implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-									<mainClass>${main.class}</mainClass>
-								</transformer>
-							</transformers>
-							<filters>
-								<filter>
-									<artifact>ch.qos.logback:*</artifact>
-									<includes>
-										<include>**</include>
-									</includes>
-								</filter>
-							</filters>
-						</configuration>
-					</execution>
-				</executions>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>

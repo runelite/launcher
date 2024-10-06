@@ -13,7 +13,7 @@
             <repositories>
                 <repository>
                     <id>cdn.rsprox.net</id>
-                    <url>s3://cdn.rsprox.net/maven</url>
+                    <url>s3://cdn.rsprox.net/runelite/launcher</url>
                 </repository>
             </repositories>
         </profile>
@@ -22,8 +22,8 @@
     <servers>
         <server>
             <id>cdn.rsprox.net</id>
-            <username>{env.AWS_S3_ACCESS_KEY}</username>
-            <password>${env.AWS_S3_SECRET_ACCESS_KEY}</password>
+            <username>${env.AWS_ACCESS_KEY_ID}</username>
+            <password>${env.AWS_SECRET_ACCESS_KEY}</password>
             <configuration>
                 <region>eu-west-1</region>
                 <publicRepository>true</publicRepository>
