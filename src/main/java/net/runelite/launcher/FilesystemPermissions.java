@@ -170,12 +170,20 @@ class FilesystemPermissions
 		// Traverse only the top level directories, and limit the number of files checked,
 		// to keep it speedy. The primary files which prevent the launcher and client from
 		// working are all here (repository2, cache, logs, profiles2).
+		File[] files = tree.listFiles();
+		if (files == null)
+		{
+			log.error("Unable to list files in directory {} (IO error, or is not a directory)", tree);
+			return false;
+		}
+
 		boolean ok = true;
 		int numFiles = 0;
-		for (File file : tree.listFiles())
+		for (File file : files)
 		{
 			if (file.isDirectory())
 			{
+				log.debug("Checking permissions of directory {}", file);
 				if (root && !checkPermissions(file, false))
 				{
 					ok = false;
