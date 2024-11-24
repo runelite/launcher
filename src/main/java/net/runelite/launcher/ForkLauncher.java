@@ -138,6 +138,7 @@ class ForkLauncher
 			throw new RuntimeException("cannot fork launch with an empty classpath");
 		}
 
+		commands.add("--runelite");
 		commands.add("--classpath");
 		var sb = new StringBuilder();
 		for (var f : classpath)
