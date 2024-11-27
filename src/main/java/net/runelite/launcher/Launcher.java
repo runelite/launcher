@@ -76,6 +76,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.IntConsumer;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -487,11 +488,12 @@ public class Launcher
 	private static final Object splashScreenLock = new Object();
 
 	private static void patchArtifacts(List<Artifact> artifacts, OptionSet options) throws ExecutionException, InterruptedException {
-		SplashScreen.stage(.95, "RSProx", "Patching RuneLite");
+		AtomicInteger count = new AtomicInteger();
+		SplashScreen.stage(.95, "RSProx", "Patching RuneLite (0/3)");
 		List<Callable<Boolean>> tasks = new ArrayList<>();
-		tasks.add(buildInjectedClientPatchTask(artifacts, options));
-		tasks.add(buildRuneLiteClientPatchTask(artifacts));
-		tasks.add(buildRuneLiteApiPatchTask(artifacts));
+		tasks.add(buildInjectedClientPatchTask(artifacts, options, count));
+		tasks.add(buildRuneLiteClientPatchTask(artifacts, count));
+		tasks.add(buildRuneLiteApiPatchTask(artifacts, count));
 		List<Future<Boolean>> futures = ForkJoinPool.commonPool().invokeAll(tasks);
 		for (Future<Boolean> future : futures) {
 			if (!future.get()) {
@@ -500,7 +502,7 @@ public class Launcher
 		}
 	}
 
-	private static Callable<Boolean> buildInjectedClientPatchTask(List<Artifact> artifacts, OptionSet options) {
+	private static Callable<Boolean> buildInjectedClientPatchTask(List<Artifact> artifacts, OptionSet options, AtomicInteger num) {
 		return () -> {
             try {
 				Artifact injectedClient = artifacts
@@ -519,7 +521,8 @@ public class Launcher
 				Preconditions.checkState(result instanceof PatchResult.Success);
 				PatchResult.Success success = (PatchResult.Success) result;
 				synchronized (splashScreenLock) {
-					SplashScreen.stage(.95, "RSProx", "Patched injected-client");
+					int count = num.incrementAndGet();
+					SplashScreen.stage(.95, "RSProx", "Patching RuneLite (" + count + "/3)");
 				}
 				Path output = success.getOutputPath();
 				injectedClient.setName(output.toFile().getName());
@@ -553,7 +556,7 @@ public class Launcher
         };
 	}
 
-	private static Callable<Boolean> buildRuneLiteClientPatchTask(List<Artifact> artifacts) {
+	private static Callable<Boolean> buildRuneLiteClientPatchTask(List<Artifact> artifacts, AtomicInteger num) {
 		return () -> {
 			try {
 				RuneLitePatcher patcher = new RuneLitePatcher();
@@ -565,7 +568,8 @@ public class Launcher
 				Path localHostPatch = patcher.patchLocalHostSupport(new File(REPO_DIR, clientArtifact.getName()).toPath());
 				clientArtifact.setName(localHostPatch.toFile().getName());
 				synchronized (splashScreenLock) {
-					SplashScreen.stage(.95, "RSProx", "Patched runelite-client");
+					int count = num.incrementAndGet();
+					SplashScreen.stage(.95, "RSProx", "Patching RuneLite (" + count + "/3)");
 				}
 			} catch (Throwable t) {
 				log.error("Unable to patch runelite-client", t);
@@ -575,7 +579,7 @@ public class Launcher
 		};
 	}
 
-	private static Callable<Boolean> buildRuneLiteApiPatchTask(List<Artifact> artifacts) {
+	private static Callable<Boolean> buildRuneLiteApiPatchTask(List<Artifact> artifacts, AtomicInteger num) {
 		return () -> {
 			try {
 				RuneLitePatcher patcher = new RuneLitePatcher();
@@ -587,7 +591,8 @@ public class Launcher
 				Path apiPatch = patcher.patchRuneLiteApi(new File(REPO_DIR, apiArtifact.getName()).toPath());
 				apiArtifact.setName(apiPatch.toFile().getName());
 				synchronized (splashScreenLock) {
-					SplashScreen.stage(.95, "RSProx", "Patched runelite-api");
+					int count = num.incrementAndGet();
+					SplashScreen.stage(.95, "RSProx", "Patching RuneLite (" + count + "/3)");
 				}
 			} catch (Throwable t) {
 				log.error("Unable to patch runelite-api", t);
