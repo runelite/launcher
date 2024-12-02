@@ -35,5 +35,7 @@
   </dict>
   <key>LSRequiresNativeExecution</key>
   <true/>
+  <key>NSDocumentClass</key>
+  <string>NSDocument</string>
 </dict>
 </plist>
