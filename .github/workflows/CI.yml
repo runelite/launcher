@@ -12,20 +12,13 @@ jobs:
     - uses: actions/checkout@v4
       with:
         submodules: 'true'
-    - name: cache
-      uses: actions/cache@v4
-      with:
-        path: |
-          ~/.m2/repository
-        key: ${{ runner.os }}-cache-${{ hashFiles('**/pom.xml') }}
-        restore-keys: |
-          ${{ runner.os }}-cache-
     - run: choco install innosetup --version 6.4.0
     - name: Set up JDK 11
       uses: actions/setup-java@v4
       with:
         java-version: 11
         distribution: temurin
+        cache: maven
     - uses: ilammy/msvc-dev-cmd@v1 # for nmake
       with:
         arch: x64
@@ -77,19 +70,12 @@ jobs:
     - uses: actions/checkout@v4
       with:
         submodules: 'true'
-    - name: cache
-      uses: actions/cache@v4
-      with:
-        path: |
-          ~/.m2/repository
-        key: ${{ runner.os }}-cache-${{ hashFiles('**/pom.xml') }}
-        restore-keys: |
-          ${{ runner.os }}-cache-
     - name: Set up JDK 11
       uses: actions/setup-java@v4
       with:
         java-version: 11
         distribution: temurin
+        cache: maven
     - name: build
       run: mvn verify -B -P $RUNELITE_PROFILE
     - name: linux-x64
@@ -117,19 +103,12 @@ jobs:
     - uses: actions/checkout@v4
       with:
         submodules: 'true'
-    - name: cache
-      uses: actions/cache@v4
-      with:
-        path: |
-          ~/.m2/repository
-        key: ${{ runner.os }}-cache-${{ hashFiles('**/pom.xml') }}
-        restore-keys: |
-          ${{ runner.os }}-cache-
     - name: Set up JDK 11
       uses: actions/setup-java@v4
       with:
         java-version: 11
         distribution: temurin
+        cache: maven
     - name: build
       run: mvn verify -B -P $RUNELITE_PROFILE
     - name: clone create-dmg
