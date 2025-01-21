@@ -35,7 +35,7 @@ repositories {
 }
 
 group = "net.runelite"
-version = "2.7.3"
+version = "2.7.4-SNAPSHOT"
 description = "RuneLite Launcher"
 
 dependencies {
