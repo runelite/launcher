@@ -11,25 +11,25 @@ ExtraDiskSpaceRequired=30000000
 ArchitecturesAllowed=arm64
 PrivilegesRequired=lowest
 
-WizardSmallImageFile=${basedir}/innosetup/runelite_small.bmp
-SetupIconFile=${basedir}/innosetup/runelite.ico
+WizardSmallImageFile=${project.projectDir}/innosetup/runelite_small.bmp
+SetupIconFile=${project.projectDir}/innosetup/runelite.ico
 UninstallDisplayIcon={app}\RuneLite.exe
 
 Compression=lzma2
 SolidCompression=yes
 
-OutputDir=${basedir}
+OutputDir=${project.projectDir}
 OutputBaseFilename=RuneLiteSetupAArch64
 
 [Tasks]
 Name: DesktopIcon; Description: "Create a &desktop icon";
 
 [Files]
-Source: "${basedir}\build\win-aarch64\RuneLite.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "${basedir}\build\win-aarch64\RuneLite.jar"; DestDir: "{app}"
-Source: "${basedir}\build\win-aarch64\launcher_aarch64.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "${basedir}\build\win-aarch64\config.json"; DestDir: "{app}"
-Source: "${basedir}\build\win-aarch64\jre\*"; DestDir: "{app}\jre"; Flags: recursesubdirs
+Source: "${project.projectDir}\build\win-aarch64\RuneLite.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "${project.projectDir}\build\win-aarch64\RuneLite.jar"; DestDir: "{app}"
+Source: "${project.projectDir}\build\win-aarch64\launcher_aarch64.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "${project.projectDir}\build\win-aarch64\config.json"; DestDir: "{app}"
+Source: "${project.projectDir}\build\win-aarch64\jre\*"; DestDir: "{app}\jre"; Flags: recursesubdirs
 
 [Icons]
 ; start menu

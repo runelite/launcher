@@ -11,25 +11,25 @@ ExtraDiskSpaceRequired=30000000
 ArchitecturesAllowed=x86 x64
 PrivilegesRequired=lowest
 
-WizardSmallImageFile=${basedir}/innosetup/runelite_small.bmp
-SetupIconFile=${basedir}/innosetup/runelite.ico
+WizardSmallImageFile=${project.projectDir}/innosetup/runelite_small.bmp
+SetupIconFile=${project.projectDir}/innosetup/runelite.ico
 UninstallDisplayIcon={app}\RuneLite.exe
 
 Compression=lzma2
 SolidCompression=yes
 
-OutputDir=${basedir}
+OutputDir=${project.projectDir}
 OutputBaseFilename=RuneLiteSetup32
 
 [Tasks]
 Name: DesktopIcon; Description: "Create a &desktop icon";
 
 [Files]
-Source: "${basedir}\build\win-x86\RuneLite.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "${basedir}\build\win-x86\RuneLite.jar"; DestDir: "{app}"
-Source: "${basedir}\build\win-x86\launcher_x86.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "${basedir}\build\win-x86\config.json"; DestDir: "{app}"
-Source: "${basedir}\build\win-x86\jre\*"; DestDir: "{app}\jre"; Flags: recursesubdirs
+Source: "${project.projectDir}\build\win-x86\RuneLite.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "${project.projectDir}\build\win-x86\RuneLite.jar"; DestDir: "{app}"
+Source: "${project.projectDir}\build\win-x86\launcher_x86.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "${project.projectDir}\build\win-x86\config.json"; DestDir: "{app}"
+Source: "${project.projectDir}\build\win-x86\jre\*"; DestDir: "{app}\jre"; Flags: recursesubdirs
 
 [Icons]
 ; start menu

@@ -18,7 +18,7 @@ jobs:
       with:
         java-version: 11
         distribution: temurin
-        cache: maven
+        cache: gradle
     - uses: ilammy/msvc-dev-cmd@v1 # for nmake
       with:
         arch: x64
@@ -44,7 +44,7 @@ jobs:
         cd detours/src
         nmake
     - name: build launcher
-      run: mvn verify -B -P $env:RUNELITE_PROFILE
+      run: ./gradlew build -P RUNELITE_BUILD=$env:RUNELITE_PROFILE --no-daemon
     - name: x64 installer
       shell: bash
       run: ./build-win64.sh
@@ -75,9 +75,9 @@ jobs:
       with:
         java-version: 11
         distribution: temurin
-        cache: maven
+        cache: gradle
     - name: build
-      run: mvn verify -B -P $RUNELITE_PROFILE
+      run: ./gradlew build -P RUNELITE_BUILD=$RUNELITE_PROFILE
     - name: linux-x64
       run: ./build-linux-x86_64.sh
     - name: linux-aarch64
@@ -85,7 +85,7 @@ jobs:
     - uses: actions/upload-artifact@v4
       with:
         name: jar
-        path: target/RuneLite.jar
+        path: build/libs/RuneLite.jar
         if-no-files-found: error
     - uses: actions/upload-artifact@v4
       with:
@@ -108,9 +108,9 @@ jobs:
       with:
         java-version: 11
         distribution: temurin
-        cache: maven
+        cache: gradle
     - name: build
-      run: mvn verify -B -P $RUNELITE_PROFILE
+      run: ./gradlew build -P RUNELITE_BUILD=$RUNELITE_PROFILE
     - name: clone create-dmg
       run: git clone https://github.com/runelite/create-dmg -b runelite-1.0
     - name: build create-dmg
