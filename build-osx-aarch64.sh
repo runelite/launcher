@@ -2,12 +2,12 @@
 
 set -e
 
-echo Launcher sha256sum
-shasum -a 256 build/libs/RuneLite.jar
-
 APPBASE="build/macos-aarch64/RuneLite.app"
 
 build() {
+    echo Launcher sha256sum
+    shasum -a 256 build/libs/RuneLite.jar
+
     pushd native
     cmake -DCMAKE_OSX_ARCHITECTURES=arm64 -B build-aarch64 .
     cmake --build build-aarch64 --config Release
