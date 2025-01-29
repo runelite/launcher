@@ -44,7 +44,7 @@ def generate_maven_command(dep: dict) -> str:
     version = dep["version"]
     classifiers = dep["classifiers"]
 
-    command = f"mvn deploy:deploy-file -Durl={REPO_URL} -DrepositoryId={REPO_ID} -Dfile={DEP_ROOT}{artifact}-{version}.jar -DgeneratePom=false -DpomFile={DEP_ROOT}{artifact}-{version}.pom"
+    command = f"./mvnw deploy:deploy-file -Durl={REPO_URL} -DrepositoryId={REPO_ID} -Dfile={DEP_ROOT}{artifact}-{version}.jar -DgeneratePom=false -DpomFile={DEP_ROOT}{artifact}-{version}.pom"
 
     if len(classifiers) > 0:
         command += f" -Dfiles={','.join([f'{DEP_ROOT}{artifact}-{version}-{classifier}.jar' for classifier in classifiers])}"

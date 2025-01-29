@@ -26,6 +26,8 @@ jobs:
       with:
         java-version: 11
         distribution: temurin
+    - name: Configure maven wrapper
+      run: mvn wrapper:wrapper -Dmaven=3.8.8
     - uses: ilammy/msvc-dev-cmd@v1 # for nmake
       with:
         arch: x64
@@ -51,7 +53,7 @@ jobs:
         cd detours/src
         nmake
     - name: build launcher
-      run: mvn verify -B -P $env:RUNELITE_PROFILE
+      run: ./mvnw verify -B -P $env:RUNELITE_PROFILE
     - name: x64 installer
       shell: bash
       run: ./build-win64.sh
@@ -90,8 +92,10 @@ jobs:
       with:
         java-version: 11
         distribution: temurin
+    - name: Configure maven wrapper
+      run: mvn wrapper:wrapper -Dmaven=3.8.8
     - name: build
-      run: mvn verify -B -P $RUNELITE_PROFILE
+      run: ./mvnw verify -B -P $RUNELITE_PROFILE
     - name: linux-x64
       run: ./build-linux-x86_64.sh
     - name: linux-aarch64
@@ -130,8 +134,10 @@ jobs:
       with:
         java-version: 11
         distribution: temurin
+    - name: Configure maven wrapper
+      run: mvn wrapper:wrapper -Dmaven=3.8.8
     - name: build
-      run: mvn verify -B -P $RUNELITE_PROFILE
+      run: ./mvnw verify -B -P $RUNELITE_PROFILE
     - name: clone create-dmg
       run: git clone https://github.com/runelite/create-dmg -b runelite-1.0
     - name: build create-dmg

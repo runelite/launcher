@@ -33,11 +33,14 @@ jobs:
         java-version: 11
         distribution: temurin
 
+    - name: Configure maven wrapper
+      run: mvn wrapper:wrapper -Dmaven=3.8.8
+
     - name: build
-      run: mvn deploy -DskipTests=true -DuniqueVersion=false --settings settings.xml
+      run: ./mvnw deploy -DskipTests=true -DuniqueVersion=false --settings settings.xml
 
     - name: Gather dependencies
-      run: mvn -Dmdep.copyPom=true dependency:copy-dependencies && mvn dependency:list -DoutputFile=./deps.txt -Dsort=true -DincludeScope=compile -DincludeScope=runtime -DincludeTypes=jar
+      run: ./mvnw -Dmdep.copyPom=true dependency:copy-dependencies && ./mvnw dependency:list -DoutputFile=./deps.txt -Dsort=true -DincludeScope=compile -DincludeScope=runtime -DincludeTypes=jar
 
     - name: Deploy dependencies
       run: python ./deploy-dependencies.py
