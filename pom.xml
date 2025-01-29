@@ -29,13 +29,13 @@
 
 	<groupId>net.runelite</groupId>
 	<artifactId>launcher</artifactId>
-	<version>3.5.3</version>
+	<version>3.9.9</version>
 	<name>RuneLite Launcher</name>
 	<description>Launcher for RuneLite client</description>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<project.build.outputTimestamp>1</project.build.outputTimestamp>
+		<project.build.outputTimestamp>1738173529</project.build.outputTimestamp>
 		<checkstyle.skip>true</checkstyle.skip>
 
 		<main.class>net.runelite.launcher.Launcher</main.class>
