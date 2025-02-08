@@ -2,6 +2,9 @@
 
 set -e
 
+echo Launcher sha256sum
+sha256sum build/libs/RuneLite.jar
+
 cmake -S liblauncher -B liblauncher/buildaarch64 -A ARM64
 cmake --build liblauncher/buildaarch64 --config Release
 
@@ -82,7 +85,7 @@ jlink \
   --add-modules jdk.zipfs
 
 cp native/build-aarch64/src/Release/RuneLite.exe build/win-aarch64/
-cp target/RuneLite.jar build/win-aarch64/
+cp build/libs/RuneLite.jar build/win-aarch64/
 cp packr/win-aarch64-config.json build/win-aarch64/config.json
 cp liblauncher/buildaarch64/Release/launcher_aarch64.dll build/win-aarch64/
 
@@ -92,4 +95,4 @@ sha256sum build/win-aarch64/RuneLite.exe
 dumpbin //HEADERS build/win-aarch64/RuneLite.exe
 
 # We use the filtered iss file
-iscc target/filtered-resources/runeliteaarch64.iss
+iscc build/filtered-resources/runeliteaarch64.iss

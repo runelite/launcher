@@ -2,6 +2,9 @@
 
 set -e
 
+echo Launcher sha256sum
+sha256sum build/libs/RuneLite.jar
+
 pushd native
 cmake -DCMAKE_TOOLCHAIN_FILE=arm64-linux-gcc.cmake -B build-aarch64 .
 cmake --build build-aarch64 --config Release
@@ -25,12 +28,12 @@ echo "$LINUX_AARCH64_CHKSUM linux_aarch64_jre.tar.gz" | sha256sum -c
 # Note: Host umask may have checked out this directory with g/o permissions blank
 chmod -R u=rwX,go=rX appimage
 # ...ditto for the build process
-chmod 644 target/RuneLite.jar
+chmod 644 build/libs/RuneLite.jar
 
 cp native/build-aarch64/src/RuneLite build/linux-aarch64/
-cp target/RuneLite.jar build/linux-aarch64/
+cp build/libs/RuneLite.jar build/linux-aarch64/
 cp packr/linux-aarch64-config.json build/linux-aarch64/config.json
-cp target/filtered-resources/runelite.desktop build/linux-aarch64/
+cp build/filtered-resources/runelite.desktop build/linux-aarch64/
 cp appimage/runelite.png build/linux-aarch64/
 
 tar zxf linux_aarch64_jre.tar.gz

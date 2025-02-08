@@ -281,7 +281,7 @@ public class Launcher
 
 			if (postInstall)
 			{
-				postInstall();
+				postInstall(settings);
 				return;
 			}
 
@@ -362,7 +362,7 @@ public class Launcher
 			}
 
 			// update packr vmargs to the launcher vmargs from bootstrap.
-			PackrConfig.updateLauncherArgs(bootstrap);
+			PackrConfig.updateLauncherArgs(bootstrap, settings);
 
 			// Determine artifacts for this OS
 			List<Artifact> artifacts = Arrays.stream(bootstrap.getArtifacts())
@@ -735,6 +735,11 @@ public class Launcher
 	{
 		var args = new ArrayList<>(settings.jvmArguments);
 
+		if (settings.ipv4)
+		{
+			args.add("-Djava.net.preferIPv4Stack=true");
+		}
+
 		var envArgs = System.getenv("RUNELITE_VMARGS");
 		if (!Strings.isNullOrEmpty(envArgs))
 		{
@@ -1063,7 +1068,7 @@ public class Launcher
 		return Runtime.version().feature() >= 16;
 	}
 
-	private static void postInstall()
+	private static void postInstall(LauncherSettings settings)
 	{
 		Bootstrap bootstrap;
 		try
@@ -1076,7 +1081,7 @@ public class Launcher
 			return;
 		}
 
-		PackrConfig.updateLauncherArgs(bootstrap);
+		PackrConfig.updateLauncherArgs(bootstrap, settings);
 
 		log.info("Performed postinstall steps");
 	}

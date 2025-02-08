@@ -2,6 +2,9 @@
 
 set -e
 
+echo Launcher sha256sum
+sha256sum build/libs/RuneLite.jar
+
 pushd native
 cmake -B build-x64 .
 cmake --build build-x64 --config Release
@@ -25,12 +28,12 @@ echo "$LINUX_AMD64_CHKSUM linux64_jre.tar.gz" | sha256sum -c
 # Note: Host umask may have checked out this directory with g/o permissions blank
 chmod -R u=rwX,go=rX appimage
 # ...ditto for the build process
-chmod 644 target/RuneLite.jar
+chmod 644 build/libs/RuneLite.jar
 
 cp native/build-x64/src/RuneLite build/linux-x64/
-cp target/RuneLite.jar build/linux-x64/
+cp build/libs/RuneLite.jar build/linux-x64/
 cp packr/linux-x64-config.json build/linux-x64/config.json
-cp target/filtered-resources/runelite.desktop build/linux-x64/
+cp build/filtered-resources/runelite.desktop build/linux-x64/
 cp appimage/runelite.png build/linux-x64/
 
 tar zxf linux64_jre.tar.gz
