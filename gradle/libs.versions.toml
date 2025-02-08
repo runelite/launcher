@@ -32,6 +32,14 @@ net-sf-jopt-simple-jopt-simple = "5.0.1"
 org-projectlombok-lombok = "1.18.20"
 org-slf4j-slf4j-api = "1.7.25"
 
+# rsprox
+log4j = "2.10.0"
+junixsocket = "2.10.0"
+rsprox = "1.0.3"
+aws-sdk-kotlin = "1.3.13"
+jaxb-api = "2.3.1"
+kotlin = "1.9.23"
+
 [libraries]
 ch-qos-logback-logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "ch-qos-logback-logback-classic" }
 com-google-code-findbugs-jsr305 = { module = "com.google.code.findbugs:jsr305", version.ref = "com-google-code-findbugs-jsr305" }
@@ -42,3 +50,26 @@ net-runelite-archive-patcher-archive-patcher-applier = { module = "net.runelite.
 net-sf-jopt-simple-jopt-simple = { module = "net.sf.jopt-simple:jopt-simple", version.ref = "net-sf-jopt-simple-jopt-simple" }
 org-projectlombok-lombok = { module = "org.projectlombok:lombok", version.ref = "org-projectlombok-lombok" }
 org-slf4j-slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "org-slf4j-slf4j-api" }
+
+# rsprox
+log4j-core = { module = "org.apache.logging.log4j:log4j-core", version.ref = "log4j" }
+log4j-api = { module = "org.apache.logging.log4j:log4j-api", version.ref = "log4j" }
+log4j-slf4j-impl = { module = "org.apache.logging.log4j:log4j-slf4j-impl", version.ref = "log4j" }
+junixsocket-core = { module = "com.kohlschutter.junixsocket:junixsocket-core", version.ref = "junixsocket" }
+rsprox-patch = { module = "net.rsprox:patch", version.ref = "rsprox" }
+rsprox-patch-runelite = { module = "net.rsprox:patch-runelite", version.ref = "rsprox" }
+aws-sdk-kotlin-s3 = { module = "aws.sdk.kotlin:s3", version.ref = "aws-sdk-kotlin" }
+jaxb-api = { module = "javax.xml.bind:jaxb-api", version.ref = "jaxb-api" }
+
+[plugins]
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+
+[bundles]
+rsprox = [
+    "log4j-core",
+    "log4j-api",
+    "log4j-slf4j-impl",
+    "junixsocket-core",
+    "rsprox-patch",
+    "rsprox-patch-runelite"
+]

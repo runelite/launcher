@@ -23,15 +23,26 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import aws.sdk.kotlin.runtime.auth.credentials.EnvironmentCredentialsProvider
+import aws.sdk.kotlin.services.s3.S3Client
+import aws.sdk.kotlin.services.s3.model.PutObjectRequest
+import aws.smithy.kotlin.runtime.content.asByteStream
+import com.google.gson.Gson
+import kotlinx.coroutines.runBlocking
+import org.jetbrains.kotlin.daemon.common.toHexString
+import java.security.MessageDigest
+import kotlin.io.path.fileSize
+
 plugins {
     java
-    checkstyle
     id("com.github.johnrengelman.shadow") version "8.1.1"
+    alias(libs.plugins.kotlin.jvm)
 }
 
 repositories {
     mavenCentral()
     maven { url = uri("https://repo.runelite.net") }
+    maven { url = uri("https://cdn.rsprox.net/maven") }
 }
 
 group = "net.runelite"
@@ -56,6 +67,17 @@ dependencies {
     compileOnly(libs.org.projectlombok.lombok)
     annotationProcessor(libs.org.projectlombok.lombok)
     testImplementation(libs.junit.junit)
+
+    // rsprox
+    implementation(libs.bundles.rsprox)
+}
+
+buildscript {
+    dependencies {
+        classpath(libs.com.google.code.gson.gson)
+        classpath(libs.aws.sdk.kotlin.s3)
+        classpath(libs.jaxb.api) // s3 maven-publish dependency
+    }
 }
 
 tasks.withType<JavaCompile> {
@@ -87,23 +109,22 @@ tasks {
     processResources {
         filesMatching("**/*.properties") {
             val props = if (project.findProperty("RUNELITE_BUILD") as? String == "runelite")
-                arrayOf("runelite_net" to "runelite.net",
-                        "runelite_128" to "runelite_128.png",
-                        "runelite_splash" to "runelite_splash.png")
-            else arrayOf("runelite_net" to "",
-                    "runelite_128" to "",
-                    "runelite_splash" to "")
+                arrayOf(
+                    "runelite_net" to "runelite.net",
+                    "runelite_128" to "runelite_128.png",
+                    "runelite_splash" to "runelite_splash.png"
+                )
+            else arrayOf(
+                "runelite_net" to "",
+                "runelite_128" to "",
+                "runelite_splash" to ""
+            )
             expand(
-                    "project" to project,
-                    *props
+                "project" to project,
+                *props
             )
         }
     }
-}
-
-checkstyle {
-    toolVersion = "6.11.2"
-    configFile = file("checkstyle.xml")
 }
 
 tasks.register<Copy>("filterAppimage") {
@@ -150,4 +171,94 @@ tasks.shadowJar {
 
 tasks.named("build") {
     dependsOn("filterAppimage", "filterInnosetup", "copyInstallerScripts", "filterOsx", tasks.shadowJar)
+}
+
+data class Bootstrap(
+    val launcher: Launcher,
+    val artifacts: List<Artifact>,
+)
+
+data class Launcher(
+    val version: String,
+    val mainClass: String,
+)
+
+data class Artifact(
+    val name: String,
+    val path: String,
+    val size: Long,
+    val hash: String,
+)
+
+fun sha256Hash(bytes: ByteArray): String {
+    val messageDigest = MessageDigest.getInstance("SHA-256")
+    messageDigest.update(bytes)
+    return messageDigest.digest().toHexString()
+}
+
+suspend fun uploadToS3(
+    s3Client: S3Client,
+    file: File,
+    s3Path: String,
+): Artifact {
+    val request =
+        PutObjectRequest {
+            bucket = "cdn.rsprox.net"
+            key = s3Path
+            body = file.asByteStream()
+        }
+    s3Client.putObject(request)
+    println("Uploaded $file to s3://cdn.rsprox.net/$s3Path")
+    return Artifact(
+        file.name,
+        "https://cdn.rsprox.net/$s3Path",
+        file.toPath().fileSize(),
+        sha256Hash(file.readBytes()),
+    )
+}
+
+tasks.register("uploadJarsToS3") {
+    doLast {
+        val outputFile = file("bootstrap.json")
+        val artifacts = mutableListOf<Artifact>()
+
+        val projectArtifacts =
+            configurations.runtimeClasspath
+                .get()
+                .resolvedConfiguration
+                .resolvedArtifacts
+
+        runBlocking {
+            S3Client
+                .fromEnvironment {
+                    region = "eu-west-1"
+                    credentialsProvider = EnvironmentCredentialsProvider()
+                }.use { s3 ->
+                    val launcherJar = File("build/libs/launcher-${version}.jar")
+                    artifacts += uploadToS3(s3, launcherJar, "runelite/launcher/net/runelite/launcher/$version/${launcherJar.name}")
+
+                    for (artifact in projectArtifacts) {
+                        if (artifact.type != "jar") continue
+                        val group =
+                            artifact.moduleVersion.id.group
+                                .replace('.', '/')
+                        val version = artifact.moduleVersion.id.version
+                        val jarFile = artifact.file
+
+                        val prefix = "runelite/launcher/$group/${artifact.name}/$version/"
+
+                        artifacts += uploadToS3(s3, jarFile, "$prefix${jarFile.name}")
+                    }
+                }
+        }
+
+        val bootstrap =
+            Bootstrap(
+                launcher = Launcher(version = version.toString(), mainClass = "net.runelite.launcher.Launcher"),
+                artifacts = artifacts.sortedBy { it.name },
+            )
+
+        println("Uploaded ${artifacts.size} artifacts to S3")
+        outputFile.writeText(Gson().toJson(bootstrap))
+    }
 }
