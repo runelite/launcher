@@ -3,11 +3,11 @@
 <plist version="1.0">
 <dict>
   <key>CFBundleExecutable</key>
-  <string>${project.build.finalName}</string>
+  <string>${project.finalName}</string>
   <key>CFBundleIdentifier</key>
-  <string>${project.groupId}.${project.artifactId}</string>
+  <string>${project.group}.${project.name}</string>
   <key>CFBundleName</key>
-  <string>${project.build.finalName}</string>
+  <string>${project.finalName}</string>
   <key>CFBundleIconFile</key>
   <string>icons.icns</string>
   <key>CFBundleShortVersionString</key>

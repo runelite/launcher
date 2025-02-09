@@ -26,6 +26,7 @@ package net.runelite.launcher;
 
 import com.google.common.base.MoreObjects;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonParseException;
 import java.io.File;
 import java.io.FileInputStream;
@@ -65,6 +66,7 @@ class LauncherSettings
 	boolean skipTlsVerification;
 	boolean noupdates;
 	boolean safemode;
+	boolean ipv4;
 	@Nullable
 	Double scale;
 	List<String> clientArguments = Collections.emptyList();
@@ -140,6 +142,7 @@ class LauncherSettings
 				" skip tls verification: {}" + System.lineSeparator() +
 				" noupdates: {}" + System.lineSeparator() +
 				" safe mode: {}" + System.lineSeparator() +
+				" ipv4: {}" + System.lineSeparator() +
 				" scale: {}" + System.lineSeparator() +
 				" client arguments: {}" + System.lineSeparator() +
 				" jvm arguments: {}" + System.lineSeparator() +
@@ -151,6 +154,7 @@ class LauncherSettings
 				skipTlsVerification,
 				noupdates,
 				safemode,
+				ipv4,
 				scale == null ? "system" : scale,
 				clientArguments.isEmpty() ? "none" : clientArguments,
 				jvmArguments.isEmpty() ? "none" : jvmArguments,
@@ -189,7 +193,9 @@ class LauncherSettings
 		try
 		{
 			File tmpFile = File.createTempFile(LAUNCHER_SETTINGS, "json");
-			var gson = new Gson();
+			Gson gson = new GsonBuilder()
+				.setPrettyPrinting()
+				.create();
 
 			try (FileOutputStream fout = new FileOutputStream(tmpFile);
 				FileChannel channel = fout.getChannel();

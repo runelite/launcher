@@ -32,6 +32,8 @@ import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import javax.annotation.Nullable;
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
@@ -57,6 +59,7 @@ public class ConfigurationFrame extends JFrame
 	private final JCheckBox chkboxSkipTlsVerification;
 	private final JCheckBox chkboxNoUpdates;
 	private final JCheckBox chkboxSafemode;
+	private final JCheckBox chkboxIpv4;
 	private final JTextField txtScale;
 	private final JTextArea txtClientArguments;
 	private final JTextArea txtJvmArguments;
@@ -117,6 +120,12 @@ public class ConfigurationFrame extends JFrame
 			"Safe mode",
 			"Launches the client in safe mode",
 			Boolean.TRUE.equals(settings.safemode)
+		));
+
+		topPanel.add(chkboxIpv4 = checkbox(
+			"IPv4",
+			"Prefer IPv4 over IPv6",
+			Boolean.TRUE.equals(settings.ipv4)
 		));
 
 		pane.add(topPanel);
@@ -198,6 +207,7 @@ public class ConfigurationFrame extends JFrame
 		settings.skipTlsVerification = chkboxSkipTlsVerification.isSelected();
 		settings.noupdates = chkboxNoUpdates.isSelected();
 		settings.safemode = chkboxSafemode.isSelected();
+		settings.ipv4 = chkboxIpv4.isSelected();
 
 		var t = txtScale.getText();
 		settings.scale = null;
@@ -226,6 +236,20 @@ public class ConfigurationFrame extends JFrame
 		settings.launchMode = (LaunchMode) comboLaunchMode.getSelectedItem();
 
 		LauncherSettings.saveSettings(settings);
+
+		// IPv4 change requires patching packr config
+		PackrConfig.patch(config ->
+		{
+			List<String> vmArgs = (List) config.computeIfAbsent("vmArgs", k -> new ArrayList<>());
+			if (settings.ipv4)
+			{
+				vmArgs.add("-Djava.net.preferIPv4Stack=true");
+			}
+			else
+			{
+				vmArgs.remove("-Djava.net.preferIPv4Stack=true");
+			}
+		});
 
 		log.info("Updated launcher configuration:" + System.lineSeparator() + "{}", settings.configurationStr());
 

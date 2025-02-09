@@ -12,22 +12,13 @@ jobs:
     - uses: actions/checkout@v4
       with:
         submodules: 'true'
-    - name: cache
-      uses: actions/cache@v4
-      with:
-        path: |
-          ~/.m2/repository
-        key: ${{ runner.os }}-cache-${{ hashFiles('**/pom.xml') }}
-        restore-keys: |
-          ${{ runner.os }}-cache-
-    - run: choco install innosetup --version 6.3.3
+    - run: choco install innosetup --version 6.4.0
     - name: Set up JDK 11
       uses: actions/setup-java@v4
       with:
         java-version: 11
         distribution: temurin
-    - name: Configure maven wrapper
-      run: mvn wrapper:wrapper -Dmaven=3.8.8
+        cache: gradle
     - uses: ilammy/msvc-dev-cmd@v1 # for nmake
       with:
         arch: x64
@@ -53,7 +44,7 @@ jobs:
         cd detours/src
         nmake
     - name: build launcher
-      run: ./mvnw verify -B -P $env:RUNELITE_PROFILE
+      run: ./gradlew build -P RUNELITE_BUILD=$env:RUNELITE_PROFILE --no-daemon
     - name: x64 installer
       shell: bash
       run: ./build-win64.sh
@@ -79,23 +70,14 @@ jobs:
     - uses: actions/checkout@v4
       with:
         submodules: 'true'
-    - name: cache
-      uses: actions/cache@v4
-      with:
-        path: |
-          ~/.m2/repository
-        key: ${{ runner.os }}-cache-${{ hashFiles('**/pom.xml') }}
-        restore-keys: |
-          ${{ runner.os }}-cache-
     - name: Set up JDK 11
       uses: actions/setup-java@v4
       with:
         java-version: 11
         distribution: temurin
-    - name: Configure maven wrapper
-      run: mvn wrapper:wrapper -Dmaven=3.8.8
+        cache: gradle
     - name: build
-      run: ./mvnw verify -B -P $RUNELITE_PROFILE
+      run: ./gradlew build -P RUNELITE_BUILD=$RUNELITE_PROFILE
     - name: linux-x64
       run: ./build-linux-x86_64.sh
     - name: linux-aarch64
@@ -103,7 +85,7 @@ jobs:
     - uses: actions/upload-artifact@v4
       with:
         name: jar
-        path: target/RuneLite.jar
+        path: build/libs/RuneLite.jar
         if-no-files-found: error
     - uses: actions/upload-artifact@v4
       with:
@@ -113,7 +95,7 @@ jobs:
           RuneLite-aarch64.AppImage
         if-no-files-found: error
   macos:
-    runs-on: macos-12
+    runs-on: macos-13
     steps:
     - uses: actions/setup-python@v5
       with:
@@ -121,23 +103,14 @@ jobs:
     - uses: actions/checkout@v4
       with:
         submodules: 'true'
-    - name: cache
-      uses: actions/cache@v4
-      with:
-        path: |
-          ~/.m2/repository
-        key: ${{ runner.os }}-cache-${{ hashFiles('**/pom.xml') }}
-        restore-keys: |
-          ${{ runner.os }}-cache-
     - name: Set up JDK 11
       uses: actions/setup-java@v4
       with:
         java-version: 11
         distribution: temurin
-    - name: Configure maven wrapper
-      run: mvn wrapper:wrapper -Dmaven=3.8.8
+        cache: gradle
     - name: build
-      run: ./mvnw verify -B -P $RUNELITE_PROFILE
+      run: ./gradlew build -P RUNELITE_BUILD=$RUNELITE_PROFILE
     - name: clone create-dmg
       run: git clone https://github.com/runelite/create-dmg -b runelite-1.0
     - name: build create-dmg

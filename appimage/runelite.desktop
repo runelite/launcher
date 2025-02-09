@@ -1,7 +1,7 @@
 [Desktop Entry]
-Name=${project.build.finalName}
-Comment=${project.description}
-Exec=${project.build.finalName}
+Name=${project.finalName}
+Comment=${project.launcherDescription}
+Exec=${project.finalName}
 Icon=runelite
 Terminal=false
 Type=Application

@@ -35,6 +35,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.net.ConnectException;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.security.GeneralSecurityException;
@@ -224,8 +225,16 @@ public class FatalErrorDialog extends JDialog
 				message += " Cannot assign requested address. This error is most commonly caused by \"split tunneling\" support in VPN software." +
 					" If you are using a VPN, try turning \"split tunneling\" off.";
 			}
+			// connect() returning SOCKET_ERROR:
 			// WSAEACCES error formatted by NET_ThrowNew()
 			else if (err.getMessage().equals("Permission denied: connect"))
+			{
+				message += " Your internet access is blocked. Firewall or antivirus software may have blocked the connection.";
+			}
+			// finishConnect() waiting for connect() to finish:
+			// Java_sun_nio_ch_SocketChannelImpl_checkConnect throws the error, either from select() returning WSAEACCES
+			// or SO_ERROR being WSAEACCES. NET_ThrowNew adds on the "no further information".
+			else if (err instanceof ConnectException && err.getMessage().equals("Permission denied: no further information"))
 			{
 				message += " Your internet access is blocked. Firewall or antivirus software may have blocked the connection.";
 			}

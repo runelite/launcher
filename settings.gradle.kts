@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Adam <Adam@sigterm.info>
+ * Copyright (c) 2025, Adam <Adam@sigterm.info>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -22,25 +22,5 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package net.runelite.launcher;
 
-import sun.security.provider.certpath.AdjacencyList;
-import sun.security.provider.certpath.SunCertPathBuilderException;
-
-class CertPathExtractor
-{
-	static String extract(Throwable ex)
-	{
-		// IOException -> SSLHandshakeException -> ValidatorException -> SunCertPathBuilderException
-		try
-		{
-			SunCertPathBuilderException pathBuilderEx = (SunCertPathBuilderException) ex.getCause().getCause().getCause();
-			AdjacencyList adjList = pathBuilderEx.getAdjacencyList();
-			return adjList.toString();
-		}
-		catch (Throwable ex_)
-		{
-		}
-		return null;
-	}
-}
+rootProject.name = "launcher"
