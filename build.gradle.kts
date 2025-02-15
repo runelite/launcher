@@ -30,6 +30,7 @@ import aws.smithy.kotlin.runtime.content.asByteStream
 import com.google.gson.Gson
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.kotlin.daemon.common.toHexString
+import org.jetbrains.kotlin.gradle.plugin.KotlinPluginWrapper
 import java.security.MessageDigest
 import kotlin.io.path.fileSize
 
@@ -72,6 +73,15 @@ dependencies {
     implementation(libs.bundles.rsprox)
 }
 
+allprojects {
+    plugins.withType<KotlinPluginWrapper> {
+        kotlin {
+            jvmToolchain(11)
+            explicitApi()
+        }
+    }
+}
+
 buildscript {
     dependencies {
         classpath(libs.com.google.code.gson.gson)
@@ -108,20 +118,23 @@ tasks.getByName<JavaCompile>("compileJava8Java") {
 tasks {
     processResources {
         filesMatching("**/*.properties") {
-            val props = if (project.findProperty("RUNELITE_BUILD") as? String == "runelite")
-                arrayOf(
-                    "runelite_net" to "runelite.net",
-                    "runelite_128" to "runelite_128.png",
-                    "runelite_splash" to "runelite_splash.png"
-                )
-            else arrayOf(
-                "runelite_net" to "",
-                "runelite_128" to "",
-                "runelite_splash" to ""
-            )
+            val props =
+                if (project.findProperty("RUNELITE_BUILD") as? String == "runelite") {
+                    arrayOf(
+                        "runelite_net" to "runelite.net",
+                        "runelite_128" to "runelite_128.png",
+                        "runelite_splash" to "runelite_splash.png",
+                    )
+                } else {
+                    arrayOf(
+                        "runelite_net" to "",
+                        "runelite_128" to "",
+                        "runelite_splash" to "",
+                    )
+                }
             expand(
                 "project" to project,
-                *props
+                *props,
             )
         }
     }
@@ -234,7 +247,7 @@ tasks.register("uploadJarsToS3") {
                     region = "eu-west-1"
                     credentialsProvider = EnvironmentCredentialsProvider()
                 }.use { s3 ->
-                    val launcherJar = File("build/libs/launcher-${version}.jar")
+                    val launcherJar = File("build/libs/launcher-$version.jar")
                     artifacts += uploadToS3(s3, launcherJar, "runelite/launcher/net/runelite/launcher/$version/${launcherJar.name}")
 
                     for (artifact in projectArtifacts) {

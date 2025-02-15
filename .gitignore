@@ -3,3 +3,4 @@ build
 .idea
 RuneLiteSetup*.exe
 build/
+target/
