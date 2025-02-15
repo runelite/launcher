@@ -140,8 +140,8 @@ public class Launcher
 		parser.accepts("port", "Patched port").withRequiredArg();
 		parser.accepts("socket_id", "Unix socket id").withRequiredArg();
 		parser.accepts("jav_config", "JAV config url").withRequiredArg();
-		parser.accepts("bootstrap_url", "Bootstrap URL");
-		parser.accepts("bootstrap_sig_url", "Bootstrap signature URL");
+		parser.accepts("bootstrap_url", "Bootstrap URL").withRequiredArg();
+		parser.accepts("bootstrap_sig_url", "Bootstrap signature URL").withRequiredArg();
 		parser.accepts("developer-mode");
 
 		if (OS.getOs() == OS.OSType.MacOS)
@@ -335,15 +335,9 @@ public class Launcher
 			Bootstrap bootstrap;
 			try
 			{
-				final String bootstrapUrl = options.has("bootstrap_url")
-						? String.valueOf(options.valueOf("bootstrap_url"))
-						: LauncherProperties.getBootstrap();
-				final String bootstrapSignatureUrl = options.has("bootstrap_sig_url")
-						? String.valueOf(options.valueOf("bootstrap_sig_url"))
-						: LauncherProperties.getBootstrapSig();
 				bootstrap = getBootstrap(
-						bootstrapUrl,
-						bootstrapSignatureUrl
+						String.valueOf(options.valueOf("bootstrap_url")),
+						String.valueOf(options.valueOf("bootstrap_sig_url"))
 				);
 			}
 			catch (IOException | VerificationException | CertificateException | SignatureException | InvalidKeyException | NoSuchAlgorithmException ex)
