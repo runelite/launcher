@@ -140,6 +140,8 @@ public class Launcher
 		parser.accepts("port", "Patched port").withRequiredArg();
 		parser.accepts("socket_id", "Unix socket id").withRequiredArg();
 		parser.accepts("jav_config", "JAV config url").withRequiredArg();
+		parser.accepts("bootstrap_url", "Bootstrap URL");
+		parser.accepts("bootstrap_sig_url", "Bootstrap signature URL");
 		parser.accepts("developer-mode");
 
 		if (OS.getOs() == OS.OSType.MacOS)
@@ -333,7 +335,16 @@ public class Launcher
 			Bootstrap bootstrap;
 			try
 			{
-				bootstrap = getBootstrap();
+				final String bootstrapUrl = options.has("bootstrap_url")
+						? String.valueOf(options.valueOf("bootstrap_url"))
+						: LauncherProperties.getBootstrap();
+				final String bootstrapSignatureUrl = options.has("bootstrap_sig_url")
+						? String.valueOf(options.valueOf("bootstrap_sig_url"))
+						: LauncherProperties.getBootstrapSig();
+				bootstrap = getBootstrap(
+						bootstrapUrl,
+						bootstrapSignatureUrl
+				);
 			}
 			catch (IOException | VerificationException | CertificateException | SignatureException | InvalidKeyException | NoSuchAlgorithmException ex)
 			{
@@ -610,16 +621,19 @@ public class Launcher
 		}
 	}
 
-	private static Bootstrap getBootstrap() throws IOException, CertificateException, NoSuchAlgorithmException, InvalidKeyException, SignatureException, VerificationException
+	private static Bootstrap getBootstrap(
+			String boostrap,
+			String bootstrapSig
+	) throws IOException, CertificateException, NoSuchAlgorithmException, InvalidKeyException, SignatureException, VerificationException
 	{
 		HttpRequest bootstrapReq = HttpRequest.newBuilder()
-			.uri(URI.create(LauncherProperties.getBootstrap()))
+			.uri(URI.create(boostrap))
 			.header("User-Agent", USER_AGENT)
 			.GET()
 			.build();
 
 		HttpRequest bootstrapSigReq = HttpRequest.newBuilder()
-			.uri(URI.create(LauncherProperties.getBootstrapSig()))
+			.uri(URI.create(bootstrapSig))
 			.header("User-Agent", USER_AGENT)
 			.GET()
 			.build();
@@ -1073,7 +1087,7 @@ public class Launcher
 		Bootstrap bootstrap;
 		try
 		{
-			bootstrap = getBootstrap();
+			bootstrap = getBootstrap(LauncherProperties.getBootstrap(), LauncherProperties.getBootstrapSig());
 		}
 		catch (IOException | VerificationException | CertificateException | SignatureException | InvalidKeyException | NoSuchAlgorithmException ex)
 		{
