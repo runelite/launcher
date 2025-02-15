@@ -622,12 +622,14 @@ public class Launcher
 	}
 
 	private static Bootstrap getBootstrap(
-			String boostrap,
+			String bootstrap,
 			String bootstrapSig
 	) throws IOException, CertificateException, NoSuchAlgorithmException, InvalidKeyException, SignatureException, VerificationException
 	{
+		log.info("Loading bootstrap from URI: {}", bootstrap);
+		log.info("Loading bootstrap signature from URI: {}", bootstrapSig);
 		HttpRequest bootstrapReq = HttpRequest.newBuilder()
-			.uri(URI.create(boostrap))
+			.uri(URI.create(bootstrap))
 			.header("User-Agent", USER_AGENT)
 			.GET()
 			.build();
