@@ -63,10 +63,10 @@ jobs:
           RuneLiteSetupAArch64.exe
         if-no-files-found: error
   linux:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
     - run: sudo apt update
-    - run: sudo apt install -y gcc-9-aarch64-linux-gnu g++-9-aarch64-linux-gnu
+    - run: sudo apt install -y gcc-9-aarch64-linux-gnu g++-9-aarch64-linux-gnu fuse
     - uses: actions/checkout@v4
       with:
         submodules: 'true'
