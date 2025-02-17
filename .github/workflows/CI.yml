@@ -66,7 +66,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
     - run: sudo apt update
-    - run: sudo apt install -y gcc-9-aarch64-linux-gnu g++-9-aarch64-linux-gnu fuse
+    - run: sudo apt install -y gcc-9-aarch64-linux-gnu g++-9-aarch64-linux-gnu
     - uses: actions/checkout@v4
       with:
         submodules: 'true'
@@ -78,10 +78,8 @@ jobs:
         cache: gradle
     - name: build
       run: ./gradlew build -P RUNELITE_BUILD=$RUNELITE_PROFILE
-    - name: linux-x64
-      run: ./build-linux-x86_64.sh
-    - name: linux-aarch64
-      run: ./build-linux-aarch64.sh
+    - run: ./build-linux-x86_64.sh
+    - run: ./build-linux-aarch64.sh
     - uses: actions/upload-artifact@v4
       with:
         name: jar
@@ -91,6 +89,9 @@ jobs:
       with:
         name: linux
         path: |
+          appimagetool-x86_64.AppImage
+          runtime-x86_64
+          runtime-aarch64
           RuneLite.AppImage
           RuneLite-aarch64.AppImage
         if-no-files-found: error

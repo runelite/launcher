@@ -10,8 +10,6 @@ cmake -B build-x64 .
 cmake --build build-x64 --config Release
 popd
 
-APPIMAGE_VERSION="13"
-
 umask 022
 
 source .jdk-versions.sh
@@ -50,14 +48,14 @@ ln -s RuneLite AppRun
 chmod 755 RuneLite
 popd
 
-if ! [ -f appimagetool-x86_64.AppImage ] ; then
-    curl -Lo appimagetool-x86_64.AppImage \
-        https://github.com/AppImage/AppImageKit/releases/download/$APPIMAGE_VERSION/appimagetool-x86_64.AppImage
-    chmod +x appimagetool-x86_64.AppImage
-fi
+curl -z appimagetool-x86_64.AppImage -o appimagetool-x86_64.AppImage -L https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
+curl -z runtime-x86_64 -o runtime-x86_64 -L https://github.com/AppImage/type2-runtime/releases/download/continuous/runtime-x86_64
 
-echo "df3baf5ca5facbecfc2f3fa6713c29ab9cefa8fd8c1eac5d283b79cab33e4acb  appimagetool-x86_64.AppImage" | sha256sum -c
+chmod +x appimagetool-x86_64.AppImage
 
 ./appimagetool-x86_64.AppImage \
+	--runtime-file runtime-x86_64 \
 	build/linux-x64/ \
 	RuneLite.AppImage
+
+./RuneLite.AppImage --help

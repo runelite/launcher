@@ -10,8 +10,6 @@ cmake -DCMAKE_TOOLCHAIN_FILE=arm64-linux-gcc.cmake -B build-aarch64 .
 cmake --build build-aarch64 --config Release
 popd
 
-APPIMAGE_VERSION="13"
-
 umask 022
 
 source .jdk-versions.sh
@@ -50,22 +48,12 @@ ln -s RuneLite AppRun
 chmod 755 RuneLite
 popd
 
-if ! [ -f appimagetool-x86_64.AppImage ] ; then
-    curl -Lo appimagetool-x86_64.AppImage \
-        https://github.com/AppImage/AppImageKit/releases/download/$APPIMAGE_VERSION/appimagetool-x86_64.AppImage
-    chmod +x appimagetool-x86_64.AppImage
-fi
+curl -z appimagetool-x86_64.AppImage -o appimagetool-x86_64.AppImage -L https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
+curl -z runtime-aarch64 -o runtime-aarch64 -L https://github.com/AppImage/type2-runtime/releases/download/continuous/runtime-aarch64
 
-echo "df3baf5ca5facbecfc2f3fa6713c29ab9cefa8fd8c1eac5d283b79cab33e4acb  appimagetool-x86_64.AppImage" | sha256sum -c
+chmod +x appimagetool-x86_64.AppImage
 
-if ! [ -f runtime-aarch64 ] ; then
-    curl -Lo runtime-aarch64 \
-	    https://github.com/AppImage/AppImageKit/releases/download/$APPIMAGE_VERSION/runtime-aarch64
-fi
-
-echo "d2624ce8cc2c64ef76ba986166ad67f07110cdbf85112ace4f91611bc634c96a  runtime-aarch64" | sha256sum -c
-
-ARCH=arm_aarch64 ./appimagetool-x86_64.AppImage \
-	--runtime-file runtime-aarch64  \
+./appimagetool-x86_64.AppImage \
+	--runtime-file runtime-aarch64 \
 	build/linux-aarch64/ \
 	RuneLite-aarch64.AppImage
