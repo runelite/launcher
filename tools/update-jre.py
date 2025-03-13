@@ -2,8 +2,8 @@ import urllib.parse
 import urllib.request
 import json
 
-ver11 = '11.0.25+9'
-ver17 = '17.0.13+11'
+ver11 = '11.0.26+4'
+ver17 = '17.0.14+7'
 
 def fetch_jre(prefix, version_range, arch, os):
     url = 'https://api.adoptium.net/v3/assets/version/' + urllib.parse.quote(version_range) + '?'
