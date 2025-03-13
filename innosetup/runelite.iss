@@ -53,6 +53,13 @@ Type: filesandordirs; Name: "{%USERPROFILE}\.runelite\repository2"
 ; includes install_id, settings, etc
 Type: filesandordirs; Name: "{app}"
 
+[Registry]
+Root: HKCU; Subkey: "Software\Classes\runelite-jav"; ValueType: string; ValueName: ""; ValueData: "URL:runelite-jav Protocol"; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Classes\runelite-jav"; ValueType: string; ValueName: "URL Protocol"; ValueData: ""; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Classes\runelite-jav\shell"; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Classes\runelite-jav\shell\open"; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Classes\runelite-jav\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\RuneLite.exe"" ""%1"""; Flags: uninsdeletekey
+
 [Code]
 #include "upgrade.pas"
 #include "usernamecheck.pas"
