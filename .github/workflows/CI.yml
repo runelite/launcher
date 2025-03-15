@@ -19,7 +19,7 @@ jobs:
         java-version: 11
         distribution: temurin
         cache: gradle
-    - uses: ilammy/msvc-dev-cmd@v1 # for nmake
+    - uses: ilammy/msvc-dev-cmd@0b201ec74fa43914dc39ae48a89fd1d8cb592756 # for nmake
       with:
         arch: x64
     - name: build detours x64
@@ -27,7 +27,7 @@ jobs:
       run: |
         cd detours/src
         nmake
-    - uses: ilammy/msvc-dev-cmd@v1 # for nmake
+    - uses: ilammy/msvc-dev-cmd@0b201ec74fa43914dc39ae48a89fd1d8cb592756 # for nmake
       with:
         arch: x86
     - name: build detours x86
@@ -35,7 +35,7 @@ jobs:
       run: |
         cd detours/src
         nmake
-    - uses: ilammy/msvc-dev-cmd@v1 # for nmake
+    - uses: ilammy/msvc-dev-cmd@0b201ec74fa43914dc39ae48a89fd1d8cb592756 # for nmake
       with:
         arch: amd64_arm64
     - name: build detours aarch64
