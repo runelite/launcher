@@ -199,6 +199,7 @@ public class RuneLitePatcher {
                     writeFile("VarClientStr.class", parentDir)
                     writeFile("ComponentID.class", parentDir, "widgets")
                     writeFile("InterfaceID.class", parentDir, "widgets")
+                    writeGameVals(parentDir)
 
                     val files = parentDir.walkTopDown().maxDepth(1)
                     logger.debug("Building a patched API jar.")
@@ -232,6 +233,33 @@ public class RuneLitePatcher {
         val output = path.parent.resolve(path.nameWithoutExtension + "-signed.${path.extension}")
         signer.sign(java.util.zip.ZipFile(path.toFile()), output.toFile().outputStream())
         output.moveTo(path, overwrite = true)
+    }
+
+    private fun writeGameVals(folder: File) {
+        try {
+            val name = "gameval.zip"
+            val zip =
+                RuneLitePatcher::class.java
+                    .getResourceAsStream(name)
+                    ?.readAllBytes()
+                    ?: throw IllegalStateException("$name resource not available.")
+            val gameValDirectory =
+                folder
+                    .toPath()
+                    .resolve("net")
+                    .resolve("runelite")
+                    .resolve("api")
+                    .resolve("gameval")
+            val zipDestination = gameValDirectory.resolve("gameval.zip")
+            // Copy the zip file over from resources as the zip library we use doesn't seem to support resources
+            zipDestination.writeBytes(zip)
+            ZipFile(zipDestination.toFile()).use { inputFile ->
+                inputFile.extractAll(gameValDirectory.toFile().absolutePath)
+            }
+            zipDestination.deleteIfExists()
+        } catch (e: Exception) {
+            logger.error("Unable to extract gamevals", e)
+        }
     }
 
     private fun writeFile(
