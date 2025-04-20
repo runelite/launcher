@@ -13,23 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  ******************************************************************************/
-#include "../packr.h"
-
 #include <dlfcn.h>
-#include <iostream>
 #include <limits.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include <stdlib.h>
+
+#include <iostream>
+
+#include "../packr.h"
 
 using namespace std;
 
 const char __CLASS_PATH_DELIM = ':';
 
 int main(int argc, char** argv) {
-
     if (!setCmdLineArguments(argc, argv)) {
         return EXIT_FAILURE;
     }
@@ -40,7 +40,6 @@ int main(int argc, char** argv) {
 }
 
 bool loadJNIFunctions(GetDefaultJavaVMInitArgs* getDefaultJavaVMInitArgs, CreateJavaVM* createJavaVM) {
-
 #if defined(__LP64__)
     void* handle = dlopen("jre/lib/amd64/server/libjvm.so", RTLD_LAZY);
 #else
@@ -51,32 +50,27 @@ bool loadJNIFunctions(GetDefaultJavaVMInitArgs* getDefaultJavaVMInitArgs, Create
         return false;
     }
 
-	*getDefaultJavaVMInitArgs = (GetDefaultJavaVMInitArgs) dlsym(handle, "JNI_GetDefaultJavaVMInitArgs");
-	*createJavaVM = (CreateJavaVM) dlsym(handle, "JNI_CreateJavaVM");
+    *getDefaultJavaVMInitArgs = (GetDefaultJavaVMInitArgs)dlsym(handle, "JNI_GetDefaultJavaVMInitArgs");
+    *createJavaVM = (CreateJavaVM)dlsym(handle, "JNI_CreateJavaVM");
 
     if ((*getDefaultJavaVMInitArgs == nullptr) || (*createJavaVM == nullptr)) {
         cerr << dlerror() << endl;
         return false;
     }
 
-	return true;
+    return true;
 }
 
 const char* getExecutablePath(const char* argv0) {
-
     static char buf[PATH_MAX + 1];
 
-	if (readlink("/proc/self/exe", buf, sizeof(buf) - 1) == -1) {
+    if (readlink("/proc/self/exe", buf, sizeof(buf) - 1) == -1) {
         return argv0;
-	}
+    }
 
     return buf;
 }
 
-bool changeWorkingDir(const char* directory) {
-	return chdir(directory) == 0;
-}
+bool changeWorkingDir(const char* directory) { return chdir(directory) == 0; }
 
-void packrSetEnv(const char *key, const char *value) {
-    setenv(key, value, 1);
-}
+void packrSetEnv(const char* key, const char* value) { setenv(key, value, 1); }

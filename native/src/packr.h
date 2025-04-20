@@ -15,18 +15,18 @@
  ******************************************************************************/
 #pragma once
 
-#include <string>
-#include <functional>
 #include <jni.h>
 
-typedef jint(JNICALL *GetDefaultJavaVMInitArgs)(void*);
-typedef jint(JNICALL *CreateJavaVM)(JavaVM**, void**, void*);
+#include <functional>
+#include <string>
 
-typedef std::function<void ()> LaunchJavaVMDelegate;
-typedef std::function<void (LaunchJavaVMDelegate delegate, const JavaVMInitArgs& args)> LaunchJavaVMCallback;
+typedef jint(JNICALL* GetDefaultJavaVMInitArgs)(void*);
+typedef jint(JNICALL* CreateJavaVM)(JavaVM**, void**, void*);
 
-#define defaultLaunchVMDelegate \
-	[](LaunchJavaVMDelegate delegate, const JavaVMInitArgs&) { delegate(); }
+typedef std::function<void()> LaunchJavaVMDelegate;
+typedef std::function<void(LaunchJavaVMDelegate delegate, const JavaVMInitArgs& args)> LaunchJavaVMCallback;
+
+#define defaultLaunchVMDelegate [](LaunchJavaVMDelegate delegate, const JavaVMInitArgs&) { delegate(); }
 
 /* configuration */
 extern bool verbose;
@@ -38,9 +38,9 @@ extern const char __CLASS_PATH_DELIM;
 bool loadJNIFunctions(GetDefaultJavaVMInitArgs* getDefaultJavaVMInitArgs, CreateJavaVM* createJavaVM);
 const char* getExecutablePath(const char* argv0);
 bool changeWorkingDir(const char* directory);
-void packrSetEnv(const char *key, const char *value);
+void packrSetEnv(const char* key, const char* value);
 #ifdef _WIN32
-std::string acpToUtf8(const char *);
+std::string acpToUtf8(const char*);
 #endif
 
 /* entry point for all platforms - called from main()/WinMain() */

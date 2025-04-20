@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  ******************************************************************************/
+#include <direct.h>
+#include <fcntl.h>
+#include <io.h>
 #include <windows.h>
 
-#include <io.h>
-#include <fcntl.h>
 #include <iostream>
-#include <direct.h>
 
 #include "../packr.h"
 
@@ -26,155 +26,138 @@ using namespace std;
 
 const char __CLASS_PATH_DELIM = ';';
 
-extern "C"
-{
-	__declspec(dllexport) DWORD NvOptimusEnablement = 1;
-	__declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
+extern "C" {
+__declspec(dllexport) DWORD NvOptimusEnablement = 1;
+__declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
 }
 
 static void waitAtExit(void) {
-	cout << "Press ENTER key to exit.";
-	cin.get();
+    cout << "Press ENTER key to exit.";
+    cin.get();
 }
 
 static bool attachToConsole(int argc, char** argv) {
+    bool allocConsole = false;
 
-	bool allocConsole = false;
+    // pre-parse command line here to have a console in case of command line parse errors
+    for (int arg = 0; arg < argc && !allocConsole; arg++) {
+        allocConsole = (argv[arg] != nullptr && stricmp(argv[arg], "--console") == 0);
+    }
 
-	// pre-parse command line here to have a console in case of command line parse errors
-	for (int arg = 0; arg < argc && !allocConsole; arg++) {
-		allocConsole = (argv[arg] != nullptr && stricmp(argv[arg], "--console") == 0);
-	}
+    bool hasConsole;
+    if (allocConsole) {
+        FreeConsole();
+        hasConsole = AllocConsole();
+    } else {
+        hasConsole = AttachConsole(ATTACH_PARENT_PROCESS);
+    }
 
-	bool hasConsole;
-	if (allocConsole) {
-		FreeConsole();
-		hasConsole = AllocConsole();
-	} else {
-		hasConsole = AttachConsole(ATTACH_PARENT_PROCESS);
-	}
+    if (hasConsole) {
+        freopen("CONIN$", "r", stdin);
+        freopen("CONOUT$", "w", stdout);
+        freopen("CONOUT$", "w", stderr);
 
-	if (hasConsole) {
-		freopen("CONIN$", "r", stdin);
-		freopen("CONOUT$", "w", stdout);
-		freopen("CONOUT$", "w", stderr);
+        if (allocConsole) {
+            atexit(waitAtExit);
+        }
+    }
 
-		if (allocConsole) {
-			atexit(waitAtExit);
-		}
-	}
-
-	return hasConsole;
+    return hasConsole;
 }
 
 static void printLastError(const char* reason) {
+    LPTSTR buffer;
+    DWORD errorCode = GetLastError();
 
-	LPTSTR buffer;
-	DWORD errorCode = GetLastError();
+    FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, nullptr, errorCode,
+                  MAKELANGID(LANG_ENGLISH, SUBLANG_DEFAULT), (LPTSTR)&buffer, 0, nullptr);
 
-	FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-				  nullptr, errorCode, MAKELANGID(LANG_ENGLISH, SUBLANG_DEFAULT), (LPTSTR) &buffer, 0, nullptr);
+    cerr << "Error code [" << errorCode << "] when trying to " << reason << ": " << buffer;
 
-	cerr << "Error code [" << errorCode << "] when trying to " << reason << ": " << buffer;
-
-	LocalFree(buffer);
+    LocalFree(buffer);
 }
 
-int CALLBACK WinMain(
-	HINSTANCE hInstance,
-	HINSTANCE hPrevInstance,
-	LPSTR lpCmdLine,
-	int nCmdShow) {
+int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
+    int argc = __argc;
+    char** argv = __argv;
 
-	int argc = __argc;
-	char** argv = __argv;
+    attachToConsole(argc, argv);
 
-	attachToConsole(argc, argv);
+    if (!setCmdLineArguments(argc, argv)) {
+        return EXIT_FAILURE;
+    }
 
-	if (!setCmdLineArguments(argc, argv)) {
-		return EXIT_FAILURE;
-	}
+    launchJavaVM(defaultLaunchVMDelegate);
 
-	launchJavaVM(defaultLaunchVMDelegate);
-
-	return 0;
+    return 0;
 }
 
 int main(int argc, char** argv) {
+    if (!setCmdLineArguments(argc, argv)) {
+        return EXIT_FAILURE;
+    }
 
-	if (!setCmdLineArguments(argc, argv)) {
-		return EXIT_FAILURE;
-	}
+    launchJavaVM(defaultLaunchVMDelegate);
 
-	launchJavaVM(defaultLaunchVMDelegate);
-
-	return 0;
+    return 0;
 }
 
 bool loadJNIFunctions(GetDefaultJavaVMInitArgs* getDefaultJavaVMInitArgs, CreateJavaVM* createJavaVM) {
-	if (!SetDllDirectory(TEXT("jre\\bin"))) {
-		printLastError("SetDllDirectory");
-		return false;
-	}
+    if (!SetDllDirectory(TEXT("jre\\bin"))) {
+        printLastError("SetDllDirectory");
+        return false;
+    }
 
-	LPCTSTR jvmDLLPath = TEXT("jre\\bin\\server\\jvm.dll");
+    LPCTSTR jvmDLLPath = TEXT("jre\\bin\\server\\jvm.dll");
 
-	HINSTANCE hinstLib = LoadLibrary(jvmDLLPath);
-	if (hinstLib == nullptr) {
-		printLastError("load jvm.dll");
-		return false;
-	}
+    HINSTANCE hinstLib = LoadLibrary(jvmDLLPath);
+    if (hinstLib == nullptr) {
+        printLastError("load jvm.dll");
+        return false;
+    }
 
-	*getDefaultJavaVMInitArgs = (GetDefaultJavaVMInitArgs) GetProcAddress(hinstLib, "JNI_GetDefaultJavaVMInitArgs");
-	if (*getDefaultJavaVMInitArgs == nullptr) {
-		printLastError("obtain JNI_GetDefaultJavaVMInitArgs address");
-		return false;
-	}
+    *getDefaultJavaVMInitArgs = (GetDefaultJavaVMInitArgs)GetProcAddress(hinstLib, "JNI_GetDefaultJavaVMInitArgs");
+    if (*getDefaultJavaVMInitArgs == nullptr) {
+        printLastError("obtain JNI_GetDefaultJavaVMInitArgs address");
+        return false;
+    }
 
-	*createJavaVM = (CreateJavaVM) GetProcAddress(hinstLib, "JNI_CreateJavaVM");
-	if (*createJavaVM == nullptr) {
-		printLastError("obtain JNI_CreateJavaVM address");
-		return false;
-	}
+    *createJavaVM = (CreateJavaVM)GetProcAddress(hinstLib, "JNI_CreateJavaVM");
+    if (*createJavaVM == nullptr) {
+        printLastError("obtain JNI_CreateJavaVM address");
+        return false;
+    }
 
-	return true;
+    return true;
 }
 
-const char* getExecutablePath(const char* argv0) {
-	return argv0;
-}
+const char* getExecutablePath(const char* argv0) { return argv0; }
 
-bool changeWorkingDir(const char* directory) {
-	return _chdir(directory) == 0;
-}
+bool changeWorkingDir(const char* directory) { return _chdir(directory) == 0; }
 
-void packrSetEnv(const char *key, const char *value) {
-	SetEnvironmentVariable(key, value);
-}
+void packrSetEnv(const char* key, const char* value) { SetEnvironmentVariable(key, value); }
 
-string acpToUtf8(const char *str) {
-	// ACP -> UTF-16
-	int len = MultiByteToWideChar(CP_ACP, 0, str, -1, NULL, 0);
-	if (!len)
-	{
-		return string(str);
-	}
-	LPWSTR out16 = new wchar_t[len];
-	MultiByteToWideChar(CP_ACP, 0, str, -1, out16, len);
+string acpToUtf8(const char* str) {
+    // ACP -> UTF-16
+    int len = MultiByteToWideChar(CP_ACP, 0, str, -1, NULL, 0);
+    if (!len) {
+        return string(str);
+    }
+    LPWSTR out16 = new wchar_t[len];
+    MultiByteToWideChar(CP_ACP, 0, str, -1, out16, len);
 
-	// UTF-16 -> UTF-8
-	len = WideCharToMultiByte(CP_UTF8, 0, out16, -1, NULL, 0, NULL, NULL);
-	if (!len)
-	{
-		delete[] out16;
-		return string(str);
-	}
-	LPSTR out8 = new char[len];
-	WideCharToMultiByte(CP_UTF8, 0, out16, -1, out8, len, NULL, NULL);
+    // UTF-16 -> UTF-8
+    len = WideCharToMultiByte(CP_UTF8, 0, out16, -1, NULL, 0, NULL, NULL);
+    if (!len) {
+        delete[] out16;
+        return string(str);
+    }
+    LPSTR out8 = new char[len];
+    WideCharToMultiByte(CP_UTF8, 0, out16, -1, out8, len, NULL, NULL);
 
-	delete[] out16;
-	string out(out8);
-	delete[] out8;
+    delete[] out16;
+    string out(out8);
+    delete[] out8;
 
-	return out;
+    return out;
 }
