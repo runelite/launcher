@@ -88,7 +88,10 @@ public class RuneLitePatcher {
     }
 
     @OptIn(ExperimentalPathApi::class)
-    public fun patchLocalHostSupport(path: Path): Path {
+    public fun patchLocalHostSupport(
+        path: Path,
+        worldClientPort: Int,
+    ): Path {
         val time = System.currentTimeMillis()
         val inputPath = path.parent.resolve(path.nameWithoutExtension + "-$time-patched." + path.extension)
         val configurationPath = Path(System.getProperty("user.home"), ".rsprox")
@@ -123,7 +126,7 @@ public class RuneLitePatcher {
                     metaInf.resolve("RL.RSA").delete()
                     metaInf.resolve("RL.SF").delete()
 
-                    replaceClass(
+                    replaceWorldClient(
                         parentDir
                             .resolve("net")
                             .resolve("runelite")
@@ -132,6 +135,7 @@ public class RuneLitePatcher {
                             .resolve("WorldClient.class"),
                         "Original WorldClient.class",
                         "WorldClient.class",
+                        worldClientPort,
                     )
 
                     replaceClass(
@@ -302,6 +306,45 @@ public class RuneLitePatcher {
                 .getResourceAsStream(replacementResource)
                 ?.readAllBytes()
                 ?: throw IllegalStateException("$replacementResource resource not available")
+
+        val originalResourceFile =
+            RuneLitePatcher::class.java
+                .getResourceAsStream(originalResource)
+                ?.readAllBytes()
+                ?: throw IllegalStateException("$originalResource resource not available.")
+
+        val originalBytes = classFile.readBytes()
+        if (!originalBytes.contentEquals(originalResourceFile)) {
+            throw IllegalStateException("Unable to patch RuneLite $replacementResource - out of date.")
+        }
+
+        // Overwrite the WorldClient.class file to read worlds from our proxied-list
+        // This ensures that the world switcher still goes through the proxy tool,
+        // instead of just connecting to RuneLite's own world list API.
+        classFile.writeBytes(replacementResourceFile)
+    }
+
+    private fun replaceWorldClient(
+        classFile: File,
+        originalResource: String,
+        replacementResource: String,
+        port: Int,
+    ) {
+        val inputPort = toByteArray(listOf(3, 0, 0, 43600 ushr 8 and 0xFF, 43600 and 0xFF))
+        val outputPort = toByteArray(listOf(3, 0, 0, port ushr 8 and 0xFF, port and 0xFF))
+
+        val replacementResourceFile =
+            RuneLitePatcher::class.java
+                .getResourceAsStream(replacementResource)
+                ?.readAllBytes()
+                ?: throw IllegalStateException("$replacementResource resource not available")
+        val index = replacementResourceFile.indexOf(inputPort)
+        if (index != -1) {
+            replacementResourceFile.replaceBytes(inputPort, outputPort)
+            logger.debug("Patching port from 43600 to $port")
+        } else {
+            logger.warn("Unable to patch worldclient port.")
+        }
 
         val originalResourceFile =
             RuneLitePatcher::class.java

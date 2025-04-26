@@ -142,6 +142,7 @@ public class Launcher
 		parser.accepts("jav_config", "JAV config url").withRequiredArg();
 		parser.accepts("bootstrap_url", "Bootstrap URL").withRequiredArg();
 		parser.accepts("bootstrap_sig_url", "Bootstrap signature URL").withRequiredArg();
+		parser.accepts("world_client_port", "World Client Port").withRequiredArg();
 		parser.accepts("developer-mode");
 
 		if (OS.getOs() == OS.OSType.MacOS)
@@ -497,7 +498,8 @@ public class Launcher
 		SplashScreen.stage(.95, "RSProx", "Patching RuneLite (0/3)");
 		List<Callable<Boolean>> tasks = new ArrayList<>();
 		tasks.add(buildInjectedClientPatchTask(artifacts, options, count));
-		tasks.add(buildRuneLiteClientPatchTask(artifacts, count));
+		int worldClientPort = Integer.parseInt(String.valueOf(options.valueOf("world_client_port")));
+		tasks.add(buildRuneLiteClientPatchTask(artifacts, count, worldClientPort));
 		tasks.add(buildRuneLiteApiPatchTask(artifacts, count));
 		List<Future<Boolean>> futures = ForkJoinPool.commonPool().invokeAll(tasks);
 		for (Future<Boolean> future : futures) {
@@ -561,7 +563,11 @@ public class Launcher
         };
 	}
 
-	private static Callable<Boolean> buildRuneLiteClientPatchTask(List<Artifact> artifacts, AtomicInteger num) {
+	private static Callable<Boolean> buildRuneLiteClientPatchTask(
+			List<Artifact> artifacts,
+			AtomicInteger num,
+			int worldClientPort
+	) {
 		return () -> {
 			try {
 				RuneLitePatcher patcher = new RuneLitePatcher();
@@ -570,7 +576,10 @@ public class Launcher
 					.filter(artifact -> artifact.getName().startsWith("client-") && artifact.getName().endsWith(".jar"))
 					.findFirst()
 					.orElseThrow();
-				Path localHostPatch = patcher.patchLocalHostSupport(new File(REPO_DIR, clientArtifact.getName()).toPath());
+				Path localHostPatch = patcher.patchLocalHostSupport(
+						new File(REPO_DIR, clientArtifact.getName()).toPath(),
+						worldClientPort
+				);
 				clientArtifact.setName(localHostPatch.toFile().getName());
 				synchronized (splashScreenLock) {
 					int count = num.incrementAndGet();
