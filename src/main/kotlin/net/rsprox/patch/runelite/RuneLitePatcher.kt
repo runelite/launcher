@@ -96,8 +96,8 @@ public class RuneLitePatcher {
         val inputPath = path.parent.resolve(path.nameWithoutExtension + "-$time-patched." + path.extension)
         val configurationPath = Path(System.getProperty("user.home"), ".rsprox")
         val runelitePath = configurationPath.resolve("runelite")
-        val shaPath = runelitePath.resolve("latest-runelite.sha256")
-        val existingClient = runelitePath.resolve("latest-runelite.jar")
+        val shaPath = runelitePath.resolve("latest-runelite-$worldClientPort.sha256")
+        val existingClient = runelitePath.resolve("latest-runelite-$worldClientPort.jar")
         val currentSha256 = sha256Hash(path.readBytes())
         if (shaPath.exists(LinkOption.NOFOLLOW_LINKS) &&
             existingClient.exists(LinkOption.NOFOLLOW_LINKS)
