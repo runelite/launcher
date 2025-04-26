@@ -11,6 +11,7 @@ import java.nio.file.LinkOption
 import java.nio.file.Path
 import java.security.KeyStore
 import java.security.MessageDigest
+import java.security.NoSuchAlgorithmException
 import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.Path
 import kotlin.io.path.copyTo
@@ -172,7 +173,16 @@ public class RuneLitePatcher {
                     outputFile.charset = inputFile.charset
                 }
                 val jarFile = patchedJar.toFile()
-                sign(patchedJar)
+                try {
+                    sign(patchedJar)
+                } catch (e: NoSuchAlgorithmException) {
+                    logger.error(
+                        "Current JDK does not support the required jar signing algorithm. " +
+                            "Switch to an older JDK (e.g. Corretto 11) that still supports it.",
+                        e,
+                    )
+                    throw e
+                }
                 jarFile.copyTo(existingClient.toFile())
                 shaPath.writeText(currentSha256, Charsets.UTF_8)
             }
