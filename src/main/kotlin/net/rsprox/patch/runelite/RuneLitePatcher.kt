@@ -330,20 +330,22 @@ public class RuneLitePatcher {
         replacementResource: String,
         port: Int,
     ) {
-        val inputPort = toByteArray(listOf(3, 0, 0, 43600 ushr 8 and 0xFF, 43600 and 0xFF))
-        val outputPort = toByteArray(listOf(3, 0, 0, port ushr 8 and 0xFF, port and 0xFF))
-
         val replacementResourceFile =
             RuneLitePatcher::class.java
                 .getResourceAsStream(replacementResource)
                 ?.readAllBytes()
                 ?: throw IllegalStateException("$replacementResource resource not available")
-        val index = replacementResourceFile.indexOf(inputPort)
-        if (index != -1) {
-            replacementResourceFile.replaceBytes(inputPort, outputPort)
-            logger.debug("Patching port from 43600 to $port")
-        } else {
-            logger.warn("Unable to patch worldclient port.")
+        if (port != 43600) {
+            val inputPort = toByteArray(listOf(3, 0, 0, 43600 ushr 8 and 0xFF, 43600 and 0xFF))
+            val outputPort = toByteArray(listOf(3, 0, 0, port ushr 8 and 0xFF, port and 0xFF))
+
+            val index = replacementResourceFile.indexOf(inputPort)
+            if (index != -1) {
+                replacementResourceFile.replaceBytes(inputPort, outputPort)
+                logger.debug("Patching port from 43600 to $port")
+            } else {
+                logger.warn("Unable to patch worldclient port.")
+            }
         }
 
         val originalResourceFile =
