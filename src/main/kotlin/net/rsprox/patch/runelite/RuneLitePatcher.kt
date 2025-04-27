@@ -27,7 +27,7 @@ import kotlin.io.path.readText
 import kotlin.io.path.writeBytes
 import kotlin.io.path.writeText
 
-@Suppress("DuplicatedCode", "SameParameterValue")
+@Suppress("DuplicatedCode", "SameParameterValue", "unused")
 public class RuneLitePatcher {
     @OptIn(ExperimentalPathApi::class)
     public fun patch(
@@ -148,19 +148,17 @@ public class RuneLitePatcher {
                             .resolve("runelite")
                             .resolve("client")
                             .resolve("RuneLite.class"),
-                        "Original RuneLite.class",
                         "RuneLite.class",
                         name,
                     )
 
-                    replaceClass(
+                    replaceVersionedClass(
                         parentDir
                             .resolve("net")
                             .resolve("runelite")
                             .resolve("client")
                             .resolve("rs")
                             .resolve("ClientLoader.class"),
-                        "Original ClientLoader.class",
                         "ClientLoader.class",
                     )
 
@@ -376,6 +374,17 @@ public class RuneLitePatcher {
         classFile.writeBytes(replacementResourceFile)
     }
 
+    private fun replaceVersionedClass(
+        classFile: File,
+        replacementResource: String,
+    ) {
+        val replacementResourceFile = loadResource(classFile, replacementResource)
+        // Overwrite the WorldClient.class file to read worlds from our proxied-list
+        // This ensures that the world switcher still goes through the proxy tool,
+        // instead of just connecting to RuneLite's own world list API.
+        classFile.writeBytes(replacementResourceFile)
+    }
+
     private fun replaceWorldClient(
         classFile: File,
         originalResource: String,
@@ -419,15 +428,10 @@ public class RuneLitePatcher {
 
     private fun replaceRunelite(
         classFile: File,
-        originalResource: String,
         replacementResource: String,
         clientName: String?,
     ) {
-        var replacementResourceFile =
-            RuneLitePatcher::class.java
-                .getResourceAsStream(replacementResource)
-                ?.readAllBytes()
-                ?: throw IllegalStateException("$replacementResource resource not available")
+        var replacementResourceFile = loadResource(classFile, replacementResource)
 
         if (clientName != null) {
             val sourceDirectory = ".runelite"
@@ -442,18 +446,30 @@ public class RuneLitePatcher {
             logger.info("Replacing $sourceDirectory directory with $replacementDirectory")
         }
 
-        val originalResourceFile =
-            RuneLitePatcher::class.java
-                .getResourceAsStream(originalResource)
-                ?.readAllBytes()
-                ?: throw IllegalStateException("$originalResource resource not available.")
-
-        val originalBytes = classFile.readBytes()
-        if (!originalBytes.contentEquals(originalResourceFile)) {
-            throw IllegalStateException("Unable to patch RuneLite $replacementResource - out of date.")
-        }
-
         classFile.writeBytes(replacementResourceFile)
+    }
+
+    private fun loadResource(
+        originalFile: File,
+        className: String,
+    ): ByteArray {
+        val originalBytes = originalFile.readBytes()
+        val name = className.replace(".class", "")
+        var count = 1
+        while (true) {
+            val originalKnownResource =
+                RuneLitePatcher::class.java
+                    .getResourceAsStream("Original $name-$count.class")
+                    ?.readAllBytes()
+                    ?: throw IllegalStateException("Resource $className is out of date.")
+            if (originalKnownResource.contentEquals(originalBytes)) {
+                return RuneLitePatcher::class.java
+                    .getResourceAsStream("$name-$count.class")
+                    ?.readAllBytes()
+                    ?: throw IllegalStateException("Unable to locate replacement resource for $className.")
+            }
+            count++
+        }
     }
 
     private fun patchPort(
