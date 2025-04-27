@@ -304,6 +304,10 @@ public class RuneLitePatcher {
                     .resolve("runelite")
                     .resolve("api")
                     .resolve("gameval")
+            if (!gameValDirectory.exists()) {
+                logger.info("Skipping writing gamevals as the directory does not exist.")
+                return
+            }
             val zipDestination = gameValDirectory.resolve("gameval.zip")
             // Copy the zip file over from resources as the zip library we use doesn't seem to support resources
             zipDestination.writeBytes(zip)
