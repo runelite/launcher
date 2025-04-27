@@ -34,6 +34,7 @@ public class RuneLitePatcher {
         path: Path,
         rsa: String,
         port: Int,
+        varpCount: Int,
     ): PatchResult {
         if (!path.isRegularFile(LinkOption.NOFOLLOW_LINKS)) {
             throw IllegalArgumentException("Path $path does not point to a file.")
@@ -54,6 +55,7 @@ public class RuneLitePatcher {
                 oldModulus = overwriteModulus(outputFolder, rsa)
                 overwriteLocalHost(outputFolder)
                 patchPort(outputFolder, port)
+                patchVarpCount(outputFolder, varpCount)
                 patchedJar = path.parent.resolve(path.nameWithoutExtension + "-$time-patched." + path.extension)
                 ZipFile(patchedJar.toFile()).use { outputFile ->
                     val parentDir = outputFolder.toFile()
@@ -92,6 +94,7 @@ public class RuneLitePatcher {
     public fun patchLocalHostSupport(
         path: Path,
         worldClientPort: Int,
+        name: String?,
     ): Path {
         val time = System.currentTimeMillis()
         val inputPath = path.parent.resolve(path.nameWithoutExtension + "-$time-patched." + path.extension)
@@ -139,7 +142,7 @@ public class RuneLitePatcher {
                         worldClientPort,
                     )
 
-                    replaceClass(
+                    replaceRunelite(
                         parentDir
                             .resolve("net")
                             .resolve("runelite")
@@ -147,6 +150,7 @@ public class RuneLitePatcher {
                             .resolve("RuneLite.class"),
                         "Original RuneLite.class",
                         "RuneLite.class",
+                        name,
                     )
 
                     replaceClass(
@@ -159,6 +163,16 @@ public class RuneLitePatcher {
                         "Original ClientLoader.class",
                         "ClientLoader.class",
                     )
+
+                    if (name != null) {
+                        writeRuneLiteProperties(
+                            parentDir
+                                .resolve("net")
+                                .resolve("runelite")
+                                .resolve("client"),
+                            name,
+                        )
+                    }
 
                     val files = parentDir.walkTopDown().maxDepth(1)
                     logger.debug("Building a patched jar.")
@@ -190,6 +204,34 @@ public class RuneLitePatcher {
             outputFolder.deleteRecursively()
         }
         return copy
+    }
+
+    private fun writeRuneLiteProperties(
+        folder: File,
+        name: String,
+    ) {
+        try {
+            val fileName = "runelite.properties"
+            val propertiesFile = folder.resolve(fileName)
+            val lines = propertiesFile.readLines(Charsets.ISO_8859_1)
+            val replacement =
+                buildString {
+                    for (line in lines) {
+                        when {
+                            line.startsWith("runelite.title=") -> {
+                                appendLine("runelite.jav_config=$name")
+                            }
+
+                            else -> {
+                                appendLine(line)
+                            }
+                        }
+                    }
+                }
+            propertiesFile.writeText(replacement, Charsets.ISO_8859_1)
+        } catch (e: Exception) {
+            logger.error("Unable to overwrite runelite properties.", e)
+        }
     }
 
     @OptIn(ExperimentalPathApi::class)
@@ -375,6 +417,45 @@ public class RuneLitePatcher {
         classFile.writeBytes(replacementResourceFile)
     }
 
+    private fun replaceRunelite(
+        classFile: File,
+        originalResource: String,
+        replacementResource: String,
+        clientName: String?,
+    ) {
+        var replacementResourceFile =
+            RuneLitePatcher::class.java
+                .getResourceAsStream(replacementResource)
+                ?.readAllBytes()
+                ?: throw IllegalStateException("$replacementResource resource not available")
+
+        if (clientName != null) {
+            val sourceDirectory = ".runelite"
+            val source = sourceDirectory.toByteArray(Charsets.UTF_8)
+            val index = replacementResourceFile.indexOf(source)
+            val prefix = replacementResourceFile.sliceArray(0..<index)
+            val suffix = replacementResourceFile.sliceArray((index + source.size)..<replacementResourceFile.size)
+            val replacementDirectory = ".runelite-${clientName.lowercase().replace(" ", "-")}"
+            val replacement = replacementDirectory.toByteArray(Charsets.UTF_8)
+            val combined = prefix + replacement + suffix
+            replacementResourceFile = combined
+            logger.info("Replacing $sourceDirectory directory with $replacementDirectory")
+        }
+
+        val originalResourceFile =
+            RuneLitePatcher::class.java
+                .getResourceAsStream(originalResource)
+                ?.readAllBytes()
+                ?: throw IllegalStateException("$originalResource resource not available.")
+
+        val originalBytes = classFile.readBytes()
+        if (!originalBytes.contentEquals(originalResourceFile)) {
+            throw IllegalStateException("Unable to patch RuneLite $replacementResource - out of date.")
+        }
+
+        classFile.writeBytes(replacementResourceFile)
+    }
+
     private fun patchPort(
         outputFolder: Path,
         port: Int,
@@ -389,6 +470,34 @@ public class RuneLitePatcher {
                 continue
             }
             logger.debug("Patching port from 43594 to $port in ${file.name}")
+            bytes.replaceBytes(inputPort, outputPort)
+            file.writeBytes(bytes)
+        }
+    }
+
+    private fun patchVarpCount(
+        outputFolder: Path,
+        varpCount: Int,
+    ) {
+        val sourceVarpCount = 5000
+        if (varpCount == -1 || varpCount == sourceVarpCount) return
+        // Signature is SIPUSH(17) 5000(19, -120) NEWARRAY(-68) T_INT(10) PUTSTATIC(-77)
+        val inputPort = toByteArray(listOf(17, sourceVarpCount ushr 8 and 0xFF, sourceVarpCount and 0xFF, -68, 10, -77))
+        val outputPort = toByteArray(listOf(17, varpCount ushr 8 and 0xFF, varpCount and 0xFF, -68, 10, -77))
+        for (file in outputFolder.toFile().walkTopDown()) {
+            if (!file.isFile) continue
+            val bytes = file.readBytes()
+            val firstIndex = bytes.indexOf(inputPort)
+            if (firstIndex == -1) {
+                continue
+            }
+            val secondIndex = bytes.indexOf(inputPort, firstIndex + inputPort.size)
+            if (secondIndex == -1) {
+                continue
+            }
+            logger.debug("Patching varp count from $sourceVarpCount to $varpCount in ${file.name}")
+            // Replace the signature twice, as it is declared twice back-to-back.
+            bytes.replaceBytes(inputPort, outputPort)
             bytes.replaceBytes(inputPort, outputPort)
             file.writeBytes(bytes)
         }

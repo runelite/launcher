@@ -144,6 +144,9 @@ public class Launcher
 		parser.accepts("bootstrap_sig_url", "Bootstrap signature URL").withRequiredArg();
 		parser.accepts("world_client_port", "World Client Port").withRequiredArg();
 		parser.accepts("developer-mode");
+		parser.accepts("client_name",
+				"The name of the client to assign & use for .runelite-name directory.").withRequiredArg();
+		parser.accepts("varp_count").withRequiredArg();
 
 		if (OS.getOs() == OS.OSType.MacOS)
 		{
@@ -499,7 +502,12 @@ public class Launcher
 		List<Callable<Boolean>> tasks = new ArrayList<>();
 		tasks.add(buildInjectedClientPatchTask(artifacts, options, count));
 		int worldClientPort = Integer.parseInt(String.valueOf(options.valueOf("world_client_port")));
-		tasks.add(buildRuneLiteClientPatchTask(artifacts, count, worldClientPort));
+		String name = null;
+		if (options.has("client_name")) {
+			name = options.valueOf("client_name").toString();
+			log.info("Replacing RuneLite client name with " + name);
+		}
+		tasks.add(buildRuneLiteClientPatchTask(artifacts, count, worldClientPort, name));
 		tasks.add(buildRuneLiteApiPatchTask(artifacts, count));
 		List<Future<Boolean>> futures = ForkJoinPool.commonPool().invokeAll(tasks);
 		for (Future<Boolean> future : futures) {
@@ -509,7 +517,11 @@ public class Launcher
 		}
 	}
 
-	private static Callable<Boolean> buildInjectedClientPatchTask(List<Artifact> artifacts, OptionSet options, AtomicInteger num) {
+	private static Callable<Boolean> buildInjectedClientPatchTask(
+			List<Artifact> artifacts,
+			OptionSet options,
+			AtomicInteger num
+			) {
 		return () -> {
             try {
 				Artifact injectedClient = artifacts
@@ -519,11 +531,15 @@ public class Launcher
 					.orElseThrow();
 				String rsa = String.valueOf(options.valueOf("rsa"));
 				int port = Integer.parseInt(String.valueOf(options.valueOf("port")));
+				int varpCount = options.has("varp_count")
+						? Integer.parseInt(String.valueOf(options.valueOf("varp_count")))
+						: -1;
 				RuneLitePatcher patcher = new RuneLitePatcher();
 				PatchResult result = patcher.patch(
 					new File(REPO_DIR, injectedClient.getName()).toPath(),
 					rsa,
-					port
+					port,
+					varpCount
 				);
 				Preconditions.checkState(result instanceof PatchResult.Success);
 				PatchResult.Success success = (PatchResult.Success) result;
@@ -566,7 +582,8 @@ public class Launcher
 	private static Callable<Boolean> buildRuneLiteClientPatchTask(
 			List<Artifact> artifacts,
 			AtomicInteger num,
-			int worldClientPort
+			int worldClientPort,
+			String name
 	) {
 		return () -> {
 			try {
@@ -578,7 +595,8 @@ public class Launcher
 					.orElseThrow();
 				Path localHostPatch = patcher.patchLocalHostSupport(
 						new File(REPO_DIR, clientArtifact.getName()).toPath(),
-						worldClientPort
+						worldClientPort,
+						name
 				);
 				clientArtifact.setName(localHostPatch.toFile().getName());
 				synchronized (splashScreenLock) {
