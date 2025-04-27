@@ -217,7 +217,7 @@ public class RuneLitePatcher {
                     for (line in lines) {
                         when {
                             line.startsWith("runelite.title=") -> {
-                                appendLine("runelite.jav_config=$name")
+                                appendLine("runelite.title=$name")
                             }
 
                             else -> {
