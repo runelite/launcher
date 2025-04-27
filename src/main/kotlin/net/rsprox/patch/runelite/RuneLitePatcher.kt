@@ -439,7 +439,7 @@ public class RuneLitePatcher {
             val index = replacementResourceFile.indexOf(source)
             val prefix = replacementResourceFile.sliceArray(0..<index)
             val suffix = replacementResourceFile.sliceArray((index + source.size)..<replacementResourceFile.size)
-            val replacementDirectory = ".runelite-${clientName.lowercase().replace(" ", "-")}"
+            val replacementDirectory = ".rlcustom"
             val replacement = replacementDirectory.toByteArray(Charsets.UTF_8)
             val combined = prefix + replacement + suffix
             replacementResourceFile = combined
