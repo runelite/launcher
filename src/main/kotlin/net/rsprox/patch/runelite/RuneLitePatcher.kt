@@ -152,7 +152,7 @@ public class RuneLitePatcher {
                         name,
                     )
 
-                    replaceVersionedClass(
+                    replaceClientLoader(
                         parentDir
                             .resolve("net")
                             .resolve("runelite")
@@ -160,6 +160,7 @@ public class RuneLitePatcher {
                             .resolve("rs")
                             .resolve("ClientLoader.class"),
                         "ClientLoader.class",
+                        worldClientPort,
                     )
 
                     if (name != null) {
@@ -386,6 +387,27 @@ public class RuneLitePatcher {
         // Overwrite the WorldClient.class file to read worlds from our proxied-list
         // This ensures that the world switcher still goes through the proxy tool,
         // instead of just connecting to RuneLite's own world list API.
+        classFile.writeBytes(replacementResourceFile)
+    }
+
+    private fun replaceClientLoader(
+        classFile: File,
+        replacementResource: String,
+        port: Int,
+    ) {
+        val replacementResourceFile = loadResource(classFile, replacementResource)
+        if (port != 43600) {
+            val inputPort = toByteArray(listOf(3, 0, 0, 43600 ushr 8 and 0xFF, 43600 and 0xFF))
+            val outputPort = toByteArray(listOf(3, 0, 0, port ushr 8 and 0xFF, port and 0xFF))
+
+            val index = replacementResourceFile.indexOf(inputPort)
+            if (index != -1) {
+                replacementResourceFile.replaceBytes(inputPort, outputPort)
+                logger.debug("Patching port from 43600 to $port for clientloader")
+            } else {
+                logger.warn("Unable to patch clientloader port.")
+            }
+        }
         classFile.writeBytes(replacementResourceFile)
     }
 
