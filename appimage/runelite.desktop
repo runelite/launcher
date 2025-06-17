@@ -6,3 +6,4 @@ Icon=runelite
 Terminal=false
 Type=Application
 Categories=Game;
+StartupWMClass=net-runelite-launcher-Launcher
