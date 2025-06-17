@@ -33,6 +33,8 @@ cp build/libs/RuneLite.jar build/linux-x64/
 cp packr/linux-x64-config.json build/linux-x64/config.json
 cp build/filtered-resources/runelite.desktop build/linux-x64/
 cp appimage/runelite.png build/linux-x64/
+mkdir -p build/linux-x64/usr/share/icons/hicolor/128x128/apps/
+cp appimage/runelite.png build/linux-x64/usr/share/icons/hicolor/128x128/apps/
 
 tar zxf linux64_jre.tar.gz
 mv jdk-$LINUX_AMD64_VERSION-jre build/linux-x64/jre
