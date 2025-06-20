@@ -33,6 +33,8 @@ cp build/libs/RuneLite.jar build/linux-aarch64/
 cp packr/linux-aarch64-config.json build/linux-aarch64/config.json
 cp build/filtered-resources/runelite.desktop build/linux-aarch64/
 cp appimage/runelite.png build/linux-aarch64/
+mkdir -p build/linux-aarch64/usr/share/icons/hicolor/128x128/apps/
+cp appimage/runelite.png build/linux-aarch64/usr/share/icons/hicolor/128x128/apps/
 
 tar zxf linux_aarch64_jre.tar.gz
 mv jdk-$LINUX_AMD64_VERSION-jre build/linux-aarch64/jre
