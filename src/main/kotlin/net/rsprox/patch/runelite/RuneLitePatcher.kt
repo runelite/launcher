@@ -205,11 +205,6 @@ public class RuneLitePatcher {
 
     private fun writeGameVals(inMemoryZip: InMemoryZip) {
         try {
-            val any = inMemoryZip.keys.any { it.contains("/gameval") }
-            if (!any) {
-                logger.info("Skipping writing gamevals as the directory does not exist.")
-                return
-            }
             val name = "gameval.zip"
             val zip =
                 RuneLitePatcher::class.java
