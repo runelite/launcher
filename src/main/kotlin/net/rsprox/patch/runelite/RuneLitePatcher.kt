@@ -5,7 +5,6 @@ import net.rsprox.patch.PatchResult
 import net.rsprox.patch.findBoyerMoore
 import org.slf4j.LoggerFactory
 import java.io.File
-import java.nio.file.Files
 import java.nio.file.LinkOption
 import java.nio.file.Path
 import java.security.KeyStore
@@ -177,16 +176,15 @@ public class RuneLitePatcher {
         val time = System.currentTimeMillis()
         val inputPath = path.parent.resolve(path.nameWithoutExtension + "-$time-patched." + path.extension)
         val copy = path.copyTo(inputPath)
-        val outputFolder = path.parent.resolve("runelite-api-$time")
         val inMemoryZip = readZipFileIntoMemory(copy)
-        val parentDir = outputFolder.toFile()
-        writeFile(inMemoryZip, "Varbits.class", parentDir)
-        writeFile(inMemoryZip, "VarPlayer.class", parentDir)
-        writeFile(inMemoryZip, "VarClientInt.class", parentDir)
-        writeFile(inMemoryZip, "VarClientStr.class", parentDir)
-        writeFile(inMemoryZip, "ComponentID.class", parentDir, "widgets")
-        writeFile(inMemoryZip, "InterfaceID.class", parentDir, "widgets")
-        writeGameVals(inMemoryZip, parentDir)
+        writeFile(inMemoryZip, "Varbits.class")
+        writeFile(inMemoryZip, "VarPlayer.class")
+        writeFile(inMemoryZip, "VarClientInt.class")
+        writeFile(inMemoryZip, "VarClientStr.class")
+        writeFile(inMemoryZip, "ComponentID.class", "widgets")
+        writeFile(inMemoryZip, "InterfaceID.class", "widgets")
+        writeGameVals(inMemoryZip)
+        writeInMemoryZipToPath(inMemoryZip, copy)
         return copy
     }
 
@@ -205,19 +203,10 @@ public class RuneLitePatcher {
         output.moveTo(path, overwrite = true)
     }
 
-    private fun writeGameVals(
-        inMemoryZip: InMemoryZip,
-        folder: File,
-    ) {
+    private fun writeGameVals(inMemoryZip: InMemoryZip) {
         try {
-            val gameValDirectory =
-                folder
-                    .toPath()
-                    .resolve("net")
-                    .resolve("runelite")
-                    .resolve("api")
-                    .resolve("gameval")
-            if (!gameValDirectory.exists()) {
+            val any = inMemoryZip.keys.any { it.contains("/gameval") }
+            if (!any) {
                 logger.info("Skipping writing gamevals as the directory does not exist.")
                 return
             }
@@ -227,7 +216,7 @@ public class RuneLitePatcher {
                     .getResourceAsStream(name)
                     ?.readAllBytes()
                     ?: throw IllegalStateException("$name resource not available.")
-            val zipDestination = gameValDirectory.resolve("gameval.zip")
+            val zipDestination = Path("gameval.zip")
             // Copy the zip file over from resources as the zip library we use doesn't seem to support resources
             zipDestination.writeBytes(zip)
             val gameVals = readZipFileIntoMemory(zipDestination)
@@ -243,7 +232,6 @@ public class RuneLitePatcher {
     private fun writeFile(
         zip: InMemoryZip,
         name: String,
-        folder: File,
         subDir: String? = null,
     ) {
         // In order for developer mode to work, we must re-add the Var*.class that
@@ -259,21 +247,6 @@ public class RuneLitePatcher {
         } else {
             zip["net/runelite/api/$name"] = classByteArray
         }
-        val apiDirectory =
-            folder
-                .toPath()
-                .resolve("net")
-                .resolve("runelite")
-                .resolve("api")
-        val subApiDir =
-            if (subDir != null) {
-                apiDirectory.resolve(subDir)
-            } else {
-                apiDirectory
-            }
-        Files.createDirectories(subApiDir)
-        val classPath = subApiDir.resolve(name)
-        classPath.writeBytes(classByteArray)
     }
 
     private fun replaceClass(
