@@ -1,7 +1,6 @@
 package net.rsprox.patch.runelite
 
 import jdk.security.jarsigner.JarSigner
-import net.lingala.zip4j.ZipFile
 import net.rsprox.patch.PatchResult
 import net.rsprox.patch.findBoyerMoore
 import org.slf4j.LoggerFactory
@@ -12,11 +11,9 @@ import java.nio.file.Path
 import java.security.KeyStore
 import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
-import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.Path
 import kotlin.io.path.copyTo
 import kotlin.io.path.deleteIfExists
-import kotlin.io.path.deleteRecursively
 import kotlin.io.path.exists
 import kotlin.io.path.extension
 import kotlin.io.path.isRegularFile
@@ -29,7 +26,6 @@ import kotlin.io.path.writeText
 
 @Suppress("DuplicatedCode", "SameParameterValue", "unused")
 public class RuneLitePatcher {
-    @OptIn(ExperimentalPathApi::class)
     public fun patch(
         path: Path,
         rsa: String,
@@ -41,40 +37,21 @@ public class RuneLitePatcher {
         }
         logger.debug("Attempting to patch {}", path)
         val time = System.currentTimeMillis()
-        val outputFolder = path.parent.resolve("runelite-injected-client-$time")
         val oldModulus: String
         val patchedJar: Path
         try {
             logger.debug("Attempting to patch a jar.")
-            Files.createDirectories(outputFolder)
-            ZipFile(path.toFile()).use { inputFile ->
-                logger.debug("Extracting existing classes from a zip file.")
-                inputFile.extractAll(outputFolder.toFile().absolutePath)
-
-                logger.debug("Patching class files.")
-                oldModulus = overwriteModulus(outputFolder, rsa)
-                overwriteLocalHost(outputFolder)
-                patchPort(outputFolder, port)
-                patchVarpCount(outputFolder, varpCount)
-                patchedJar = path.parent.resolve(path.nameWithoutExtension + "-$time-patched." + path.extension)
-                ZipFile(patchedJar.toFile()).use { outputFile ->
-                    val parentDir = outputFolder.toFile()
-                    val files = parentDir.walkTopDown().maxDepth(1)
-                    logger.debug("Building a patched jar.")
-                    for (file in files) {
-                        if (file == parentDir) continue
-                        if (file.isFile) {
-                            outputFile.addFile(file)
-                        } else {
-                            outputFile.addFolder(file)
-                        }
-                    }
-                    outputFile.charset = inputFile.charset
-                }
-            }
+            logger.debug("Reading zip file into memory: {}", path)
+            val inMemoryZip = readZipFileIntoMemory(path)
+            logger.debug("Patching class files.")
+            oldModulus = overwriteModulus(inMemoryZip, rsa)
+            overwriteLocalHost(inMemoryZip)
+            patchPort(inMemoryZip, port)
+            patchVarpCount(inMemoryZip, varpCount)
+            patchedJar = path.parent.resolve(path.nameWithoutExtension + "-$time-patched." + path.extension)
+            writeInMemoryZipToPath(inMemoryZip, patchedJar)
         } finally {
             logger.debug("Deleting temporary extracted class files.")
-            outputFolder.deleteRecursively()
         }
         logger.debug("Jar patching complete.")
         return PatchResult.Success(
@@ -90,7 +67,6 @@ public class RuneLitePatcher {
         return messageDigest.digest().toHexString(HexFormat.UpperCase)
     }
 
-    @OptIn(ExperimentalPathApi::class)
     public fun patchLocalHostSupport(
         path: Path,
         worldClientPort: Int,
@@ -115,104 +91,68 @@ public class RuneLitePatcher {
         }
         existingClient.deleteIfExists()
         val copy = path.copyTo(inputPath)
-        val outputFolder = path.parent.resolve("runelite-client-$time")
-        try {
-            ZipFile(copy.toFile()).use { inputFile ->
-                inputFile.extractAll(outputFolder.toFile().absolutePath)
+        val inMemoryZip = readZipFileIntoMemory(copy)
+        inMemoryZip.remove("META-INF/MANIFEST.MF")
+        inMemoryZip.remove("META-INF/RL.RSA")
+        inMemoryZip.remove("META-INF/RL.SF")
 
-                val patchedJar =
-                    path.parent
-                        .resolve(path.nameWithoutExtension + "-$time-patched." + path.extension)
-                ZipFile(patchedJar.toFile()).use { outputFile ->
-                    val parentDir = outputFolder.toFile()
-                    val metaInf = parentDir.resolve("META-INF")
-                    metaInf.resolve("MANIFEST.MF").delete()
-                    metaInf.resolve("RL.RSA").delete()
-                    metaInf.resolve("RL.SF").delete()
-
-                    replaceWorldClient(
-                        parentDir
-                            .resolve("net")
-                            .resolve("runelite")
-                            .resolve("client")
-                            .resolve("game")
-                            .resolve("WorldClient.class"),
-                        "Original WorldClient.class",
-                        "WorldClient.class",
-                        worldClientPort,
-                    )
-
-                    replaceRunelite(
-                        parentDir
-                            .resolve("net")
-                            .resolve("runelite")
-                            .resolve("client")
-                            .resolve("RuneLite.class"),
-                        "RuneLite.class",
-                        name,
-                    )
-
-                    replaceClientLoader(
-                        parentDir
-                            .resolve("net")
-                            .resolve("runelite")
-                            .resolve("client")
-                            .resolve("rs")
-                            .resolve("ClientLoader.class"),
-                        "ClientLoader.class",
-                        worldClientPort,
-                    )
-
-                    if (name != null) {
-                        writeRuneLiteProperties(
-                            parentDir
-                                .resolve("net")
-                                .resolve("runelite")
-                                .resolve("client"),
-                            name,
-                        )
-                    }
-
-                    val files = parentDir.walkTopDown().maxDepth(1)
-                    logger.debug("Building a patched jar.")
-                    for (file in files) {
-                        if (file == parentDir) continue
-                        if (file.isFile) {
-                            outputFile.addFile(file)
-                        } else {
-                            outputFile.addFolder(file)
-                        }
-                    }
-                    outputFile.charset = inputFile.charset
-                }
-                val jarFile = patchedJar.toFile()
-                try {
-                    sign(patchedJar)
-                } catch (e: NoSuchAlgorithmException) {
-                    logger.error(
-                        "Current JDK does not support the required jar signing algorithm. " +
-                            "Switch to an older JDK (e.g. Corretto 11) that still supports it.",
-                        e,
-                    )
-                    throw e
-                }
-                jarFile.copyTo(existingClient.toFile())
-                shaPath.writeText(currentSha256, Charsets.UTF_8)
-            }
-        } finally {
-            outputFolder.deleteRecursively()
+        replaceWorldClient(
+            inMemoryZip,
+            "net/runelite/client/game/WorldClient.class",
+            "Original WorldClient.class",
+            "WorldClient.class",
+            worldClientPort,
+        )
+        replaceRunelite(
+            inMemoryZip,
+            "net/runelite/client/RuneLite.class",
+            "RuneLite.class",
+            name,
+        )
+        replaceClientLoader(
+            inMemoryZip,
+            "net/runelite/client/rs/ClientLoader.class",
+            "ClientLoader.class",
+            worldClientPort,
+        )
+        if (name != null) {
+            writeRuneLiteProperties(
+                inMemoryZip,
+                name,
+            )
         }
+
+        val patchedJar =
+            path.parent
+                .resolve(path.nameWithoutExtension + "-$time-patched." + path.extension)
+        writeInMemoryZipToPath(inMemoryZip, patchedJar)
+
+        val jarFile = patchedJar.toFile()
+        try {
+            sign(patchedJar)
+        } catch (e: NoSuchAlgorithmException) {
+            logger.error(
+                "Current JDK does not support the required jar signing algorithm. " +
+                    "Switch to an older JDK (e.g. Corretto 11) that still supports it.",
+                e,
+            )
+            throw e
+        }
+        jarFile.copyTo(existingClient.toFile())
+        shaPath.writeText(currentSha256, Charsets.UTF_8)
         return copy
     }
 
     private fun writeRuneLiteProperties(
-        folder: File,
+        zip: InMemoryZip,
         name: String,
     ) {
         try {
-            val fileName = "runelite.properties"
-            val propertiesFile = folder.resolve(fileName)
-            val lines = propertiesFile.readLines(Charsets.ISO_8859_1)
+            val fileName = "net/runelite/client/runelite.properties"
+            val propertiesFile =
+                zip[fileName]
+                    ?: error("Runelite properties not found: $fileName")
+            val lines = propertiesFile.toString(Charsets.ISO_8859_1).lines()
             val replacement =
                 buildString {
                     for (line in lines) {
@@ -227,51 +167,26 @@ public class RuneLitePatcher {
                         }
                     }
                 }
-            propertiesFile.writeText(replacement, Charsets.ISO_8859_1)
+            zip[fileName] = replacement.toByteArray(Charsets.ISO_8859_1)
         } catch (e: Exception) {
             logger.error("Unable to overwrite runelite properties.", e)
         }
     }
 
-    @OptIn(ExperimentalPathApi::class)
     public fun patchRuneLiteApi(path: Path): Path {
         val time = System.currentTimeMillis()
         val inputPath = path.parent.resolve(path.nameWithoutExtension + "-$time-patched." + path.extension)
         val copy = path.copyTo(inputPath)
         val outputFolder = path.parent.resolve("runelite-api-$time")
-        try {
-            ZipFile(copy.toFile()).use { inputFile ->
-                inputFile.extractAll(outputFolder.toFile().absolutePath)
-                val patchedJar =
-                    path.parent
-                        .resolve(path.nameWithoutExtension + "-$time-patched." + path.extension)
-                ZipFile(patchedJar.toFile()).use { outputFile ->
-                    val parentDir = outputFolder.toFile()
-
-                    writeFile("Varbits.class", parentDir)
-                    writeFile("VarPlayer.class", parentDir)
-                    writeFile("VarClientInt.class", parentDir)
-                    writeFile("VarClientStr.class", parentDir)
-                    writeFile("ComponentID.class", parentDir, "widgets")
-                    writeFile("InterfaceID.class", parentDir, "widgets")
-                    writeGameVals(parentDir)
-
-                    val files = parentDir.walkTopDown().maxDepth(1)
-                    logger.debug("Building a patched API jar.")
-                    for (file in files) {
-                        if (file == parentDir) continue
-                        if (file.isFile) {
-                            outputFile.addFile(file)
-                        } else {
-                            outputFile.addFolder(file)
-                        }
-                    }
-                    outputFile.charset = inputFile.charset
-                }
-            }
-        } finally {
-            outputFolder.deleteRecursively()
-        }
+        val inMemoryZip = readZipFileIntoMemory(copy)
+        val parentDir = outputFolder.toFile()
+        writeFile(inMemoryZip, "Varbits.class", parentDir)
+        writeFile(inMemoryZip, "VarPlayer.class", parentDir)
+        writeFile(inMemoryZip, "VarClientInt.class", parentDir)
+        writeFile(inMemoryZip, "VarClientStr.class", parentDir)
+        writeFile(inMemoryZip, "ComponentID.class", parentDir, "widgets")
+        writeFile(inMemoryZip, "InterfaceID.class", parentDir, "widgets")
+        writeGameVals(inMemoryZip, parentDir)
         return copy
     }
 
@@ -290,14 +205,11 @@ public class RuneLitePatcher {
         output.moveTo(path, overwrite = true)
     }
 
-    private fun writeGameVals(folder: File) {
+    private fun writeGameVals(
+        inMemoryZip: InMemoryZip,
+        folder: File,
+    ) {
         try {
-            val name = "gameval.zip"
-            val zip =
-                RuneLitePatcher::class.java
-                    .getResourceAsStream(name)
-                    ?.readAllBytes()
-                    ?: throw IllegalStateException("$name resource not available.")
             val gameValDirectory =
                 folder
                     .toPath()
@@ -309,11 +221,18 @@ public class RuneLitePatcher {
                 logger.info("Skipping writing gamevals as the directory does not exist.")
                 return
             }
+            val name = "gameval.zip"
+            val zip =
+                RuneLitePatcher::class.java
+                    .getResourceAsStream(name)
+                    ?.readAllBytes()
+                    ?: throw IllegalStateException("$name resource not available.")
             val zipDestination = gameValDirectory.resolve("gameval.zip")
             // Copy the zip file over from resources as the zip library we use doesn't seem to support resources
             zipDestination.writeBytes(zip)
-            ZipFile(zipDestination.toFile()).use { inputFile ->
-                inputFile.extractAll(gameValDirectory.toFile().absolutePath)
+            val gameVals = readZipFileIntoMemory(zipDestination)
+            for ((gameValName, bytes) in gameVals) {
+                inMemoryZip["net/runelite/api/gameval/$gameValName"] = bytes
             }
             zipDestination.deleteIfExists()
         } catch (e: Exception) {
@@ -322,6 +241,7 @@ public class RuneLitePatcher {
     }
 
     private fun writeFile(
+        zip: InMemoryZip,
         name: String,
         folder: File,
         subDir: String? = null,
@@ -334,6 +254,11 @@ public class RuneLitePatcher {
                 ?.readAllBytes()
                 ?: throw IllegalStateException("$name resource not available.")
 
+        if (subDir != null) {
+            zip["net/runelite/api/$subDir/$name"] = classByteArray
+        } else {
+            zip["net/runelite/api/$name"] = classByteArray
+        }
         val apiDirectory =
             folder
                 .toPath()
@@ -379,23 +304,13 @@ public class RuneLitePatcher {
         classFile.writeBytes(replacementResourceFile)
     }
 
-    private fun replaceVersionedClass(
-        classFile: File,
-        replacementResource: String,
-    ) {
-        val replacementResourceFile = loadResource(classFile, replacementResource)
-        // Overwrite the WorldClient.class file to read worlds from our proxied-list
-        // This ensures that the world switcher still goes through the proxy tool,
-        // instead of just connecting to RuneLite's own world list API.
-        classFile.writeBytes(replacementResourceFile)
-    }
-
     private fun replaceClientLoader(
-        classFile: File,
+        zip: InMemoryZip,
+        name: String,
         replacementResource: String,
         port: Int,
     ) {
-        val replacementResourceFile = loadResource(classFile, replacementResource)
+        val replacementResourceFile = loadResource(zip[name], replacementResource)
         if (port != 43600) {
             val inputPort = toByteArray(listOf(3, 0, 0, 43600 ushr 8 and 0xFF, 43600 and 0xFF))
             val outputPort = toByteArray(listOf(3, 0, 0, port ushr 8 and 0xFF, port and 0xFF))
@@ -408,11 +323,12 @@ public class RuneLitePatcher {
                 logger.warn("Unable to patch clientloader port.")
             }
         }
-        classFile.writeBytes(replacementResourceFile)
+        zip[name] = replacementResourceFile
     }
 
     private fun replaceWorldClient(
-        classFile: File,
+        zip: InMemoryZip,
+        name: String,
         originalResource: String,
         replacementResource: String,
         port: Int,
@@ -441,7 +357,7 @@ public class RuneLitePatcher {
                 ?.readAllBytes()
                 ?: throw IllegalStateException("$originalResource resource not available.")
 
-        val originalBytes = classFile.readBytes()
+        val originalBytes = zip[name]
         if (!originalBytes.contentEquals(originalResourceFile)) {
             throw IllegalStateException("Unable to patch RuneLite $replacementResource - out of date.")
         }
@@ -449,15 +365,16 @@ public class RuneLitePatcher {
         // Overwrite the WorldClient.class file to read worlds from our proxied-list
         // This ensures that the world switcher still goes through the proxy tool,
         // instead of just connecting to RuneLite's own world list API.
-        classFile.writeBytes(replacementResourceFile)
+        zip[name] = replacementResourceFile
     }
 
     private fun replaceRunelite(
-        classFile: File,
+        zip: InMemoryZip,
+        name: String,
         replacementResource: String,
         clientName: String?,
     ) {
-        var replacementResourceFile = loadResource(classFile, replacementResource)
+        var replacementResourceFile = loadResource(zip[name], replacementResource)
 
         if (clientName != null) {
             val sourceDirectory = ".runelite"
@@ -472,14 +389,13 @@ public class RuneLitePatcher {
             logger.info("Replacing $sourceDirectory directory with $replacementDirectory")
         }
 
-        classFile.writeBytes(replacementResourceFile)
+        zip[name] = replacementResourceFile
     }
 
     private fun loadResource(
-        originalFile: File,
+        originalBytes: ByteArray?,
         className: String,
     ): ByteArray {
-        val originalBytes = originalFile.readBytes()
         val name = className.replace(".class", "")
         var count = 1
         while (true) {
@@ -499,26 +415,23 @@ public class RuneLitePatcher {
     }
 
     private fun patchPort(
-        outputFolder: Path,
+        zip: InMemoryZip,
         port: Int,
     ) {
         val inputPort = toByteArray(listOf(3, 0, 0, 43594 ushr 8 and 0xFF, 43594 and 0xFF))
         val outputPort = toByteArray(listOf(3, 0, 0, port ushr 8 and 0xFF, port and 0xFF))
-        for (file in outputFolder.toFile().walkTopDown()) {
-            if (!file.isFile) continue
-            val bytes = file.readBytes()
+        for ((name, bytes) in zip) {
             val index = bytes.indexOf(inputPort)
             if (index == -1) {
                 continue
             }
-            logger.debug("Patching port from 43594 to $port in ${file.name}")
+            logger.debug("Patching port from 43594 to $port in $name")
             bytes.replaceBytes(inputPort, outputPort)
-            file.writeBytes(bytes)
         }
     }
 
     private fun patchVarpCount(
-        outputFolder: Path,
+        zip: InMemoryZip,
         varpCount: Int,
     ) {
         val sourceVarpCount = 5000
@@ -526,9 +439,7 @@ public class RuneLitePatcher {
         // Signature is SIPUSH(17) 5000(19, -120) NEWARRAY(-68) T_INT(10) PUTSTATIC(-77)
         val inputPort = toByteArray(listOf(17, sourceVarpCount ushr 8 and 0xFF, sourceVarpCount and 0xFF, -68, 10, -77))
         val outputPort = toByteArray(listOf(17, varpCount ushr 8 and 0xFF, varpCount and 0xFF, -68, 10, -77))
-        for (file in outputFolder.toFile().walkTopDown()) {
-            if (!file.isFile) continue
-            val bytes = file.readBytes()
+        for ((name, bytes) in zip) {
             val firstIndex = bytes.indexOf(inputPort)
             if (firstIndex == -1) {
                 continue
@@ -537,11 +448,10 @@ public class RuneLitePatcher {
             if (secondIndex == -1) {
                 continue
             }
-            logger.debug("Patching varp count from $sourceVarpCount to $varpCount in ${file.name}")
+            logger.debug("Patching varp count from $sourceVarpCount to $varpCount in $name")
             // Replace the signature twice, as it is declared twice back-to-back.
             bytes.replaceBytes(inputPort, outputPort)
             bytes.replaceBytes(inputPort, outputPort)
-            file.writeBytes(bytes)
         }
     }
 
@@ -568,37 +478,33 @@ public class RuneLitePatcher {
     }
 
     private fun overwriteModulus(
-        outputFolder: Path,
+        zip: InMemoryZip,
         rsa: String,
     ): String {
-        for (file in outputFolder.toFile().walkTopDown()) {
-            if (!file.isFile) continue
-            val bytes = file.readBytes()
+        for ((name, bytes) in zip) {
             val index = bytes.indexOf("10001".toByteArray(Charsets.UTF_8))
             if (index == -1) {
                 continue
             }
-            logger.debug("Attempting to patch modulus in class ${file.name}")
+            logger.debug("Attempting to patch modulus in class $name")
             val (replacementBytes, oldModulus) =
                 patchModulus(
                     bytes,
                     rsa,
                 )
-            file.writeBytes(replacementBytes)
+            zip[name] = replacementBytes
             return oldModulus
         }
         throw IllegalStateException("Unable to find modulus.")
     }
 
-    private fun overwriteLocalHost(outputFolder: Path) {
-        for (file in outputFolder.toFile().walkTopDown()) {
-            if (!file.isFile) continue
-            val bytes = file.readBytes()
+    private fun overwriteLocalHost(zip: InMemoryZip) {
+        for ((name, bytes) in zip) {
             val index = bytes.indexOf("127.0.0.1".toByteArray(Charsets.UTF_8))
             if (index == -1) continue
-            logger.debug("Patching localhost in file ${file.name}.")
+            logger.debug("Patching localhost in file $name.")
             val new = patchLocalhost(bytes)
-            file.writeBytes(new)
+            zip[name] = new
             return
         }
         throw IllegalStateException("Unable to find localhost.")
