@@ -64,9 +64,12 @@ jobs:
         if-no-files-found: error
   linux:
     runs-on: ubuntu-24.04
+    container:
+      image: amd64/ubuntu:20.04
+      options: --privileged
     steps:
-    - run: sudo apt update
-    - run: sudo apt install -y gcc-9-aarch64-linux-gnu g++-9-aarch64-linux-gnu
+    - run: apt update
+    - run: DEBIAN_FRONTEND=noninteractive apt install -y gcc-9-aarch64-linux-gnu g++-9-aarch64-linux-gnu g++ cmake git curl fuse file
     - uses: actions/checkout@v4
       with:
         submodules: 'true'
