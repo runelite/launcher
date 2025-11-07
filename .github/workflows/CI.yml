@@ -96,7 +96,7 @@ jobs:
           RuneLite-aarch64.AppImage
         if-no-files-found: error
   macos:
-    runs-on: macos-13
+    runs-on: macos-15-intel
     steps:
     - uses: actions/setup-python@v5
       with:
