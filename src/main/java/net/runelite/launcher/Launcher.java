@@ -496,6 +496,7 @@ public class Launcher
 		HttpRequest bootstrapReq = HttpRequest.newBuilder()
 			.uri(URI.create(LauncherProperties.getBootstrap()))
 			.header("User-Agent", USER_AGENT)
+			.header("Accept-Encoding", "gzip")
 			.GET()
 			.build();
 
@@ -509,7 +510,7 @@ public class Launcher
 
 		try
 		{
-			bootstrapResp = httpClient.send(bootstrapReq, HttpResponse.BodyHandlers.ofByteArray());
+			bootstrapResp = httpClient.send(bootstrapReq, GzipBodyHandler.ofByteArray());
 			bootstrapSigResp = httpClient.send(bootstrapSigReq, HttpResponse.BodyHandlers.ofByteArray());
 		}
 		catch (InterruptedException ex)
