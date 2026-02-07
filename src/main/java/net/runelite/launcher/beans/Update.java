@@ -40,4 +40,5 @@ public class Update
 	private String hash;
 	private int size;
 	private double rollout;
+	private int retry = -1; // hours
 }

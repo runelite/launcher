@@ -483,7 +483,7 @@ class Updater
 
 	private static boolean checkBackoff(LauncherSettings settings, Update update)
 	{
-		var hours = 1 << Math.min(8, settings.lastUpdateAttemptNum); // 256 hours = ~10 days
+		var hours = update.getRetry() > -1 ? update.getRetry() : (1 << Math.min(8, settings.lastUpdateAttemptNum)); // 256 hours = ~10 days
 		if (update.getHash().equals(settings.lastUpdateHash)
 			&& Instant.ofEpochMilli(settings.lastUpdateAttemptTime).isAfter(Instant.now().minus(hours, ChronoUnit.HOURS)))
 		{
