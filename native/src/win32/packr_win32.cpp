@@ -135,8 +135,6 @@ const char* getExecutablePath(const char* argv0) { return argv0; }
 
 bool changeWorkingDir(const char* directory) { return _chdir(directory) == 0; }
 
-void packrSetEnv(const char* key, const char* value) { SetEnvironmentVariable(key, value); }
-
 string acpToUtf8(const char* str) {
     // ACP -> UTF-16
     int len = MultiByteToWideChar(CP_ACP, 0, str, -1, NULL, 0);

@@ -16,7 +16,6 @@
 #include <dlfcn.h>
 #include <limits.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -72,5 +71,3 @@ const char* getExecutablePath(const char* argv0) {
 }
 
 bool changeWorkingDir(const char* directory) { return chdir(directory) == 0; }
-
-void packrSetEnv(const char* key, const char* value) { setenv(key, value, 1); }

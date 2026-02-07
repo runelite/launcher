@@ -16,7 +16,6 @@
 #include <CoreFoundation/CoreFoundation.h>
 #include <dlfcn.h>
 #include <pthread.h>
-#include <stdlib.h>
 #include <sys/param.h>
 #include <unistd.h>
 
@@ -197,5 +196,3 @@ const char* getExecutablePath(const char* argv0) {
 }
 
 bool changeWorkingDir(const char* directory) { return chdir(directory) == 0; }
-
-void packrSetEnv(const char* key, const char* value) { setenv(key, value, 1); }
