@@ -128,14 +128,8 @@ class Updater
 		// launcherSettings have the OptionSet applied to them, so we don't want to write them back to disk.
 		// Load a copy for updating the last update attempt
 		var settings = LauncherSettings.loadSettings();
-		var hours = 1 << Math.min(9, settings.lastUpdateAttemptNum); // 512 hours = ~21 days
-		if (newestUpdate.getHash().equals(settings.lastUpdateHash)
-			&& Instant.ofEpochMilli(settings.lastUpdateAttemptTime).isAfter(Instant.now().minus(hours, ChronoUnit.HOURS)))
+		if (checkBackoff(settings, newestUpdate))
 		{
-			log.info("Previous upgrade attempt to {} was at {} (backoff: {} hours), skipping", newestUpdate.getVersion(),
-				// logback logs are in local time, so use that to match it
-				LocalTime.from(Instant.ofEpochMilli(settings.lastUpdateAttemptTime).atZone(ZoneId.systemDefault())),
-				hours);
 			return;
 		}
 
@@ -332,14 +326,8 @@ class Updater
 		// launcherSettings have the OptionSet applied to them, so we don't want to write them back to disk.
 		// Load a copy for updating the last update attempt
 		var settings = LauncherSettings.loadSettings();
-		var hours = 1 << Math.min(9, settings.lastUpdateAttemptNum); // 512 hours = ~21 days
-		if (newestUpdate.getHash().equals(settings.lastUpdateHash)
-			&& Instant.ofEpochMilli(settings.lastUpdateAttemptTime).isAfter(Instant.now().minus(hours, ChronoUnit.HOURS)))
+		if (checkBackoff(settings, newestUpdate))
 		{
-			log.info("Previous upgrade attempt to {} was at {} (backoff: {} hours), skipping", newestUpdate.getVersion(),
-				// logback logs are in local time, so use that to match it
-				LocalTime.from(Instant.ofEpochMilli(settings.lastUpdateAttemptTime).atZone(ZoneId.systemDefault())),
-				hours);
 			return;
 		}
 
@@ -491,6 +479,21 @@ class Updater
 			log.warn("unable to get install rollout", ex);
 		}
 		return Math.random();
+	}
+
+	private static boolean checkBackoff(LauncherSettings settings, Update update)
+	{
+		var hours = 1 << Math.min(8, settings.lastUpdateAttemptNum); // 256 hours = ~10 days
+		if (update.getHash().equals(settings.lastUpdateHash)
+			&& Instant.ofEpochMilli(settings.lastUpdateAttemptTime).isAfter(Instant.now().minus(hours, ChronoUnit.HOURS)))
+		{
+			log.info("Previous upgrade attempt to {} was at {} (backoff: {} hours), skipping", update.getVersion(),
+				// logback logs are in local time, so use that to match it
+				LocalTime.from(Instant.ofEpochMilli(settings.lastUpdateAttemptTime).atZone(ZoneId.systemDefault())),
+				hours);
+			return true;
+		}
+		return false;
 	}
 
 	// https://stackoverflow.com/a/27917071
