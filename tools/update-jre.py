@@ -51,7 +51,9 @@ def fetch_microsoft_jre(prefix, version, arch, os):
     print(prefix + "LINK=https://aka.ms/download-jdk/microsoft-jdk-" + urlversion + "-" + os + "-" + arch + ".zip")
 
 fetch_jre('WIN64_', ver11, 'x64', 'windows')
-fetch_jre('WIN32_', ver11, 'x86', 'windows')
+# Temurin stopped shipping x86 builds after 11.0.29
+# https://github.com/adoptium/temurin-build/issues/4319
+fetch_jre('WIN32_', '11.0.29+7', 'x86', 'windows')
 fetch_microsoft_jre('WIN_AARCH64_', ver11, 'aarch64', 'windows')
 fetch_jre('MAC_AMD64_', ver17, 'x64', 'mac')
 fetch_jre('MAC_AARCH64_', ver17, 'aarch64', 'mac')
