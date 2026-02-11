@@ -34,7 +34,7 @@ build() {
 
     tar zxf mac_aarch64_jre.tar.gz
     mkdir $APPBASE/Contents/Resources/jre
-    mv jdk-$MAC_AARCH64_VERSION-jre/Contents/Home/* $APPBASE/Contents/Resources/jre
+    mv $MAC_AARCH64_RELEASE-jre/Contents/Home/* $APPBASE/Contents/Resources/jre
 
     echo Setting world execute permissions on RuneLite
     pushd $APPBASE

@@ -5,6 +5,7 @@ import sys
 
 ver11 = sys.argv[1]
 ver17 = sys.argv[2]
+ver21 = sys.argv[3]
 
 def fetch_jre(prefix, version_range, arch, os):
     url = 'https://api.adoptium.net/v3/assets/version/' + urllib.parse.quote(version_range) + '?'
@@ -31,30 +32,18 @@ def fetch_jre(prefix, version_range, arch, os):
     pkg = release[0]["binaries"][0]["package"]
     checksum = pkg["checksum"]
     link = pkg["link"]
-    ver = release[0]["version_data"]["openjdk_version"]
+    ver = release[0]["release_name"]
 
     print("# " + os + " " + arch)
-    print(prefix + "VERSION=" + ver)
+    print(prefix + "RELEASE=" + ver)
     print(prefix + "CHKSUM=" + checksum)
     print(prefix + "LINK=" + link)
-
-def fetch_microsoft_jre(prefix, version, arch, os):
-    urlversion = version.split('+')[0] # build is not included in url
-    url = 'https://aka.ms/download-jdk/microsoft-jdk-' + urlversion + '-' + os + '-' + arch + '.zip.sha256sum.txt'
-    req = urllib.request.Request(url)
-    ctx = urllib.request.urlopen(req)
-    checksum = ctx.read().decode("utf-8")
-    shasum = checksum.split(' ')[0]
-    print("# " + os + " " + arch)
-    print(prefix + "VERSION=" + version)
-    print(prefix + "CHKSUM=" + shasum)
-    print(prefix + "LINK=https://aka.ms/download-jdk/microsoft-jdk-" + urlversion + "-" + os + "-" + arch + ".zip")
 
 fetch_jre('WIN64_', ver11, 'x64', 'windows')
 # Temurin stopped shipping x86 builds after 11.0.29
 # https://github.com/adoptium/temurin-build/issues/4319
 fetch_jre('WIN32_', '11.0.29+7', 'x86', 'windows')
-fetch_microsoft_jre('WIN_AARCH64_', ver11, 'aarch64', 'windows')
+fetch_jre('WIN_AARCH64_', ver21, 'aarch64', 'windows')
 fetch_jre('MAC_AMD64_', ver17, 'x64', 'mac')
 fetch_jre('MAC_AARCH64_', ver17, 'aarch64', 'mac')
 fetch_jre('LINUX_AMD64_', ver11, 'x64', 'linux')

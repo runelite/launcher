@@ -37,7 +37,7 @@ mkdir -p build/linux-x64/usr/share/icons/hicolor/128x128/apps/
 cp appimage/runelite.png build/linux-x64/usr/share/icons/hicolor/128x128/apps/
 
 tar zxf linux64_jre.tar.gz
-mv jdk-$LINUX_AMD64_VERSION-jre build/linux-x64/jre
+mv $LINUX_AMD64_RELEASE-jre build/linux-x64/jre
 
 pushd build/linux-x64/
 mkdir -p jre/lib/amd64/server/
