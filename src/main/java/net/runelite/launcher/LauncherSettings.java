@@ -29,8 +29,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonParseException;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -38,7 +36,10 @@ import java.io.OutputStreamWriter;
 import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.AtomicMoveNotSupportedException;
+import java.nio.file.FileStore;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
+import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.Collections;
 import java.util.List;
@@ -54,7 +55,7 @@ import org.slf4j.helpers.MessageFormatter;
 @Slf4j
 class LauncherSettings
 {
-	private static final String LAUNCHER_SETTINGS = "settings.json";
+	private static final String SETTINGS_FILE_NAME = "settings.json";
 
 	long lastUpdateAttemptTime;
 	String lastUpdateHash;
@@ -164,17 +165,30 @@ class LauncherSettings
 		).getMessage();
 	}
 
+	private static Path launcherSettingsFile() throws IOException
+	{
+		Path settingsFile = Path.of(SETTINGS_FILE_NAME);
+		FileStore fileStore = Files.getFileStore(Path.of(""));
+		// the AppImage is mounted readonly, so we instead place the launcher settings file in RUNELITE_DIR
+		if (fileStore.isReadOnly())
+		{
+			settingsFile = Launcher.RUNELITE_DIR.toPath()
+				.resolve("launcher")
+				.resolve(SETTINGS_FILE_NAME);
+		}
+		return settingsFile;
+	}
+
 	@Nonnull
 	static LauncherSettings loadSettings()
 	{
-		var settingsFile = new File(LAUNCHER_SETTINGS).getAbsoluteFile();
-		try (var in = new InputStreamReader(new FileInputStream(settingsFile), StandardCharsets.UTF_8))
+		try (var in = new InputStreamReader(Files.newInputStream(launcherSettingsFile()), StandardCharsets.UTF_8))
 		{
 			var settings = new Gson()
 				.fromJson(in, LauncherSettings.class);
 			return MoreObjects.firstNonNull(settings, new LauncherSettings());
 		}
-		catch (FileNotFoundException ex)
+		catch (NoSuchFileException ex)
 		{
 			log.debug("unable to load settings, file does not exist");
 			return new LauncherSettings();
@@ -188,11 +202,9 @@ class LauncherSettings
 
 	static void saveSettings(LauncherSettings settings)
 	{
-		var settingsFile = new File(LAUNCHER_SETTINGS).getAbsoluteFile();
-
 		try
 		{
-			File tmpFile = File.createTempFile(LAUNCHER_SETTINGS, "json");
+			File tmpFile = File.createTempFile(SETTINGS_FILE_NAME, "json");
 			Gson gson = new GsonBuilder()
 				.setPrettyPrinting()
 				.create();
@@ -208,20 +220,23 @@ class LauncherSettings
 				// FileChannel.close() frees the lock
 			}
 
+			Path settingsFile = launcherSettingsFile();
+			Files.createDirectories(settingsFile.toAbsolutePath().getParent());
 			try
 			{
-				Files.move(tmpFile.toPath(), settingsFile.toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+				Files.move(tmpFile.toPath(), settingsFile, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
 			}
 			catch (AtomicMoveNotSupportedException ex)
 			{
 				log.debug("atomic move not supported", ex);
-				Files.move(tmpFile.toPath(), settingsFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+				Files.move(tmpFile.toPath(), settingsFile, StandardCopyOption.REPLACE_EXISTING);
 			}
+
+			log.debug("Saved settings to {}", settingsFile);
 		}
 		catch (IOException e)
 		{
 			log.error("unable to save launcher settings!", e);
-			settingsFile.delete();
 		}
 	}
 }
