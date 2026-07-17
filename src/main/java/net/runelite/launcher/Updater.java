@@ -36,6 +36,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
+import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.time.Instant;
 import java.time.LocalTime;
@@ -68,17 +69,118 @@ class Updater
 
 	static void update(Bootstrap bootstrap, LauncherSettings launcherSettings, String[] args)
 	{
-		if (OS.getOs() == OS.OSType.Windows)
+		var update = findAvailableUpdate(bootstrap);
+		if (update == null)
 		{
-			updateWindows(bootstrap, launcherSettings, args);
+			return;
 		}
-		else if (OS.getOs() == OS.OSType.MacOS)
+
+		final boolean noupdate = launcherSettings.isNoupdates();
+		if (noupdate)
 		{
-			updateMacos(bootstrap, launcherSettings, args);
+			log.info("Skipping update {} due to noupdate being set", update.getVersion());
+			return;
+		}
+
+		if (System.getenv("RUNELITE_UPGRADE") != null)
+		{
+			log.info("Skipping update {} due to launching from an upgrade", update.getVersion());
+			return;
+		}
+
+		switch (OS.getOs())
+		{
+			case Windows:
+				updateWindows(update, args);
+				break;
+			case MacOS:
+				updateMacos(update, args);
+				break;
+			case Linux:
+				updateLinux(update, args);
+				break;
 		}
 	}
 
-	private static void updateMacos(Bootstrap bootstrap, LauncherSettings launcherSettings, String[] args)
+	private static void updateLinux(Update newestUpdate, String[] args)
+	{
+		var appimage = System.getenv("APPIMAGE");
+		if (appimage == null)
+		{
+			log.debug("Skipping update check due to not running from appimage");
+			return;
+		}
+
+		log.debug("Running from appimage");
+
+		var settings = LauncherSettings.loadSettings();
+		if (checkBackoff(settings, newestUpdate))
+		{
+			return;
+		}
+
+		// check if rollout allows this update
+		if (newestUpdate.getRollout() > 0. && Math.random() > newestUpdate.getRollout())
+		{
+			log.info("Skipping update {} due to rollout", newestUpdate.getVersion());
+			return;
+		}
+
+		// from here and below the update will be attempted. update settings early so a failed
+		// download counts as an attempt.
+		settings.lastUpdateAttemptTime = System.currentTimeMillis();
+		settings.lastUpdateHash = newestUpdate.getHash();
+		settings.lastUpdateAttemptNum++;
+		LauncherSettings.saveSettings(settings);
+
+		try
+		{
+			log.info("Downloading launcher {} from {}", newestUpdate.getVersion(), newestUpdate.getUrl());
+
+			var file = Files.createTempFile("rlupdate", "AppImage");
+			try (OutputStream fout = Files.newOutputStream(file))
+			{
+				final var name = newestUpdate.getName();
+				final var size = newestUpdate.getSize();
+				try
+				{
+					download(newestUpdate.getUrl(), newestUpdate.getHash(), (completed) ->
+							SplashScreen.stage(.07, 1., null, name, completed, size, true),
+						fout);
+				}
+				catch (VerificationException e)
+				{
+					log.error("unable to verify update", e);
+					file.toFile().delete();
+					return;
+				}
+			}
+
+			// point of no return
+			Path appimagePath = Path.of(appimage);
+			log.debug("Installing new appinage to {}", appimage);
+			var permissions = Files.getPosixFilePermissions(appimagePath);
+			Files.move(file.toAbsolutePath(), appimagePath, StandardCopyOption.REPLACE_EXISTING);
+			Files.setPosixFilePermissions(appimagePath, permissions);
+
+			log.debug("Done! Launching...");
+
+			List<String> launchCmd = new ArrayList<>(args.length + 1);
+			launchCmd.add(appimagePath.toAbsolutePath().toString());
+			launchCmd.addAll(Arrays.asList(args));
+			var pb = new ProcessBuilder(launchCmd);
+			pb.environment().put("RUNELITE_UPGRADE", "1");
+			pb.start();
+
+			System.exit(0);
+		}
+		catch (Exception e)
+		{
+			log.error("error performing upgrade", e);
+		}
+	}
+
+	private static void updateMacos(Update newestUpdate, String[] args)
 	{
 		ProcessHandle current = ProcessHandle.current();
 		var command = current.info().command();
@@ -106,27 +208,6 @@ class Updater
 
 		log.debug("Running from installer");
 
-		var newestUpdate = findAvailableUpdate(bootstrap);
-		if (newestUpdate == null)
-		{
-			return;
-		}
-
-		final boolean noupdate = launcherSettings.isNoupdates();
-		if (noupdate)
-		{
-			log.info("Skipping update {} due to noupdate being set", newestUpdate.getVersion());
-			return;
-		}
-
-		if (System.getenv("RUNELITE_UPGRADE") != null)
-		{
-			log.info("Skipping update {} due to launching from an upgrade", newestUpdate.getVersion());
-			return;
-		}
-
-		// launcherSettings have the OptionSet applied to them, so we don't want to write them back to disk.
-		// Load a copy for updating the last update attempt
 		var settings = LauncherSettings.loadSettings();
 		if (checkBackoff(settings, newestUpdate))
 		{
@@ -272,7 +353,7 @@ class Updater
 		return null;
 	}
 
-	private static void updateWindows(Bootstrap bootstrap, LauncherSettings launcherSettings, String[] args)
+	private static void updateWindows(Update newestUpdate, String[] args)
 	{
 		ProcessHandle current = ProcessHandle.current();
 		if (current.info().command().isEmpty())
@@ -304,27 +385,6 @@ class Updater
 
 		log.debug("Running from installer");
 
-		var newestUpdate = findAvailableUpdate(bootstrap);
-		if (newestUpdate == null)
-		{
-			return;
-		}
-
-		final boolean noupdate = launcherSettings.isNoupdates();
-		if (noupdate)
-		{
-			log.info("Skipping update {} due to noupdate being set", newestUpdate.getVersion());
-			return;
-		}
-
-		if (System.getenv("RUNELITE_UPGRADE") != null)
-		{
-			log.info("Skipping update {} due to launching from an upgrade", newestUpdate.getVersion());
-			return;
-		}
-
-		// launcherSettings have the OptionSet applied to them, so we don't want to write them back to disk.
-		// Load a copy for updating the last update attempt
 		var settings = LauncherSettings.loadSettings();
 		if (checkBackoff(settings, newestUpdate))
 		{
