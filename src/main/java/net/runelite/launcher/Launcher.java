@@ -342,13 +342,6 @@ public class Launcher
 			catch (IOException | VerificationException | CertificateException | SignatureException | InvalidKeyException | NoSuchAlgorithmException ex)
 			{
 				log.error("error fetching bootstrap", ex);
-
-				String extract = CertPathExtractor.extract(ex);
-				if (extract != null)
-				{
-					log.error("untrusted certificate chain: {}", extract);
-				}
-
 				SwingUtilities.invokeLater(() -> FatalErrorDialog.showNetErrorWindow("downloading the bootstrap", ex));
 				return;
 			}
@@ -942,12 +935,6 @@ public class Launcher
 		{
 			throw new VerificationException("Unable to verify resource " + path + " - expected " + hash + " got " + hashCode.toString());
 		}
-	}
-
-	static boolean isJava17()
-	{
-		// 16 has the same module restrictions as 17, so we'll use the 17 settings for it
-		return Runtime.version().feature() >= 16;
 	}
 
 	private static void postInstall(LauncherSettings settings)

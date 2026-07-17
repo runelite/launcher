@@ -140,23 +140,16 @@ class JvmLauncher
 
 	static String[] getJvmArguments(Bootstrap bootstrap)
 	{
-		if (Launcher.isJava17())
+		switch (OS.getOs())
 		{
-			switch (OS.getOs())
-			{
-				case Windows:
-					String[] args = bootstrap.getClientJvm17WindowsArguments();
-					return args != null ? args : bootstrap.getClientJvm17Arguments();
-				case MacOS:
-					args = bootstrap.getClientJvm17MacArguments();
-					return args != null ? args : bootstrap.getClientJvm17Arguments();
-				default:
-					return bootstrap.getClientJvm17Arguments();
-			}
-		}
-		else
-		{
-			return bootstrap.getClientJvm9Arguments();
+			case Windows:
+				String[] args = bootstrap.getClientJvm17WindowsArguments();
+				return args != null ? args : bootstrap.getClientJvm17Arguments();
+			case MacOS:
+				args = bootstrap.getClientJvm17MacArguments();
+				return args != null ? args : bootstrap.getClientJvm17Arguments();
+			default:
+				return bootstrap.getClientJvm17Arguments();
 		}
 	}
 }

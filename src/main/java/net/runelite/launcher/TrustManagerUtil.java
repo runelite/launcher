@@ -37,7 +37,9 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 class TrustManagerUtil
 {
 	private static TrustManager[] loadTrustManagers(String trustStoreType) throws KeyStoreException, NoSuchAlgorithmException
@@ -75,6 +77,7 @@ class TrustManagerUtil
 	{
 		if (OS.getOs() != OS.OSType.Windows)
 		{
+			setupLoggingTrustManager();
 			return;
 		}
 
@@ -124,6 +127,12 @@ class TrustManagerUtil
 			@Override
 			public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException
 			{
+				log.debug("Validating certificate chain:");
+				for (X509Certificate cert : chain)
+				{
+					log.debug("  {}", cert.getSubjectX500Principal().getName());
+				}
+
 				CertificateException exception = null;
 				for (var trustManager : trustManagers)
 				{
@@ -189,6 +198,47 @@ class TrustManagerUtil
 			public X509Certificate[] getAcceptedIssuers()
 			{
 				return new X509Certificate[0];
+			}
+		};
+
+		SSLContext sc = SSLContext.getInstance("TLS");
+		sc.init(null, new TrustManager[]{trustManager}, new SecureRandom());
+		SSLContext.setDefault(sc);
+	}
+
+	private static void setupLoggingTrustManager() throws KeyStoreException, NoSuchAlgorithmException, KeyManagementException
+	{
+		TrustManager[] jreTrustManagers = loadTrustManagers(null);
+
+		if (jreTrustManagers.length != 1 || !(jreTrustManagers[0] instanceof X509TrustManager delegate))
+		{
+			return;
+		}
+
+		var trustManager = new X509TrustManager()
+		{
+			@Override
+			public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException
+			{
+				delegate.checkClientTrusted(chain, authType);
+			}
+
+			@Override
+			public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException
+			{
+				log.debug("Validating certificate chain:");
+				for (X509Certificate cert : chain)
+				{
+					log.debug("  {}", cert.getSubjectX500Principal().getName());
+				}
+
+				delegate.checkServerTrusted(chain, authType);
+			}
+
+			@Override
+			public X509Certificate[] getAcceptedIssuers()
+			{
+				return delegate.getAcceptedIssuers();
 			}
 		};
 

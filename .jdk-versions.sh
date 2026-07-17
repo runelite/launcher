@@ -1,11 +1,11 @@
 # windows x64
-WIN64_RELEASE=jdk-11.0.31+11
-WIN64_CHKSUM=0af0760609eca44502f05e6ab4701eecbf85290f31278dabc41dceddab7237ab
-WIN64_LINK=https://github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.31%2B11/OpenJDK11U-jre_x64_windows_hotspot_11.0.31_11.zip
+WIN64_RELEASE=jdk-17.0.19+10
+WIN64_CHKSUM=79a598e1fbb4e16582d92c4ee22280a3c4d72fd52606e1e46b1223c0fe53b0da
+WIN64_LINK=https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.19%2B10/OpenJDK17U-jre_x64_windows_hotspot_17.0.19_10.zip
 # windows x86
-WIN32_RELEASE=jdk-11.0.29+7
-WIN32_CHKSUM=b747698a05a39391a58b9caac30310275e4e6bd9fef92d6c149cba310d91d2be
-WIN32_LINK=https://github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.29%2B7/OpenJDK11U-jre_x86-32_windows_hotspot_11.0.29_7.zip
+WIN32_RELEASE=jdk-17.0.17+10
+WIN32_CHKSUM=89ece1b874eea3107aee11e0bd3370e3b40e45838786540dfd9f73e03ed3787b
+WIN32_LINK=https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.17%2B10/OpenJDK17U-jre_x86-32_windows_hotspot_17.0.17_10.zip
 # windows aarch64
 WIN_AARCH64_RELEASE=jdk-21.0.11+10
 WIN_AARCH64_CHKSUM=22e2c2b83a7dc5653c938c9a49d87ad52a1faa38f7f3d80a96ceb0795ab99637
@@ -19,10 +19,10 @@ MAC_AARCH64_RELEASE=jdk-17.0.19+10
 MAC_AARCH64_CHKSUM=cef790b404cf168fd1a8a7abc5054fbb442c7d4bfe390cceccfe3f64b9b776a9
 MAC_AARCH64_LINK=https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.19%2B10/OpenJDK17U-jre_aarch64_mac_hotspot_17.0.19_10.tar.gz
 # linux x64
-LINUX_AMD64_RELEASE=jdk-11.0.31+11
-LINUX_AMD64_CHKSUM=a6af3d61851f57eb79ef0189837522329717458bf230ee284da2d26634f1ea3a
-LINUX_AMD64_LINK=https://github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.31%2B11/OpenJDK11U-jre_x64_linux_hotspot_11.0.31_11.tar.gz
+LINUX_AMD64_RELEASE=jdk-17.0.19+10
+LINUX_AMD64_CHKSUM=adb5a2364baa51de1ef91bb9911f5a61d24b045fe1d6647cb8050272a3a8ee75
+LINUX_AMD64_LINK=https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.19%2B10/OpenJDK17U-jre_x64_linux_hotspot_17.0.19_10.tar.gz
 # linux aarch64
-LINUX_AARCH64_RELEASE=jdk-11.0.31+11
-LINUX_AARCH64_CHKSUM=eabe05fb80626ad24db17cf1df137855e77fbacbc83c11aaf243cedd224467de
-LINUX_AARCH64_LINK=https://github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.31%2B11/OpenJDK11U-jre_aarch64_linux_hotspot_11.0.31_11.tar.gz
+LINUX_AARCH64_RELEASE=jdk-17.0.19+10
+LINUX_AARCH64_CHKSUM=aae834297a87736869745be7c1fca3207ea9167c5824f41c88b0ebb2e3ccb9b1
+LINUX_AARCH64_LINK=https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.19%2B10/OpenJDK17U-jre_aarch64_linux_hotspot_17.0.19_10.tar.gz

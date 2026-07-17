@@ -146,7 +146,7 @@ class PackrConfig
 
 	private static String[] getVmArgs(Bootstrap bootstrap)
 	{
-		return Launcher.isJava17() ? getArgsJvm17(bootstrap) : getArgsJvm11(bootstrap);
+		return getArgsJvm17(bootstrap);
 	}
 
 	private static String[] getArgsJvm17(Bootstrap bootstrap)
@@ -161,21 +161,6 @@ class PackrConfig
 				return args != null ? args : bootstrap.getLauncherJvm17Arguments();
 			default:
 				return bootstrap.getLauncherJvm17Arguments();
-		}
-	}
-
-	private static String[] getArgsJvm11(Bootstrap bootstrap)
-	{
-		switch (OS.getOs())
-		{
-			case Windows:
-				String[] args = bootstrap.getLauncherJvm11WindowsArguments();
-				return args != null ? args : bootstrap.getLauncherJvm11Arguments();
-			case MacOS:
-				args = bootstrap.getLauncherJvm11MacArguments();
-				return args != null ? args : bootstrap.getLauncherJvm11Arguments();
-			default:
-				return bootstrap.getLauncherJvm11Arguments();
 		}
 	}
 }

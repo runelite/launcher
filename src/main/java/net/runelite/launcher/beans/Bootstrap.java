@@ -31,15 +31,9 @@ public class Bootstrap
 {
 	private Artifact[] artifacts;
 
-	private String[] clientJvm9Arguments;
-
 	private String[] clientJvm17Arguments;
 	private String[] clientJvm17WindowsArguments;
 	private String[] clientJvm17MacArguments;
-
-	private String[] launcherJvm11WindowsArguments;
-	private String[] launcherJvm11MacArguments;
-	private String[] launcherJvm11Arguments;
 
 	private String[] launcherJvm17WindowsArguments;
 	private String[] launcherJvm17MacArguments;

@@ -35,7 +35,7 @@ repositories {
 }
 
 group = "net.runelite"
-version = "2.7.8-SNAPSHOT"
+version = "2.8.0-SNAPSHOT"
 description = "RuneLite Launcher"
 
 dependencies {
@@ -60,27 +60,12 @@ dependencies {
 
 tasks.withType<JavaCompile> {
     options.encoding = "UTF-8"
-    options.release.set(11)
+    options.release.set(17)
 }
 
 tasks.withType<AbstractArchiveTask>().configureEach {
     isPreserveFileTimestamps = false
     isReproducibleFileOrder = true
-}
-
-sourceSets.create("java8") {
-    java.srcDirs("src/main/java8")
-}
-
-tasks.jar {
-    from(sourceSets["java8"].output)
-    duplicatesStrategy = DuplicatesStrategy.WARN
-}
-
-tasks.getByName<JavaCompile>("compileJava8Java") {
-    options.release.unset()
-    sourceCompatibility = "1.8"
-    targetCompatibility = "1.8"
 }
 
 tasks {
@@ -102,7 +87,6 @@ tasks {
 }
 
 checkstyle {
-    toolVersion = "6.11.2"
     configFile = file("checkstyle.xml")
 }
 
@@ -138,7 +122,6 @@ tasks.register<Copy>("filterOsx") {
 
 tasks.shadowJar {
     from(sourceSets.main.get().output)
-    from(sourceSets.getByName("java8").output)
     minimize {
         exclude(dependency("ch.qos.logback:.*:.*"))
     }

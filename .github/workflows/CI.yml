@@ -13,10 +13,10 @@ jobs:
       with:
         submodules: 'true'
     - run: choco install innosetup --version 6.6.1 --allow-downgrade
-    - name: Set up JDK 11
+    - name: Set up JDK
       uses: actions/setup-java@v5
       with:
-        java-version: 11
+        java-version: 17
         distribution: temurin
         cache: gradle
     - name: build detours x64
@@ -73,10 +73,10 @@ jobs:
     - uses: actions/checkout@v7
       with:
         submodules: 'true'
-    - name: Set up JDK 11
+    - name: Set up JDK
       uses: actions/setup-java@v5
       with:
-        java-version: 11
+        java-version: 17
         distribution: temurin
         cache: gradle
     - name: build
@@ -107,10 +107,10 @@ jobs:
     - uses: actions/checkout@v7
       with:
         submodules: 'true'
-    - name: Set up JDK 11
+    - name: Set up JDK
       uses: actions/setup-java@v5
       with:
-        java-version: 11
+        java-version: 17
         distribution: temurin
         cache: gradle
     - name: build
