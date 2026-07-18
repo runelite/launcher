@@ -23,19 +23,19 @@ jobs:
       shell: cmd
       run: |
         call ci\msvc-env.cmd x64
-        cd detours/src
+        cd liblauncher\detours\src
         nmake
     - name: build detours x86
       shell: cmd
       run: |
         call ci\msvc-env.cmd x86
-        cd detours/src
+        cd liblauncher\detours\src
         nmake
     - name: build detours aarch64
       shell: cmd
       run: |
         call ci\msvc-env.cmd amd64_arm64
-        cd detours/src
+        cd liblauncher\detours\src
         nmake
     - name: build launcher
       run: ./gradlew build -P RUNELITE_BUILD=$env:RUNELITE_PROFILE --no-daemon

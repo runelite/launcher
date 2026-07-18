@@ -1,5 +1,5 @@
 [submodule "detours"]
-	path = detours
+	path = liblauncher/detours
 	url = https://github.com/microsoft/Detours
 [submodule "native/dropt"]
 	path = native/dropt
