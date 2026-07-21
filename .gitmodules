@@ -7,3 +7,6 @@
 [submodule "native/sajson"]
 	path = native/sajson
 	url = https://github.com/chadaustin/sajson
+[submodule "tools/create-dmg"]
+	path = tools/create-dmg
+	url = https://github.com/create-dmg/create-dmg

@@ -2,6 +2,8 @@
 
 set -e
 
+PATH=$PATH:tools/create-dmg
+
 APPBASE="build/macos-x64/RuneLite.app"
 
 build() {
@@ -58,23 +60,20 @@ dmg() {
     SIGNING_IDENTITY="Developer ID Application"
     codesign -f -s "${SIGNING_IDENTITY}" --entitlements osx/signing.entitlements --options runtime $APPBASE || true
 
-    # create-dmg exits with an error code due to no code signing, but is still okay
-    # note we use Adam-/create-dmg as upstream does not support UDBZ
-    create-dmg --format UDBZ $APPBASE . || true
-    mv RuneLite\ *.dmg RuneLite-x64.dmg
+    create-dmg \
+      --volname RuneLite \
+      --volicon osx/runelite.icns \
+      --window-size 660 400 \
+      --icon-size 160 \
+      --icon RuneLite.app 180 170 \
+      --app-drop-link 480 170 \
+      --format ULFO \
+      --filesystem APFS \
+      RuneLite-x64.dmg \
+      $APPBASE
 
     # dump for CI
     hdiutil imageinfo RuneLite-x64.dmg
-
-    if ! hdiutil imageinfo RuneLite-x64.dmg | grep -q "Format: UDBZ" ; then
-        echo "Format of resulting dmg was not UDBZ, make sure your create-dmg has support for --format"
-        exit 1
-    fi
-
-    if ! hdiutil imageinfo RuneLite-x64.dmg | grep -q "Apple_HFS" ; then
-        echo Filesystem of dmg is not Apple_HFS
-        exit 1
-    fi
 
     # Notarize app
     if xcrun notarytool submit RuneLite-x64.dmg --wait --keychain-profile "AC_PASSWORD" ; then
