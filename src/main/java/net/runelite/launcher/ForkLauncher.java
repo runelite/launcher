@@ -24,14 +24,17 @@
  */
 package net.runelite.launcher;
 
+import com.google.common.base.Strings;
 import java.io.File;
 import java.io.IOException;
+import java.lang.management.ManagementFactory;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.launcher.beans.Bootstrap;
 
@@ -76,6 +79,53 @@ class ForkLauncher
 		Map<String, String> jvmProps,
 		List<String> jvmArgs) throws IOException
 	{
+		Path path = launcherExecutable();
+
+		var commands = new ArrayList<>();
+		commands.add(path.toAbsolutePath().toString());
+		commands.add("-c");
+
+		var clientJvmArgs = JvmLauncher.getJvmArguments(bootstrap);
+		if (clientJvmArgs != null)
+		{
+			for (var arg : clientJvmArgs)
+			{
+				commands.add("-J");
+				commands.add(arg);
+			}
+		}
+
+		for (var prop : jvmProps.entrySet())
+		{
+			commands.add("-J");
+			commands.add("-D" + prop.getKey() + "=" + prop.getValue());
+		}
+
+		for (var arg : jvmArgs)
+		{
+			commands.add("-J");
+			commands.add(arg);
+		}
+
+		commands.add("--");
+
+		if (classpath.isEmpty())
+		{
+			throw new RuntimeException("cannot fork launch with an empty classpath");
+		}
+
+		commands.add("--classpath");
+		commands.add(classpathOption(classpath));
+
+		commands.addAll(clientArgs);
+
+		log.debug("Running process: {}", commands);
+
+		var builder = new ProcessBuilder(commands.toArray(new String[0]));
+		builder.start();
+	}
+	static Path launcherExecutable()
+	{
 		ProcessHandle current = ProcessHandle.current();
 		Path path;
 
@@ -103,42 +153,11 @@ class ForkLauncher
 				throw new IllegalStateException("invalid os");
 		}
 
-		var commands = new ArrayList<>();
-		commands.add(path.toAbsolutePath().toString());
-		commands.add("-c");
-		// bootstrap vm args
-		var clientJvmArgs = JvmLauncher.getJvmArguments(bootstrap);
-		if (clientJvmArgs != null)
-		{
-			for (var arg : clientJvmArgs)
-			{
-				commands.add("-J");
-				commands.add(arg);
-			}
-		}
-		// launcher vm props
-		for (var prop : jvmProps.entrySet())
-		{
-			commands.add("-J");
-			commands.add("-D" + prop.getKey() + "=" + prop.getValue());
-		}
-		// launcher vm args
-		for (var arg : jvmArgs)
-		{
-			commands.add("-J");
-			commands.add(arg);
-		}
+		return path;
+	}
 
-		// program arguments
-		commands.add("--");
-
-		if (classpath.isEmpty())
-		{
-			// avoid looping
-			throw new RuntimeException("cannot fork launch with an empty classpath");
-		}
-
-		commands.add("--classpath");
+	static String classpathOption(List<File> classpath)
+	{
 		var sb = new StringBuilder();
 		for (var f : classpath)
 		{
@@ -149,13 +168,60 @@ class ForkLauncher
 
 			sb.append(f.getName());
 		}
-		commands.add(sb.toString());
 
+		return sb.toString();
+	}
+
+	static List<String> relaunchCommand(Path executable, List<String> vmArgs, String classpathOpt,
+		Collection<String> clientArgs)
+	{
+		var commands = new ArrayList<String>();
+		commands.add(executable.toAbsolutePath().toString());
+		commands.add("-c");
+
+		// the -J args launch() passed us are this JVM's input args
+		for (var arg : vmArgs)
+		{
+			commands.add("-J");
+			commands.add(arg);
+		}
+
+		// program arguments
+		commands.add("--");
+		commands.add("--classpath");
+		commands.add(classpathOpt);
 		commands.addAll(clientArgs);
 
-		log.debug("Running process: {}", commands);
+		return commands;
+	}
 
-		var builder = new ProcessBuilder(commands.toArray(new String[0]));
-		builder.start();
+	// The command to launch an additional instance of the client, or null if one can't be determined.
+	@Nullable
+	static List<String> relaunchCommand(String classpathOpt, Collection<String> clientArgs)
+	{
+		if (canForkLaunch())
+		{
+			return relaunchCommand(launcherExecutable(),
+				ManagementFactory.getRuntimeMXBean().getInputArguments(), classpathOpt, clientArgs);
+		}
+		
+		var command = ProcessHandle.current().info().command();
+		var classpath = System.getProperty("java.class.path");
+		if (command.isEmpty() || Strings.isNullOrEmpty(classpath))
+		{
+			log.debug("Unable to build a relaunch command, command={} classpath={}", command, classpath);
+			return null;
+		}
+
+		var commands = new ArrayList<String>();
+		commands.add(command.get());
+		commands.add("-cp");
+		commands.add(classpath);
+		commands.add(Launcher.class.getName());
+		commands.add("--launch-mode");
+		commands.add(LaunchMode.REFLECT.name());
+		commands.addAll(clientArgs);
+
+		return commands;
 	}
 }
