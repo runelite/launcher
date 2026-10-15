@@ -215,9 +215,12 @@ public class Launcher
 					.split(classpathOpt))
 					.map(name -> new File(REPO_DIR, name))
 					.collect(Collectors.toList());
+				var clientArgs = getClientArgs(settings);
+				DockMenu.install(ForkLauncher.relaunchCommand(classpathOpt, clientArgs));
+
 				try
 				{
-					ReflectionLauncher.launch(classpath, getClientArgs(settings));
+					ReflectionLauncher.launch(classpath, clientArgs);
 				}
 				catch (Exception e)
 				{
@@ -434,6 +437,7 @@ public class Launcher
 			if (settings.launchMode == LaunchMode.REFLECT)
 			{
 				log.debug("Using launch mode: REFLECT");
+				DockMenu.install(ForkLauncher.relaunchCommand(ForkLauncher.classpathOption(classpath), clientArgs));
 				ReflectionLauncher.launch(classpath, clientArgs);
 			}
 			else if (settings.launchMode == LaunchMode.FORK || (settings.launchMode == LaunchMode.AUTO && ForkLauncher.canForkLaunch()))
