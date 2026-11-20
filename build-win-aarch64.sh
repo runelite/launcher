@@ -25,6 +25,8 @@ cp liblauncher/buildaarch64/Release/launcher_aarch64.dll build/win-aarch64/
 
 download_jre WIN_AARCH64 win-aarch64_jre.zip build/win-aarch64/jre
 
+update_jre_cacerts WIN64 win64_jre.zip build/win-aarch64/jre
+
 echo RuneLite.exe aarch64 sha256sum
 sha256sum build/win-aarch64/RuneLite.exe
 
