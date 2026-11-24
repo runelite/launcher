@@ -2,3 +2,6 @@
 build
 .idea
 RuneLiteSetup*.exe
+*_jre.tar.gz
+*_jre.zip
+jdk-*-jre
