@@ -14,6 +14,7 @@
  * limitations under the License.
  ******************************************************************************/
 #include <CoreFoundation/CoreFoundation.h>
+#include <CoreGraphics/CoreGraphics.h>
 #include <dlfcn.h>
 #include <pthread.h>
 #include <sys/param.h>
@@ -44,6 +45,14 @@ void* launchVM(void* param) {
 }
 
 int main(int argc, char** argv) {
+    // holding Option while launching opens the configuration window
+    char configureArg[] = "--configure";
+    char* configureArgv[] = {argv[0], configureArg, nullptr};
+    if (CGEventSourceFlagsState(kCGEventSourceStateCombinedSessionState) & kCGEventFlagMaskAlternate) {
+        argc = 2;
+        argv = configureArgv;
+    }
+
     if (!setCmdLineArguments(argc, argv)) {
         return EXIT_FAILURE;
     }
